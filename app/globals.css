@@ -1,0 +1,90 @@
+@import "tailwindcss";
+
+@theme {
+  --color-ink: #0f211a;
+  --color-ink-soft: #2a3d34;
+  --color-muted: #54655b;
+  --color-faint: #7c8c82;
+  --color-ground: #f1f4ef;
+  --color-surface: #ffffff;
+  --color-surface-2: #e9eee7;
+  --color-line: #d6dfd3;
+  --color-line-strong: #b9c7b6;
+  --color-green: #0e5138;
+  --color-green-deep: #0c1d16;
+  --color-green-soft: #dce9e1;
+  --color-bronze: #8f5f18;
+  --color-bronze-light: #a87433;
+  --color-bronze-soft: #f0e6d4;
+  --font-display: "Reem Kufi", "IBM Plex Sans Arabic", sans-serif;
+  --font-body: "IBM Plex Sans Arabic", "Segoe UI", system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--color-ground);
+  color: var(--color-ink);
+  font-family: var(--font-body);
+  line-height: 1.8;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, h4, .display {
+  font-family: var(--font-display);
+  text-wrap: balance;
+  line-height: 1.35;
+}
+
+.num {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  /* عزل الأرقام عن اتجاه النصّ المحيط حتى لا ينقلب ترتيبها في العربية */
+  unicode-bidi: isolate;
+}
+
+/* لبنة: الشكل المتكرّر في الهوية */
+.brick {
+  display: inline-block;
+  width: 26px;
+  height: 13px;
+  border-radius: 2px;
+  background: var(--color-bronze-light);
+}
+
+.brick-pattern {
+  background-image: linear-gradient(#f1f4ef 1px, transparent 1px),
+    linear-gradient(90deg, #f1f4ef 1px, transparent 1px);
+  background-size: 64px 26px;
+  opacity: 0.16;
+  -webkit-mask-image: linear-gradient(to bottom left, #000, transparent 72%);
+  mask-image: linear-gradient(to bottom left, #000, transparent 72%);
+}
+
+input, select, textarea {
+  font-family: inherit;
+}
+
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+input[type="number"] {
+  -moz-appearance: textfield;
+}
+
+*:focus-visible {
+  outline: 2px solid var(--color-green);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}

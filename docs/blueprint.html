@@ -1,0 +1,568 @@
+<title>مخطّط اللَّبنة التقني</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Reem+Kufi:wght@500;600;700&family=IBM+Plex+Sans+Arabic:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+:root{
+  --bg:#F1F4EF; --surface:#FFFFFF; --surface-2:#E9EEE7;
+  --ink:#0F211A; --muted:#54655B; --faint:#7C8C82;
+  --accent:#0E5138; --accent-soft:#DCE9E1; --bronze:#8F5F18; --bronze-soft:#F0E6D4;
+  --line:#D6DFD3; --line-strong:#B9C7B6;
+  --code-bg:#0F211A; --code-ink:#DDE8E0;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0B1310; --surface:#111C17; --surface-2:#16241D;
+    --ink:#E6EDE7; --muted:#9BAFA2; --faint:#7B8E83;
+    --accent:#57B387; --accent-soft:#17352A; --bronze:#D2A45B; --bronze-soft:#2B2417;
+    --line:#22332B; --line-strong:#32473C;
+    --code-bg:#08100D; --code-ink:#CFE0D6;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0B1310; --surface:#111C17; --surface-2:#16241D;
+  --ink:#E6EDE7; --muted:#9BAFA2; --faint:#7B8E83;
+  --accent:#57B387; --accent-soft:#17352A; --bronze:#D2A45B; --bronze-soft:#2B2417;
+  --line:#22332B; --line-strong:#32473C;
+  --code-bg:#08100D; --code-ink:#CFE0D6;
+}
+*{box-sizing:border-box}
+body{
+  direction:rtl; margin:0; background:var(--bg); color:var(--ink);
+  font-family:"IBM Plex Sans Arabic","Segoe UI",system-ui,sans-serif;
+  font-size:16px; line-height:1.85; -webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:900px;margin:0 auto;padding:0 24px 96px}
+h1,h2,h3,h4{font-family:"Reem Kufi","IBM Plex Sans Arabic",sans-serif;font-weight:600;text-wrap:balance;line-height:1.4;margin:0}
+p{margin:0}
+a{color:var(--accent)}
+
+.mast{position:relative;overflow:hidden;background:#0C1D16;color:#EAF2EC;border-bottom:3px solid #A87433}
+.mast::before{
+  content:"";position:absolute;inset:0;opacity:.16;
+  background-image:linear-gradient(#F1F4EF 1px,transparent 1px),linear-gradient(90deg,#F1F4EF 1px,transparent 1px);
+  background-size:64px 26px;
+  -webkit-mask-image:linear-gradient(to bottom left,#000,transparent 72%);
+  mask-image:linear-gradient(to bottom left,#000,transparent 72%);
+}
+.mast-in{position:relative;max-width:900px;margin:0 auto;padding:44px 24px 38px}
+.brand{display:flex;align-items:center;gap:12px;font-family:"Reem Kufi",sans-serif;font-size:15px;letter-spacing:.06em;color:#BFD3C6}
+.brick{display:inline-block;width:26px;height:13px;border-radius:2px;background:#A87433;flex:none}
+.mast h1{font-size:clamp(30px,5.4vw,46px);margin:18px 0 10px;color:#fff}
+.mast .lede{color:#B9CDBF;max-width:62ch;font-weight:300}
+.meta{display:flex;flex-wrap:wrap;gap:8px 10px;margin-top:26px;font-family:"IBM Plex Mono",monospace;font-size:12px}
+.meta span{border:1px solid #2C4437;padding:5px 10px;border-radius:3px;color:#9FBBAB}
+.meta span b{color:#EAF2EC;font-weight:500}
+
+section{margin-top:56px;scroll-margin-top:20px}
+.sec-head{display:flex;align-items:baseline;gap:12px;border-bottom:1px solid var(--line-strong);padding-bottom:10px;margin-bottom:22px}
+.sec-num{font-family:"IBM Plex Mono",monospace;font-size:13px;color:var(--bronze);font-weight:500;flex:none}
+.sec-head h2{font-size:clamp(20px,3vw,25px)}
+h3{font-size:17px;margin:30px 0 10px}
+.lead{color:var(--muted);max-width:68ch}
+.stack{display:flex;flex-direction:column;gap:20px}
+
+.toc{background:var(--surface);border:1px solid var(--line);border-radius:4px;padding:18px 22px;margin-top:34px}
+.toc ol{margin:0;padding:0;list-style:none;columns:2;column-gap:32px;font-size:14.5px}
+.toc li{break-inside:avoid;padding:3px 0}
+.toc a{text-decoration:none;color:var(--ink);border-bottom:1px solid transparent}
+.toc a:hover,.toc a:focus-visible{border-bottom-color:var(--accent);color:var(--accent)}
+.toc .n{font-family:"IBM Plex Mono",monospace;font-size:12px;color:var(--faint);margin-left:8px}
+@media(max-width:620px){.toc ol{columns:1}}
+
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:4px;padding:20px 22px}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px}
+.grid3{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:14px}
+.panel h4{margin:0 0 6px;font-size:15.5px}
+.panel p{color:var(--muted);font-size:14.5px;line-height:1.75}
+.kicker{font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.1em;color:var(--bronze);text-transform:uppercase;display:block;margin-bottom:8px}
+
+ul.list{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:8px}
+ul.list li{position:relative;padding-right:20px;color:var(--muted);font-size:15px}
+ul.list li::before{content:"";position:absolute;right:0;top:.75em;width:11px;height:6px;border-radius:1px;background:var(--bronze)}
+ul.list li b,ul.list li strong{color:var(--ink);font-weight:600}
+
+.tw{overflow-x:auto;border:1px solid var(--line);border-radius:4px;background:var(--surface)}
+table{border-collapse:collapse;width:100%;min-width:480px;font-size:14.5px}
+th,td{text-align:right;padding:10px 14px;border-bottom:1px solid var(--line);vertical-align:top}
+thead th{background:var(--surface-2);font-weight:600;font-size:13px;color:var(--ink);white-space:nowrap}
+tbody tr:last-child td{border-bottom:0}
+td.num,th.num{font-family:"IBM Plex Mono",monospace;font-variant-numeric:tabular-nums;white-space:nowrap}
+caption{caption-side:bottom;text-align:right;padding:10px 14px;color:var(--faint);font-size:13px}
+
+pre{direction:ltr;text-align:left;background:var(--code-bg);color:var(--code-ink);padding:18px 20px;border-radius:4px;overflow-x:auto;margin:0;
+  font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:13px;line-height:1.7;border:1px solid var(--line)}
+code{font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:.92em;background:var(--surface-2);padding:1px 5px;border-radius:3px;direction:ltr;display:inline-block}
+.formula{background:var(--surface);border:1px solid var(--line);border-right:3px solid var(--bronze);border-radius:4px;padding:14px 18px;
+  font-family:"IBM Plex Mono",monospace;direction:ltr;text-align:left;font-size:14px;line-height:2;overflow-x:auto}
+
+.pill{display:inline-block;font-family:"IBM Plex Mono",monospace;font-size:11.5px;padding:2px 8px;border-radius:3px;border:1px solid var(--line-strong);color:var(--muted);white-space:nowrap}
+.pill.in{background:var(--accent-soft);border-color:transparent;color:var(--accent)}
+.pill.out{background:transparent;color:var(--faint)}
+.pill.b{background:var(--bronze-soft);border-color:transparent;color:var(--bronze)}
+
+.road{display:flex;flex-direction:column;border:1px solid var(--line);border-radius:4px;overflow:hidden;background:var(--surface)}
+.step{display:grid;grid-template-columns:104px 1fr;gap:18px;padding:16px 20px;border-bottom:1px solid var(--line)}
+.step:last-child{border-bottom:0}
+.step .w{font-family:"IBM Plex Mono",monospace;font-size:12.5px;color:var(--bronze);padding-top:4px;font-variant-numeric:tabular-nums}
+.step h4{margin:0 0 4px;font-size:15.5px}
+.step p{color:var(--muted);font-size:14.5px;margin:0;line-height:1.75}
+@media(max-width:560px){.step{grid-template-columns:1fr;gap:2px}}
+
+.note{background:var(--bronze-soft);border-radius:4px;padding:16px 20px;font-size:14.5px;line-height:1.8}
+.note b{font-weight:600}
+footer{margin-top:64px;padding-top:22px;border-top:1px solid var(--line);color:var(--faint);font-size:13.5px;display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
+:focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:2px}
+</style>
+
+<header class="mast">
+  <div class="mast-in">
+    <div class="brand"><span class="brick"></span> اللَّبنة للبناء والإعمار · ALLABINA</div>
+    <h1>المخطّط التقني للنسخة التجريبية</h1>
+    <p class="lede">وثيقة مرجعية واحدة لبناء النسخة الأولى من المنصة: النطاق، المعمارية، مخطّط قاعدة البيانات، خوارزمية تنقيط الحريف، محاكي التمويل، لوحة القيادة، وخطة تنفيذ في ستة أسابيع.</p>
+    <div class="meta">
+      <span>النسخة <b>0.1</b></span>
+      <span>التاريخ <b>2026-09-02</b></span>
+      <span>الحالة <b>منفَّذة — قيد التجربة</b></span>
+      <span>اللغات <b>عربي · Français</b></span>
+      <span>الولاية الأولى <b>صفاقس</b></span>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+
+<nav class="toc" aria-label="محتويات الوثيقة">
+  <ol>
+    <li><a href="#s1"><span class="n">01</span>نطاق النسخة التجريبية</a></li>
+    <li><a href="#s2"><span class="n">02</span>المعمارية التقنية</a></li>
+    <li><a href="#s3"><span class="n">03</span>مخطّط قاعدة البيانات</a></li>
+    <li><a href="#s4"><span class="n">04</span>نظام تنقيط الحريف</a></li>
+    <li><a href="#s5"><span class="n">05</span>محاكي التمويل</a></li>
+    <li><a href="#s6"><span class="n">06</span>الشاشات ورحلة الحريف</a></li>
+    <li><a href="#s7"><span class="n">07</span>لوحة القيادة</a></li>
+    <li><a href="#s8"><span class="n">08</span>الأمان وحماية المعطيات</a></li>
+    <li><a href="#s9"><span class="n">09</span>خطة التنفيذ</a></li>
+    <li><a href="#s10"><span class="n">10</span>مؤشرات النجاح</a></li>
+    <li><a href="#s11"><span class="n">11</span>قرارات في انتظارك</a></li>
+  </ol>
+</nav>
+
+<section id="s1">
+  <div class="sec-head"><span class="sec-num">01</span><h2>نطاق النسخة التجريبية</h2></div>
+  <p class="lead">هدف النسخة الأولى ليس عرض كلّ ما ستقدّمه اللَّبنة، بل إثبات فرضية واحدة: <b>المواطن التونسي مستعدّ لتسجيل مطلب سكن مفصّل يشمل قدرته المالية، وهذه المطالب قابلة للتصنيف والاستغلال.</b> كلّ ميزة لا تخدم هذه الفرضية تُؤجَّل.</p>
+  <div class="grid2" style="margin-top:20px">
+    <div class="panel">
+      <span class="kicker">داخل النطاق</span>
+      <ul class="list">
+        <li><b>الصفحة التعريفية</b> — الهوية، الخدمات، دعوة واضحة لتسجيل المطلب.</li>
+        <li><b>استمارة طلب السكن</b> — خمس خطوات، أربعة مسارات: نبني فوق أرضي، أرض ودار، شقة، كراء مملّك.</li>
+        <li><b>قاعدة البيانات</b> — Supabase / Postgres بمخطّط كامل و RLS.</li>
+        <li><b>تنقيط الحريف</b> — خوارزمية شفّافة من 100 نقطة وأربعة أصناف.</li>
+        <li><b>محاكي التمويل</b> — القسط، القرض الأقصى، الميزانية الجملية.</li>
+        <li><b>لوحة القيادة</b> — المطالب، الفلاتر، المؤشرات، تصدير CSV.</li>
+        <li><b>صفحة تتبّع</b> — الحريف يتابع مطلبه برمز ورقم هاتف.</li>
+      </ul>
+    </div>
+    <div class="panel">
+      <span class="kicker">خارج النطاق — المرحلة الثانية</span>
+      <ul class="list">
+        <li>المساعد الصوتي (مؤجَّل بقرارك).</li>
+        <li>فضاء المستثمر وفضاء المهنيين.</li>
+        <li>المطابقة الآلية بين المطالب والمشاريع.</li>
+        <li>متابعة الأشغال والدفعات والعقود.</li>
+        <li>حسابات الحرفاء وتسجيل الدخول بـ OTP.</li>
+        <li>رفع الوثائق (بطاقة التعريف، الشهادة في العمل).</li>
+        <li>التكامل المباشر مع البنوك.</li>
+      </ul>
+    </div>
+  </div>
+  <div class="note" style="margin-top:16px"><b>مبدأ حاكم:</b> في المرحلة الأولى لا يوجد حساب للحريف. يملأ الاستمارة، يتحصّل على رمز مطلب مثل <code>LB-2026-000412</code>، ويتابع به. هذا يرفع نسبة إتمام الاستمارة ويحذف كلفة الـ SMS والـ OTP من البداية.</div>
+
+  <h3>الولاية الأولى: صفاقس</h3>
+  <p class="lead">قرار مصادق عليه. الاستمارة تقبل كلّ الولايات — لا نغلق الباب أمام مطلب من قابس أو المهدية — لكنّ المعالجة والاتصال والحملة الأولى تقتصر على صفاقس. مطالب خارجها تُسجَّل بحالة <code>on_hold</code> وتبقى ذخيرة لخريطة الطلب الوطنية.</p>
+  <div class="grid3" style="margin-top:14px">
+    <div class="panel"><h4>مرجع المعتمديات</h4><p>يُعبَّأ بمعتمديات صفاقس الستّ عشرة فقط. بقيّة الولايات تُسجَّل باسم الولاية دون معتمدية إلى حين التوسّع.</p></div>
+    <div class="panel"><h4>التونسيون بالخارج</h4><p>حقل <code>is_expat</code> يفعّل مساراً خاصاً: رقم هاتف بمفتاح دولي، سؤال عن أفق العودة، وتفضيل توقيت الاتصال. الجالية الصفاقسية بالخارج فرضية طلب تستحقّ الاختبار من الأسبوع الأوّل، لا التأجيل.</p></div>
+    <div class="panel"><h4>الأسعار المرجعية</h4><p>جدول أسعار لصفاقس وحدها: أرض · بناء · شقة، بثلاثة نطاقات (المدينة، الضاحية، الأرياف). أقلّ مجهود بيانات ممكن لتشغيل المحاكي بمصداقية.</p></div>
+  </div>
+</section>
+
+<section id="s2">
+  <div class="sec-head"><span class="sec-num">02</span><h2>المعمارية التقنية</h2></div>
+  <p class="lead">اختيار بسيط ومتين: إطار واحد يخدم الواجهة والخادم معاً، وقاعدة بيانات مُدارة موجودة أصلاً في المشروع.</p>
+  <div class="tw" style="margin-top:18px">
+    <table>
+      <thead><tr><th>الطبقة</th><th>الاختيار</th><th>السبب</th></tr></thead>
+      <tbody>
+        <tr><td>الواجهة والخادم</td><td>Next.js 15 (App Router) + TypeScript</td><td>صفحات ثابتة سريعة للتعريف، و Server Actions للكتابة الآمنة، ونشر بضغطة واحدة.</td></tr>
+        <tr><td>التنسيق</td><td>Tailwind CSS بدعم RTL</td><td>هوية موحّدة (أخضر داكن وبرونزي) دون ملفّات CSS متشعّبة.</td></tr>
+        <tr><td>الخطوط</td><td>IBM Plex Sans Arabic + Reem Kufi</td><td>قراءة مريحة للعربية وعناوين ذات طابع معماري.</td></tr>
+        <tr><td>قاعدة البيانات</td><td>Supabase — Postgres</td><td>مهيّأة أصلاً في المشروع (<code>eu-west-1</code>) مع RLS و Storage و Auth جاهزة للمرحلة الثانية.</td></tr>
+        <tr><td>التحقّق من المدخلات</td><td>Zod — مخطّط مشترك</td><td>نفس قواعد التحقّق في المتصفّح وفي الخادم، بلا ازدواجية.</td></tr>
+        <tr><td>لوحة القيادة</td><td>مسار <code>/admin</code> محمي بـ Supabase Auth</td><td>لا حاجة لتطبيق منفصل في هذه المرحلة.</td></tr>
+        <tr><td>الاستضافة</td><td>Vercel + نطاق خاص</td><td>نشر تلقائي، شهادة SSL، ومعاينة لكلّ تعديل قبل النشر.</td></tr>
+        <tr><td>التحليلات</td><td>Vercel Analytics أو Plausible</td><td>بلا كوكيز تتبّع — أبسط من ناحية حماية المعطيات.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>قاعدة معمارية لا يُحاد عنها</h3>
+  <p class="lead">المتصفّح <b>لا يكتب</b> في قاعدة البيانات مباشرة. كلّ إدراج يمرّ عبر Server Action على الخادم: هو الذي يتحقّق من المدخلات، ويحسب التنقيط، ويولّد رمز المطلب. لو تُرك الحساب للمتصفّح لأمكن لأيّ شخص أن يمنح نفسه تنقيط <span class="pill in">A</span>.</p>
+  <pre>app/
+├─ (site)/page.tsx              الصفحة التعريفية
+├─ (site)/demande/page.tsx      الاستمارة — 5 خطوات
+├─ (site)/simulateur/page.tsx   محاكي التمويل
+├─ (site)/suivi/page.tsx        تتبّع المطلب بالرمز
+├─ admin/                       لوحة القيادة (محمية)
+└─ actions/submit-request.ts    Server Action: تحقّق + تنقيط + إدراج
+lib/
+├─ scoring.ts                   خوارزمية التنقيط — دوال صافية + اختبارات
+├─ finance.ts                   حساب القسط والقرض الأقصى
+├─ schema.ts                    مخطّطات Zod
+└─ supabase/{client,server}.ts  عميل المتصفّح (anon) وعميل الخادم (service_role)
+supabase/migrations/            ملفّات SQL مرقّمة</pre>
+</section>
+
+<section id="s3">
+  <div class="sec-head"><span class="sec-num">03</span><h2>مخطّط قاعدة البيانات</h2></div>
+  <p class="lead">أحد عشر جدولاً، ستّة منها فقط ضرورية للإطلاق. الفصل بين المطلب والملفّ المالي والتنقيط مقصود: المطلب يبقى كما صرّح به الحريف، والتنقيط قابل لإعادة الحساب بنسخة خوارزمية جديدة دون المساس بالمعطيات الأصلية.</p>
+
+  <div class="tw" style="margin-top:18px">
+    <table>
+      <thead><tr><th>الجدول</th><th>الدور</th><th>المرحلة</th></tr></thead>
+      <tbody>
+        <tr><td><code>housing_requests</code></td><td>المطلب: الهوية، المكان، نوع الطلب، المساحة، الأفق الزمني، الحالة.</td><td><span class="pill in">MVP</span></td></tr>
+        <tr><td><code>financial_profiles</code></td><td>الدخل، التسبقة، القسط الممكن، القروض الجارية، نوع التشغيل.</td><td><span class="pill in">MVP</span></td></tr>
+        <tr><td><code>scores</code></td><td>نتيجة التنقيط، الصنف، تفصيل النقاط، رقم نسخة الخوارزمية.</td><td><span class="pill in">MVP</span></td></tr>
+        <tr><td><code>request_events</code></td><td>سجلّ تغيّر الحالات ومن قام به — أثر كامل للتدقيق.</td><td><span class="pill in">MVP</span></td></tr>
+        <tr><td><code>governorates</code> · <code>delegations</code></td><td>مرجع الولايات والمعتمديات.</td><td><span class="pill in">MVP</span></td></tr>
+        <tr><td><code>price_references</code></td><td>سعر المتر المربّع التقريبي حسب الولاية ونوع المنتج — يغذّي المحاكي.</td><td><span class="pill in">MVP</span></td></tr>
+        <tr><td><code>request_land</code></td><td>تفاصيل الأرض: المساحة، الوضعية العقارية، الربط بالشبكات، رخصة البناء.</td><td><span class="pill b">مسار البناء</span></td></tr>
+        <tr><td><code>companies</code> · <code>projects</code> · <code>project_units</code></td><td>الباعثون والمشاريع والنماذج المعروضة.</td><td><span class="pill out">مرحلة 2</span></td></tr>
+        <tr><td><code>imadas</code></td><td>العمادات: المستوى الثالث تحت المعتمدية. تُملأ من قائمة وزارة الداخلية عبر الـBack-office.</td><td><span class="pill in">MVP</span></td></tr>
+        <tr><td><code>financing_products</code></td><td>صيغ التمويل المرجعية مع المصدر وتاريخ التثبّت.</td><td><span class="pill in">MVP</span></td></tr>
+        <tr><td><code>request_interactions</code></td><td>أسئلة الحريف ومشاكله واعتراضاته وطلباته الخاصّة، مع الجواب وحالة الغلق.</td><td><span class="pill in">MVP</span></td></tr>
+        <tr><td><code>request_documents</code></td><td>الوثائق المتوفّرة لكل ملفّ (تسجيل التوفّر، بلا رفع ملفّات في هذه المرحلة).</td><td><span class="pill in">MVP</span></td></tr>
+        <tr><td><code>matches</code> · <code>appointments</code></td><td>المطابقة والمواعيد.</td><td><span class="pill out">مرحلة 2</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>الأنواع والجداول الأساسية</h3>
+  <pre>-- 0001_init.sql
+create type request_type    as enum ('build_on_land','land_and_house','apartment','economic','rent_to_own');
+create type request_status  as enum ('new','contacted','qualified','matched','appointment','contract','on_hold','rejected');
+create type employment_type as enum ('public','private','self_employed','informal','retired','expat','other');
+create type score_band      as enum ('A','B','C','D');
+
+create table housing_requests (
+  id              uuid primary key default gen_random_uuid(),
+  ref_code        text unique not null,             -- LB-2026-000412
+  full_name       text not null,
+  phone           text not null,                    -- +216XXXXXXXX
+  email           text,
+  gov_code        text not null references governorates(code),
+  delegation_id   int  references delegations(id),
+  request_type    request_type not null,
+  desired_area_m2 int  check (desired_area_m2 between 40 and 400),
+  bedrooms        smallint check (bedrooms between 1 and 6),
+  horizon         text check (horizon in ('now','6m','12m','24m')),
+  owns_land       boolean not null default false,
+  status          request_status not null default 'new',
+  consent_at      timestamptz not null,             -- موافقة صريحة على معالجة المعطيات
+  source          text default 'web',
+  notes           text,
+  created_at      timestamptz not null default now(),
+  updated_at      timestamptz not null default now()
+);
+create index on housing_requests (gov_code, request_type, status);
+create index on housing_requests (created_at desc);
+
+create table financial_profiles (
+  request_id         uuid primary key references housing_requests(id) on delete cascade,
+  monthly_income_tnd numeric(10,2) not null check (monthly_income_tnd >= 0),
+  spouse_income_tnd  numeric(10,2) default 0,
+  other_income_tnd   numeric(10,2) default 0,
+  existing_loans_tnd numeric(10,2) default 0,       -- مجموع الأقساط الجارية
+  down_payment_tnd   numeric(12,2) default 0,       -- التسبقة المتوفّرة
+  max_monthly_tnd    numeric(10,2),                 -- القسط المصرّح بالقدرة عليه
+  employment         employment_type not null,
+  seniority_months   int default 0,
+  is_expat           boolean default false,
+  created_at         timestamptz not null default now()
+);
+
+create table scores (
+  id             uuid primary key default gen_random_uuid(),
+  request_id     uuid not null references housing_requests(id) on delete cascade,
+  total          smallint not null check (total between 0 and 100),
+  band           score_band not null,
+  breakdown      jsonb not null,                    -- النقاط حسب كلّ معيار
+  max_loan_tnd   numeric(12,2),                     -- القرض الأقصى التقديري
+  max_budget_tnd numeric(12,2),                     -- الميزانية الجملية التقديرية
+  algo_version   text not null default 'v1',
+  computed_at    timestamptz not null default now()
+);
+create index on scores (request_id, computed_at desc);</pre>
+
+  <h3>سياسات RLS</h3>
+  <p class="lead">القاعدة صريحة: لا أحد يقرأ من المتصفّح. المفتاح العلني (<code>anon</code>) لا يملك أيّ صلاحية على جداول المطالب، والقراءة والكتابة تمرّان حصراً عبر الخادم.</p>
+  <pre>alter table housing_requests   enable row level security;
+alter table financial_profiles enable row level security;
+alter table scores             enable row level security;
+alter table request_events     enable row level security;
+-- لا سياسات لدور anon: كلّ نفاذ من المتصفّح مرفوض ضمنياً
+
+-- لوحة القيادة: فقط المستعملون المسجّلون في جدول staff
+create policy staff_read on housing_requests for select to authenticated
+  using (exists (select 1 from staff s where s.user_id = auth.uid() and s.active));</pre>
+
+  <h3>الجغرافيا متسلسلة: ولاية ← معتمدية ← عمادة ← موقع الأرض</h3>
+  <p class="lead">كلّ مستوى جدول مستقلّ مرتبط بما فوقه، والمطلب يحمل الثلاثة مع وصف حرّ لموقع الأرض (حيّ، نهج، معلم قريب) وخانتين للإحداثيات لاحقاً. هكذا تخرج الإحصائيات على أيّ مستوى: عدد المطالب في عقارب أو ساقية الزيت أو المحرس، والمساحات والميزانيات المطلوبة في كلّ واحدة.</p>
+  <p class="lead" style="margin-top:10px">معتمديات صفاقس الستّ عشرة مسجّلة حسب تقسيم وزارة الداخلية. <b>العمادات تُلصق من القائمة الرسمية عبر الـBack-office</b> — المنصة لا تولّد أسماء عمادات، لأنّ اسماً مخترعاً في قائمة يظهر للحريف الصفاقسي من أوّل شاشة.</p>
+
+  <h3>بيانات الانطلاق — صفاقس</h3>
+  <p class="lead">أوّل migration بعد المخطّط. الأسعار تُترك فارغة عمداً: المحاكي لا يشتغل قبل أن يُدخل فريقك أرقاماً يقف وراءها، ورقم مخترَع أخطر من غياب الرقم.</p>
+  <pre>-- 0002_seed_sfax.sql
+insert into governorates (code, name_ar, name_fr) values ('SFX','صفاقس','Sfax');
+
+insert into delegations (gov_code, name_ar) values
+  ('SFX','صفاقس المدينة'), ('SFX','صفاقس الغربية'), ('SFX','صفاقس الجنوبية'),
+  ('SFX','ساقية الزيت'),   ('SFX','ساقية الداير'),  ('SFX','الطينة'),
+  ('SFX','القرمدة'),       ('SFX','العامرة'),       ('SFX','الحنشة'),
+  ('SFX','منزل شاكر'),     ('SFX','جبنيانة'),       ('SFX','البطان'),
+  ('SFX','عقارب'),         ('SFX','المحرس'),        ('SFX','الغريبة'),
+  ('SFX','قرقنة');
+
+create table price_references (
+  id               serial primary key,
+  gov_code         text not null references governorates(code),
+  zone             text check (zone in ('city','suburb','rural')),
+  product          text not null check (product in ('land','construction','apartment','house')),
+  price_per_m2_tnd numeric(10,2),          -- null = غير معبّأ بعد
+  source           text,                   -- من أين جاء الرقم ومتى
+  updated_at       timestamptz default now(),
+  unique (gov_code, zone, product)
+);
+
+insert into price_references (gov_code, zone, product) values
+  ('SFX','city','apartment'),   ('SFX','suburb','apartment'),
+  ('SFX','city','land'),        ('SFX','suburb','land'),  ('SFX','rural','land'),
+  ('SFX','city','construction'),('SFX','suburb','construction');</pre>
+  <div class="note" style="margin-top:16px"><b>الحالة:</b> المخطّط والبيانات <b>مطبَّقان فعلاً</b> على مشروع Supabase الجديد (<code>ALLABINA Project</code>، Frankfurt): عشرة جداول، RLS مفعّل على كلّها، 24 ولاية و16 معتمدية لصفاقس، وأسعار وإعدادات فارغة في انتظار التعبئة. الملفّات في <code>supabase/migrations/</code> وتُطبَّق بـ <code>node scripts/apply-migrations.mjs</code>.</div>
+  <div class="note" style="margin-top:12px"><b>تثبّت مطلوب:</b> قائمة المعتمديات أعلاه للمراجعة من فريقك — التقسيم الإداري يتغيّر، والخطأ فيه يظهر مباشرة للحريف الصفاقسي ويضرب المصداقية من أوّل شاشة.</div>
+</section>
+
+<section id="s4">
+  <div class="sec-head"><span class="sec-num">04</span><h2>نظام تنقيط الحريف</h2></div>
+  <p class="lead">التنقيط ليس حكماً على الشخص، بل ترتيب للمطالب حسب جاهزيتها للتنفيذ اليوم. يجب أن يبقى شفّافاً وقابلاً للشرح للحريف وللبنك على حدّ سواء: كلّ نقطة لها سبب مكتوب في <code>breakdown</code>.</p>
+
+  <div class="tw" style="margin-top:18px">
+    <table>
+      <thead><tr><th>المعيار</th><th class="num">الوزن</th><th>طريقة الاحتساب</th></tr></thead>
+      <tbody>
+        <tr><td>القدرة على السداد</td><td class="num">30</td><td>نسبة القسط المتاح إلى القسط المطلوب. القسط المتاح = سقف نسبة الاستدانة × الدخل الصافي − الأقساط الجارية.</td></tr>
+        <tr><td>التسبقة (المساهمة الذاتية)</td><td class="num">25</td><td>نسبة التسبقة من الميزانية المستهدفة: 25% فما فوق نقطة كاملة، أقلّ من 10% صفر.</td></tr>
+        <tr><td>استقرار الدخل</td><td class="num">15</td><td>نوع التشغيل والأقدمية: وظيفة عمومية أو خاصة قارّة بأقدمية تفوق 24 شهراً في الأعلى.</td></tr>
+        <tr><td>اكتمال الملفّ وجدّيته</td><td class="num">12</td><td>الحقول المعبّأة، صحّة رقم الهاتف، الردّ على مكالمة التثبّت.</td></tr>
+        <tr><td>الأفق الزمني</td><td class="num">10</td><td>فوري 10 · ستة أشهر 8 · سنة 5 · سنتان 2.</td></tr>
+        <tr><td>أرض على الملك أو مساهمة عينية</td><td class="num">8</td><td>أرض صالحة للبناء: 8 · أرض في طور التسوية: 4.</td></tr>
+      </tbody>
+      <caption>المجموع 100 نقطة — نسخة الخوارزمية <code>v1</code>، تُراجَع أوزانها بعد أوّل مئة مطلب حقيقي.</caption>
+    </table>
+  </div>
+
+  <h3>الأصناف والمعالجة</h3>
+  <div class="tw">
+    <table>
+      <thead><tr><th class="num">الصنف</th><th class="num">النقاط</th><th>القراءة</th><th>الإجراء</th></tr></thead>
+      <tbody>
+        <tr><td class="num"><b>A</b></td><td class="num">80 – 100</td><td>جاهز للتمويل والتعاقد.</td><td>اتّصال خلال 48 ساعة وعرض مباشر.</td></tr>
+        <tr><td class="num"><b>B</b></td><td class="num">65 – 79</td><td>قابل للتمويل بتعديل التسبقة أو المدّة.</td><td>محاكاة ثانية ومرافقة بنكية.</td></tr>
+        <tr><td class="num"><b>C</b></td><td class="num">45 – 64</td><td>يحتاج ادخاراً أو مراجعة للمساحة أو المنطقة.</td><td>عرض بديل أصغر مع خطّة ادخار.</td></tr>
+        <tr><td class="num"><b>D</b></td><td class="num">أقلّ من 45</td><td>غير مؤهّل حالياً بالمعطيات المصرّح بها.</td><td>يبقى في قاعدة الطلب ويُعاد تقييمه لاحقاً.</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="note" style="margin-top:16px"><b>قاعدة اتصال:</b> الصنف لا يُعرض للحريف بهذه الحروف. ما يراه رسالة مفيدة: «حسب معطياتك، ميزانيتك التقديرية 142 000 د.ت وقسط شهري في حدود 780 د.ت». الحروف تبقى داخلية للوحة القيادة.</div>
+</section>
+
+<section id="s5">
+  <div class="sec-head"><span class="sec-num">05</span><h2>محاكي التمويل</h2></div>
+  <p class="lead">دوال حسابية صافية في <code>lib/finance.ts</code>، مغطّاة باختبارات، ومستعملة في مكانين: المحاكي العلني وحساب التنقيط في الخادم — نفس الكود، فلا تناقض بين ما يراه الحريف وما تراه لوحة القيادة.</p>
+
+  <div class="stack" style="margin-top:18px">
+    <div>
+      <h3 style="margin-top:0">القسط الشهري</h3>
+      <div class="formula">M = C × i / (1 − (1 + i)^−n)<br>i = (نسبة الفائدة السنوية) / 12 · n = عدد الأشهر · C = مبلغ القرض</div>
+    </div>
+    <div>
+      <h3 style="margin-top:0">القسط الأقصى والميزانية</h3>
+      <div class="formula">M_max = سقف الاستدانة × الدخل الصافي − الأقساط الجارية<br>C_max = M_max × (1 − (1 + i)^−n) / i<br>الميزانية = C_max + التسبقة − مصاريف التسجيل والتسجيل العقاري</div>
+    </div>
+  </div>
+
+  <div class="grid3" style="margin-top:18px">
+    <div class="panel"><span class="kicker">إعدادات قابلة للضبط</span><p>نسبة الفائدة المرجعية، سقف نسبة الاستدانة، المدّة القصوى، نسبة مصاريف التسجيل، والتأمين. تُخزَّن في جدول إعدادات لا في الكود، ليعدّلها المسؤول دون نشر جديد.</p></div>
+    <div class="panel"><span class="kicker">المخرجات</span><p>القسط الشهري، القرض الأقصى، الميزانية الجملية، والمساحة الممكنة في الولاية المختارة انطلاقاً من <code>price_references</code>.</p></div>
+    <div class="panel"><span class="kicker">تنبيه إلزامي</span><p>يُعرض تحت كلّ نتيجة: «تقدير إرشادي لا يمثّل عرض تمويل ولا التزاماً من أيّ مؤسّسة بنكية.» ضروري قانونياً وتجارياً.</p></div>
+  </div>
+  <h3>أسعار البناء المعتمدة (HT)</h3>
+  <p class="lead">سياسة تسعير مرنة: لا نموذج موحّد على الحريف. يختار مستوى البناء والتشطيب حسب ميزانيته، ويُعدّ devis تفصيلي لكل مسكن قبل انطلاق الأشغال. الأسعار مصرّح بها <b>دون احتساب الأداءات (HT)</b> ولا تشمل ثمن الأرض ولا مصاريف الدراسات والرخص.</p>
+  <div class="tw" style="margin-top:16px">
+    <table>
+      <thead><tr><th>مستوى التشطيب</th><th class="num">د.ت/م² HT</th><th>الاستعمال في المنصة</th></tr></thead>
+      <tbody>
+        <tr><td>عادي</td><td class="num">1 200 – 1 350</td><td rowspan="3">يُعرض في الصفحة التعريفية، ويُختار في الاستمارة لمساري «نبني فوق أرضي» و«أرض ودار»، ويغذّي كلفة البناء التقديرية والميزانية المستهدفة في التنقيط.</td></tr>
+        <tr><td>متوسّط ومحسّن</td><td class="num">1 400 – 1 600</td></tr>
+        <tr><td>Haut Standing</td><td class="num">1 700 – 2 000</td></tr>
+      </tbody>
+      <caption>الفرضية المرجعية لدراسة الجدوى والملفّ البنكي: <b>1 600 د.ت/م² HT</b>، مع دراسة حساسية في نطاق 1 200 – 2 000. القيم مخزّنة في <code>price_references</code> و<code>app_settings</code> وتُعدَّل دون نشر جديد.</caption>
+    </table>
+  </div>
+  <div class="note" style="margin-top:16px"><b>ما زال ناقصاً في التسعير:</b> أسعار الأرض والشقق في صفاقس (سطور <code>price_references</code> فارغة)، ونسبة الأداء على القيمة المضافة (<code>finance.vat_pct</code>) — عند إدخالها تُعرض الأسعار TTC إلى جانب HT.</div>
+
+  <h3>الفرضيات البنكية والمالية — متغيّرات لا أرقام</h3>
+  <div class="note" style="margin-top:12px">يتم تحديد هامش الربح/نسبة التمويل المرجعية، سقف الاستدانة، مدة التمويل، المساهمة الذاتية، مصاريف التسجيل والتأمين والضمانات والمصاريف البنكية <b>وفق الشروط المعمول بها لدى بنك الزيتونة والمؤسسات البنكية التونسية، ووفق التشريع والترتيبات الجاري بها العمل بتاريخ إسناد التمويل</b>.</div>
+  <p class="lead" style="margin-top:14px">هذا المبدأ مطبَّق في الكود لا في الوثيقة فقط: لا توجد في قاعدة البيانات أيّ نسبة مثبّتة تُقدَّم كشرط بنكي. المحاكي العلني يشتغل بفرضيات <b>يضبطها المستعمل بنفسه</b> (المدّة، نسبة التمويل، سقف الاستدانة)، ويُذيَّل كلّ نتيجة بالنصّ أعلاه. أمّا التنقيط فيستعمل فرضيات داخلية موحّدة (<code>scoring.assumed_*</code>) غرضها الوحيد ترتيب المطالب فيما بينها — لا تُعرض للحريف ولا تُقدَّم كعرض تمويل.</p>
+
+  <h3>صيغ التمويل المرجعية</h3>
+  <p class="lead">جدول <code>financing_products</code> يحفظ الصيغ المتاحة مع مصدرها وتاريخ آخر تثبّت، ويُحيَّن من الـBack-office. مسجَّل حالياً (في طور التثبّت مع البنك):</p>
+  <div class="tw" style="margin-top:14px">
+    <table>
+      <thead><tr><th>الصيغة</th><th>الموجّهة لـ</th><th class="num">أقصى نسبة تمويل</th><th class="num">أقصى مدّة</th><th>الباقي</th></tr></thead>
+      <tbody>
+        <tr><td>تمويل بناء — بنك الزيتونة</td><td>الأفراد</td><td class="num">80%</td><td class="num">20 سنة</td><td>مساهمة ذاتية</td></tr>
+        <tr><td>تمويل مشاريع عقارية — بنك الزيتونة</td><td>المهنيين</td><td class="num">70%</td><td class="num">—</td><td>أموال ذاتية</td></tr>
+      </tbody>
+      <caption>معطيات مقدَّمة من فريق اللَّبنة وتحتاج تثبّتاً من البنك؛ تُعرض في المنصة مع وسم «في طور التثبّت» إلى حين تسجيل تاريخ التثبّت.</caption>
+    </table>
+  </div>
+  <div class="note" style="margin-top:16px"><b>مصاريف التسجيل:</b> لا تُعتمد كنسبة موحّدة — النظام الجبائي يختلف حسب طبيعة العملية والعقار. تُحتسب حالة بحالة عند إعداد العرض.</div>
+</section>
+
+<section id="s6">
+  <div class="sec-head"><span class="sec-num">06</span><h2>الشاشات ورحلة الحريف</h2></div>
+  <p class="lead">سبع شاشات علنية فقط. الاستمارة هي قلب المنتج، وكلّ ما عداها يقود إليها.</p>
+
+  <div class="road" style="margin-top:18px">
+    <div class="step"><div class="w">الخطوة 1</div><div><h4>نوع المطلب</h4><p>أربع بطاقات كبيرة: نحبّ نبني فوق أرضي · نحبّ أرض ودار · نحبّ شقة · الكراء المملّك. الاختيار هنا يحدّد بقيّة الأسئلة.</p></div></div>
+    <div class="step"><div class="w">الخطوة 2</div><div><h4>المكان والمساحة</h4><p>الولاية والمعتمدية، المساحة (60 · 80 · 100 · أخرى)، عدد الغرف، والأفق الزمني.</p></div></div>
+    <div class="step"><div class="w">الخطوة 3</div><div><h4>الأرض</h4><p>تظهر فقط في مسار البناء: مساحة الأرض، وضعيتها العقارية، الربط بالماء والكهرباء، ووجود رخصة بناء.</p></div></div>
+    <div class="step"><div class="w">الخطوة 4</div><div><h4>القدرة المالية</h4><p>الدخل الشهري، دخل القرين، التسبقة المتوفّرة، القسط الممكن، القروض الجارية، ونوع التشغيل — مع شريط يُظهر فورياً الميزانية التقديرية.</p></div></div>
+    <div class="step"><div class="w">الخطوة 5</div><div><h4>الاتصال والموافقة</h4><p>الاسم، الهاتف، البريد اختياري، وموافقة صريحة على معالجة المعطيات مع رابط سياسة الخصوصية.</p></div></div>
+    <div class="step"><div class="w">النتيجة</div><div><h4>صفحة الشكر</h4><p>رمز المطلب، ملخّص الميزانية التقديرية، والخطوة الموالية مع المدّة المتوقّعة للاتصال.</p></div></div>
+  </div>
+
+  <div class="grid3" style="margin-top:16px">
+    <div class="panel"><h4>الحفظ التدريجي</h4><p>كلّ خطوة تُحفظ محلياً في المتصفّح، فلا يفقد الحريف ما أدخله إن انقطع. الإرسال النهائي في الخطوة الخامسة فقط.</p></div>
+    <div class="panel"><h4>الهاتف أوّلاً</h4><p>أغلب الحرفاء سيدخلون من الهاتف: تصميم mobile-first، حقول أرقام بلوحة مفاتيح رقمية، وأزرار كبيرة.</p></div>
+    <div class="panel"><h4>هدف قابل للقياس</h4><p>إتمام الاستمارة في أقلّ من ثلاث دقائق. إن تجاوز المعدّل ذلك، تُحذف الأسئلة التي لا تُغيّر التنقيط.</p></div>
+  </div>
+</section>
+
+<section id="s7">
+  <div class="sec-head"><span class="sec-num">07</span><h2>لوحة القيادة</h2></div>
+  <p class="lead">مركز قيادة المشروع، لا مخزن مطالب. المعطيات تمشي في اتجاهين: الحريف يعطي حاجياته ومعطياته ومشاكله، وفريق اللَّبنة يستعمل الـBack-office لتحليل الملفّ، الجواب على الاستفسارات، إعداد العرض، احتساب التمويل، ومتابعة الحريف حتى التعاقد والإنجاز.</p>
+  <div class="grid3" style="margin-top:18px">
+    <div class="panel"><span class="kicker">ما يجيه من الحريف</span><p>المطلب، الهوية، الموقع (ولاية ← معتمدية ← عمادة ← موقع الأرض)، المساحة، الميزانية، مستوى الـStanding، صيغة التمويل، والوثائق المتوفّرة.</p></div>
+    <div class="panel"><span class="kicker">ما يضيفه الفريق</span><p>الأسئلة والمشاكل والاعتراضات والطلبات الخاصّة، الجواب على كلّ واحدة وغلقها، الحالة، الإجراء الواجب اتخاذه وتاريخه، وصيغة التمويل المقترحة.</p></div>
+    <div class="panel"><span class="kicker">المعطيات المرجعية</span><p>صفحة <code>/admin/reference</code>: أسعار البناء حسب مستوى التشطيب، صيغ التمويل ومصادرها، الفرضيات الداخلية للترتيب، وحالة تغطية العمادات.</p></div>
+  </div>
+  <div class="grid2" style="margin-top:18px">
+    <div class="panel">
+      <span class="kicker">قائمة المطالب</span>
+      <ul class="list">
+        <li>جدول بالرمز، الاسم، الولاية، نوع الطلب، المساحة، الميزانية التقديرية، الصنف، الحالة، والتاريخ.</li>
+        <li>فلاتر مركّبة: ولاية · نوع · صنف · حالة · مدى زمني.</li>
+        <li>تغيير الحالة من القائمة مباشرة مع تسجيل الأثر في <code>request_events</code>.</li>
+        <li>تصدير CSV للنتيجة المفلترة.</li>
+      </ul>
+    </div>
+    <div class="panel">
+      <span class="kicker">المؤشرات</span>
+      <ul class="list">
+        <li>عدد المطالب: اليوم، هذا الأسبوع، الإجمالي.</li>
+        <li>توزيع الطلب حسب الولاية.</li>
+        <li>توزيع حسب المساحة المطلوبة ونوع المطلب.</li>
+        <li>معدّل الميزانية التقديرية ومعدّل التسبقة.</li>
+        <li>نسبة الصنفين A و B من المجموع — مؤشّر جودة الطلب.</li>
+        <li>مسار التحويل: زيارة ← بداية الاستمارة ← إتمام ← اتصال ← موعد.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section id="s8">
+  <div class="sec-head"><span class="sec-num">08</span><h2>الأمان وحماية المعطيات</h2></div>
+  <p class="lead">المنصة تجمع معطيات شخصية ومالية حسّاسة. هذا الجزء ليس تفصيلاً تقنياً بل شرط ثقة، وهو أوّل ما يسأل عنه أيّ شريك بنكي.</p>
+  <ul class="list" style="margin-top:18px">
+    <li><b>تدوير المفاتيح قبل أيّ سطر كود:</b> مفتاح <code>service_role</code> وكلمة سرّ قاعدة البيانات الحاليان مُعرَّضان — وهو منبَّه عليه داخل ملفّ <code>.env</code> نفسه. يجب تغييرهما من لوحة Supabase قبل الإطلاق.</li>
+    <li><b>مفتاح <code>service_role</code> في الخادم فقط</b> — لا يُذكر أبداً في متغيّر يبدأ بـ <code>NEXT_PUBLIC_</code>.</li>
+    <li><b>RLS مفعّل على كلّ جدول</b> منذ أوّل migration، لا لاحقاً.</li>
+    <li><b>موافقة صريحة</b> مسجَّلة بتاريخها في <code>consent_at</code>، بنصّ واضح: من يجمع المعطيات، لأيّ غرض، ولمن قد تُمرَّر (شركة بناء، باعث، بنك).</li>
+    <li><b>حقّ النفاذ والتشطيب</b> — إجراء مكتوب لحذف مطلب بطلب صاحبه، ومدّة حفظ محدّدة (24 شهراً مثلاً) تُجهَّل المعطيات بعدها.</li>
+    <li><b>لا نجمع ما لا نحتاجه</b> — لا رقم بطاقة تعريف كامل ولا وثائق في المرحلة الأولى.</li>
+    <li><b>حماية من الإرسال الآلي</b> — تحديد معدّل الإرسال حسب عنوان IP ورقم الهاتف، وحقل فخّ مخفي، بدل CAPTCHA يُثقل التجربة.</li>
+    <li><b>تسجيل الأثر</b> — كلّ اطّلاع أو تعديل من لوحة القيادة يُنسب إلى مستعمل معلوم.</li>
+  </ul>
+  <div class="note" style="margin-top:16px"><b>إجراء إداري موازٍ:</b> معالجة المعطيات الشخصية في تونس خاضعة للقانون عدد 63 لسنة 2004 وللهيئة الوطنية لحماية المعطيات الشخصية. يُستحسن الحصول على استشارة قانونية حول واجبات التصريح قبل الإطلاق العلني — تُنجَز بالتوازي مع التطوير لا بعده.</div>
+</section>
+
+<section id="s9">
+  <div class="sec-head"><span class="sec-num">09</span><h2>خطة التنفيذ</h2></div>
+  <div class="note" style="margin-bottom:18px"><b>ما أُنجز فعلاً (2026-09-03):</b> الأسابيع 1 إلى 4 مطبَّقة في الكود — تطبيق Next.js ثنائي اللغة (عربي RTL · فرنسي LTR)، الصفحة التعريفية، استمارة الخمس خطوات بالحفظ التدريجي، خوارزمية التنقيط ومحاكي التمويل، صفحة الشكر برمز المطلب، صفحة التتبّع، ولوحة القيادة بالمؤشرات وتصدير CSV. جُرّب المسار كاملاً: مطلب حقيقي سُجّل، نُقّط، ظهر في اللوحة، ثم حُذف. زيادةً على ذلك: الموقع ثنائي اللغة (عربي/فرنسي)، و<b>47 اختباراً آلياً</b> تغطّي حسابات التمويل والتنقيط وأسعار البناء والتحقّق من الاستمارة، و<code>robots.txt</code> و<code>sitemap.xml</code> مع <code>hreflang</code> للغتين. تأكّد أنّ نسخة الإنتاج تقرأ الأسعار والفرضيات من قاعدة البيانات مباشرة: تغيير السعر المرجعي ظهر فوراً بلا إعادة نشر. الباقي: بيانات أسعار الأرض والشقق، قائمة العمادات، والنشر على نطاق حقيقي.</div>
+  <p class="lead">ستّة أسابيع إلى إطلاق تجريبي في ولاية واحدة. الترتيب مقصود: قاعدة البيانات والاستمارة قبل الزينة، والاختبار بمطالب حقيقية قبل التوسّع.</p>
+  <div class="road" style="margin-top:18px">
+    <div class="step"><div class="w">الأسبوع 1</div><div><h4>الأساس والهوية</h4><p>تهيئة Next.js، نظام الألوان والخطوط، مكوّنات مشتركة، والصفحة التعريفية كاملة بمحتوى حقيقي.</p></div></div>
+    <div class="step"><div class="w">الأسبوع 2</div><div><h4>قاعدة البيانات والاستمارة</h4><p>ملفّات migration، مرجع الولايات والمعتمديات، سياسات RLS، مخطّطات Zod، والخطوات الخمس مع الحفظ التدريجي.</p></div></div>
+    <div class="step"><div class="w">الأسبوع 3</div><div><h4>التنقيط والمحاكي</h4><p><code>scoring.ts</code> و<code>finance.ts</code> مع اختباراتهما، Server Action للإرسال، توليد رمز المطلب، صفحة الشكر وصفحة التتبّع.</p></div></div>
+    <div class="step"><div class="w">الأسبوع 4</div><div><h4>لوحة القيادة</h4><p>الحماية بـ Supabase Auth، القائمة والفلاتر، صفحة تفاصيل المطلب، تغيير الحالات، المؤشرات، وتصدير CSV.</p></div></div>
+    <div class="step"><div class="w">الأسبوع 5</div><div><h4>الاختبار والمعايرة</h4><p>ثلاثون إلى خمسين مطلباً حقيقياً من محيط قريب في صفاقس، تعبئة أسعار المتر المربّع، مراجعة أوزان التنقيط على ضوء النتائج، ومراجعة نصوص الاستمارة واختبارها على الهاتف.</p></div></div>
+    <div class="step"><div class="w">الأسبوع 6</div><div><h4>الإطلاق التجريبي</h4><p>النطاق والاستضافة، سياسة الخصوصية، التحليلات، حملة محدودة على ولاية صفاقس (مجموعات محلّية، شركات بناء شريكة، وقناة موجّهة للجالية بالخارج)، ومتابعة يومية للمؤشرات.</p></div></div>
+  </div>
+  <h3>المرحلة الثانية — بعد الإطلاق</h3>
+  <p class="lead">بالترتيب المقترح: المساعد الصوتي لتعبئة الاستمارة بالعربية · حسابات الحرفاء ورفع الوثائق · فضاء المهنيين والباعثين · المطابقة الآلية بين المطالب والنماذج · متابعة الأشغال والدفعات · ملفّ تمويل قابل للتصدير إلى البنك.</p>
+</section>
+
+<section id="s10">
+  <div class="sec-head"><span class="sec-num">10</span><h2>مؤشرات النجاح</h2></div>
+  <p class="lead">أرقام قليلة تُقاس أسبوعياً. إن لم يتحقّق المؤشّران الأوّلان، فالمشكلة في المنتج لا في الإشهار. الأهداف مقترحة للنقاش لا مستنتجة من سوق مَقيس.</p>
+  <div class="tw" style="margin-top:18px">
+    <table>
+      <thead><tr><th>المؤشّر</th><th class="num">هدف 90 يوماً</th><th>ما الذي يخبرنا به</th></tr></thead>
+      <tbody>
+        <tr><td>مطالب مكتملة</td><td class="num">500</td><td>وجود طلب حقيقي وقابل للتجميع.</td></tr>
+        <tr><td>نسبة إتمام الاستمارة</td><td class="num">55%</td><td>جودة التجربة وطول الاستمارة.</td></tr>
+        <tr><td>نسبة الصنفين A و B</td><td class="num">30%</td><td>هل الطلب قابل للتمويل فعلاً.</td></tr>
+        <tr><td>مواعيد أو زيارات محجوزة</td><td class="num">40</td><td>تحوّل الطلب إلى نيّة جدّية.</td></tr>
+        <tr><td>كلفة اكتساب المطلب</td><td class="num">قابلة للاحتساب</td><td>هل النموذج قابل للتوسّع تجارياً.</td></tr>
+        <tr><td>تغطية معتمديات صفاقس</td><td class="num">10 من 16</td><td>هل الطلب مركّز في المدينة أم موزّع على الولاية.</td></tr>
+        <tr><td>نسبة مطالب الجالية بالخارج</td><td class="num">قابلة للقياس</td><td>هل يستحقّ المسار الخاص بالتونسيين بالخارج استثماراً أكبر.</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section id="s11">
+  <div class="sec-head"><span class="sec-num">11</span><h2>قرارات في انتظارك</h2></div>
+  <p class="lead">خمسة أسئلة تُغيّر التنفيذ. الإجابة عليها الآن أرخص من تغييرها لاحقاً.</p>
+  <div class="note" style="margin-top:16px"><b>مصادق عليه:</b> الولاية الأولى <b>صفاقس</b> — انعكاساتها على المنتج والبيانات والحملة مدرجة في الأقسام 01 و03 و09.</div>
+  <div class="grid2" style="margin-top:16px">
+    <div class="panel"><h4>أسعار الأرض والشقق في صفاقس</h4><p>أسعار البناء محسومة (القسم 05). الناقص: سعر المتر للأرض وللشقة حسب النطاق — تقديرات فريقك أم أسعار شركاء؟</p></div>
+    <div class="panel"><h4>الأداءات</h4><p>كل الأسعار اليوم HT. هل نعرض للحريف السعر TTC أيضاً؟ يتطلّب إدخال نسبة الأداء المعتمدة.</p></div>
+    <div class="panel"><h4>تثبيت صيغ التمويل مع البنك</h4><p>النسب والمدد المسجّلة لصيغ بنك الزيتونة مؤقّتة إلى حين تثبّت رسمي. عند التثبّت يُسجَّل التاريخ ويختفي وسم «في طور التثبّت».</p></div>
+    <div class="panel"><h4>قائمة العمادات</h4><p>لصق عمادات المعتمديات الستّ عشرة من قائمة وزارة الداخلية في <code>/admin/reference</code>.</p></div>
+    <div class="panel"><h4>محتوى فرنسي للجالية</h4><p>الموقع ثنائي اللغة (عربي/فرنسي) ومنفَّذ. يبقى قرار: هل نخصّص محتوى ورسائل مختلفة للتونسيين بالخارج بالفرنسية؟</p></div>
+    <div class="panel"><h4>وجهة المطالب</h4><p>من يتّصل بالحريف: فريق اللَّبنة أم شركة البناء مباشرة؟ يحدّد الحالات في <code>request_status</code> ومسار العمل.</p></div>
+    <div class="panel"><h4>الاسم والنطاق</h4><p>هل النطاق متوفّر ومحجوز، وهل العلامة مسجّلة؟ يُنجَز بالتوازي مع الأسبوع الأوّل.</p></div>
+  </div>
+</section>
+
+<footer>
+  <span>اللَّبنة للبناء والإعمار — ALLABINA Construction &amp; Développement</span>
+  <span>مخطّط تقني · نسخة 0.1 · مسوّدة للمصادقة</span>
+</footer>
+</div>
+<script>document.documentElement.setAttribute("lang","ar");document.documentElement.setAttribute("dir","rtl");</script>
