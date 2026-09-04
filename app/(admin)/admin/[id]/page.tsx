@@ -11,6 +11,14 @@ import { rankProperties, type MatchProperty } from '@/lib/matching'
 import { formatNumber } from '@/lib/format'
 import { saveMatchAction, updateMatchAction } from '@/lib/actions/property-admin'
 import {
+  addContributionAction,
+  addTaskAction,
+  updateContributionAction,
+  updateSocialAssessmentAction,
+  updateStudyTrackAction,
+  updateTaskAction,
+} from '@/lib/actions/solutions'
+import {
   updateClassificationAction,
   updatePublicUpdateAction,
   updateStatusAction,
@@ -33,6 +41,56 @@ const KIND_AR: Record<string, string> = {
   special_request: 'طلب خاصّ',
   call: 'مكالمة',
   note: 'ملاحظة',
+}
+
+const STUDY_TRACKS: Record<string, string> = {
+  ready: 'جاهز تقريباً للتنفيذ',
+  needs_property: 'يحتاج حلّاً عقارياً',
+  needs_financing: 'يحتاج تمويلاً',
+  needs_documents: 'يحتاج استكمال وثائق',
+  needs_technical: 'يحتاج دراسة فنية',
+  social: 'حالة اجتماعية تحتاج مساراً خاصاً',
+}
+
+const HOUSING_CONDITIONS: Record<string, string> = {
+  unsafe: 'مسكن غير آمن',
+  overcrowded: 'اكتظاظ',
+  rented_unstable: 'كراء غير مستقرّ',
+  with_family: 'عند العائلة',
+  homeless: 'بلا مأوى',
+  other: 'أخرى',
+}
+
+const INCOME_STABILITY: Record<string, string> = {
+  none: 'بلا دخل',
+  irregular: 'دخل غير منتظم',
+  low_stable: 'دخل ضعيف لكن قارّ',
+  other: 'أخرى',
+}
+
+const CONTRIBUTION_KINDS: Record<string, string> = {
+  land: 'أرض',
+  funding: 'تمويل',
+  materials: 'مواد بناء',
+  labour: 'يد عاملة',
+  study: 'دراسة',
+  admin_support: 'دعم إداري',
+  other: 'أخرى',
+}
+
+const CONTRIBUTION_STATUS: Record<string, string> = {
+  proposed: 'مقترحة',
+  confirmed: 'مؤكّدة',
+  delivered: 'مُنجزة',
+  cancelled: 'ملغاة',
+}
+
+const TASK_STATUS: Record<string, string> = {
+  todo: 'للإنجاز',
+  doing: 'جارية',
+  blocked: 'معطّلة',
+  done: 'مُنجزة',
+  cancelled: 'ملغاة',
 }
 
 const PROBLEM_KINDS: Record<string, string> = {
@@ -84,6 +142,10 @@ export default async function RequestDetail({ params }: { params: Promise<{ id: 
     { data: events },
     { data: interactions },
     { data: docs },
+    { data: social },
+    { data: contributions },
+    { data: tasks },
+    { data: partners },
     { data: team },
     { data: approvedProperties },
     { data: savedMatches },
@@ -110,6 +172,10 @@ export default async function RequestDetail({ params }: { params: Promise<{ id: 
       .eq('request_id', id)
       .order('created_at', { ascending: false }),
     db.from('request_documents').select('*').eq('request_id', id),
+    db.from('social_assessments').select('*').eq('request_id', id).maybeSingle(),
+    db.from('contributions').select('*').eq('request_id', id).order('created_at'),
+    db.from('tasks').select('*').eq('request_id', id).order('created_at'),
+    db.from('partners').select('id, name, kind').eq('is_active', true).order('name'),
     db.from('staff').select('user_id, full_name, email').eq('active', true).order('full_name'),
     db
       .from('properties')
@@ -297,6 +363,315 @@ export default async function RequestDetail({ params }: { params: Promise<{ id: 
             </button>
           </form>
         )}
+      </div>
+
+      {/* تصنيف الدراسة — Module 2 */}
+      <div className="mt-6 rounded border border-line bg-surface p-6">
+        <h2 className="text-sm font-semibold">تصنيف الدراسة</h2>
+        <p className="mt-1 text-xs text-muted">
+          التصنيف بلا سبب ما ينفعش. اكتب علاش صُنّف الملفّ هكذا وشنوّة الخطوة اللي يستنّاها.
+        </p>
+        <form action={updateStudyTrackAction} className="mt-4 flex flex-wrap items-end gap-3">
+          <input type="hidden" name="id" value={r.id} />
+          <label className="block">
+            <span className="mb-1.5 block text-xs text-muted">المسار</span>
+            <select
+              name="study_track"
+              defaultValue={r.study_track ?? ''}
+              className="rounded border border-line bg-surface px-3 py-2 text-sm"
+            >
+              <option value="">— غير مصنّف —</option>
+              {Object.entries(STUDY_TRACKS).map(([k, v]) => (
+                <option key={k} value={k}>
+                  {v}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="block min-w-[240px] flex-1">
+            <span className="mb-1.5 block text-xs text-muted">سبب التصنيف</span>
+            <input
+              name="track_reason"
+              defaultValue={r.track_reason ?? ''}
+              placeholder="مثال: الأرض على الشياع، لازم تسوية قبل أيّ دراسة فنية"
+              className="w-full rounded border border-line bg-surface px-3 py-2 text-sm"
+            />
+          </label>
+          <button className="rounded bg-green px-5 py-2 text-sm font-medium text-white hover:bg-green-deep">
+            حفظ
+          </button>
+        </form>
+      </div>
+
+      {/* المسار الاجتماعي — Module 7 */}
+      <div className="mt-6 rounded border border-line bg-surface p-6">
+        <div className="flex flex-wrap items-baseline justify-between gap-2">
+          <h2 className="text-sm font-semibold">المسار الاجتماعي</h2>
+          {social?.is_priority && (
+            <span className="rounded bg-bronze-soft px-2.5 py-1 text-xs font-medium text-bronze">
+              أولوية دراسة
+            </span>
+          )}
+        </div>
+        <p className="mt-1 text-xs leading-6 text-muted">
+          مؤشّرات لترتيب أولوية الدراسة، <b>موش للحكم الآلي على الناس</b>. الأولوية يقرّرها الفريق
+          بعد الدراسة.
+        </p>
+        <form action={updateSocialAssessmentAction} className="mt-4 grid gap-3 sm:grid-cols-3">
+          <input type="hidden" name="id" value={r.id} />
+          <label className="block">
+            <span className="mb-1.5 block text-xs text-muted">عدد أفراد العائلة</span>
+            <input
+              name="household_size"
+              type="number"
+              defaultValue={social?.household_size ?? ''}
+              className="w-full rounded border border-line bg-surface px-3 py-2 text-sm"
+            />
+          </label>
+          <label className="block">
+            <span className="mb-1.5 block text-xs text-muted">عدد المُعالين</span>
+            <input
+              name="dependents"
+              type="number"
+              defaultValue={social?.dependents ?? ''}
+              className="w-full rounded border border-line bg-surface px-3 py-2 text-sm"
+            />
+          </label>
+          <label className="block">
+            <span className="mb-1.5 block text-xs text-muted">وضعية السكن الحالية</span>
+            <select
+              name="housing_condition"
+              defaultValue={social?.housing_condition ?? ''}
+              className="w-full rounded border border-line bg-surface px-3 py-2 text-sm"
+            >
+              <option value="">—</option>
+              {Object.entries(HOUSING_CONDITIONS).map(([k, v]) => (
+                <option key={k} value={k}>
+                  {v}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="block">
+            <span className="mb-1.5 block text-xs text-muted">استقرار الدخل</span>
+            <select
+              name="income_stability"
+              defaultValue={social?.income_stability ?? ''}
+              className="w-full rounded border border-line bg-surface px-3 py-2 text-sm"
+            >
+              <option value="">—</option>
+              {Object.entries(INCOME_STABILITY).map(([k, v]) => (
+                <option key={k} value={k}>
+                  {v}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="flex items-center gap-2 pt-6 text-sm">
+            <input
+              type="checkbox"
+              name="has_disability"
+              defaultChecked={social?.has_disability ?? false}
+              className="size-4 accent-[#0e5138]"
+            />
+            إعاقة في العائلة
+          </label>
+          <label className="flex items-center gap-2 pt-6 text-sm">
+            <input
+              type="checkbox"
+              name="is_priority"
+              defaultChecked={social?.is_priority ?? false}
+              className="size-4 accent-[#0e5138]"
+            />
+            أولوية دراسة
+          </label>
+          <label className="block sm:col-span-3">
+            <span className="mb-1.5 block text-xs text-muted">ملاحظات</span>
+            <input
+              name="notes"
+              defaultValue={social?.notes ?? ''}
+              className="w-full rounded border border-line bg-surface px-3 py-2 text-sm"
+            />
+          </label>
+          <button className="justify-self-start rounded bg-green px-5 py-2 text-sm font-medium text-white hover:bg-green-deep">
+            حفظ
+          </button>
+        </form>
+      </div>
+
+      {/* عناصر الحلّ — Module 7/8 */}
+      <div className="mt-6 rounded border border-line bg-surface p-6">
+        <h2 className="text-sm font-semibold">عناصر الحلّ</h2>
+        <p className="mt-1 text-xs text-muted">
+          أرض + تمويل + مواد + مقاول + دعم = حلّ سكني محتمل. كل عنصر مع الجهة اللي باش تساهم فيه.
+        </p>
+
+        <form action={addContributionAction} className="mt-4 flex flex-wrap items-end gap-3">
+          <input type="hidden" name="id" value={r.id} />
+          <label className="block">
+            <span className="mb-1.5 block text-xs text-muted">النوع</span>
+            <select name="kind" className="rounded border border-line bg-surface px-3 py-2 text-sm">
+              {Object.entries(CONTRIBUTION_KINDS).map(([k, v]) => (
+                <option key={k} value={k}>
+                  {v}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="block min-w-[200px] flex-1">
+            <span className="mb-1.5 block text-xs text-muted">الوصف</span>
+            <input
+              name="label"
+              placeholder="مثال: 200 كيس إسمنت من مزوّد شريك"
+              className="w-full rounded border border-line bg-surface px-3 py-2 text-sm"
+            />
+          </label>
+          <label className="block">
+            <span className="mb-1.5 block text-xs text-muted">القيمة (د.ت)</span>
+            <input
+              name="value_tnd"
+              type="number"
+              className="w-32 rounded border border-line bg-surface px-3 py-2 text-sm"
+            />
+          </label>
+          <label className="block">
+            <span className="mb-1.5 block text-xs text-muted">الشريك</span>
+            <select
+              name="partner_id"
+              className="rounded border border-line bg-surface px-3 py-2 text-sm"
+              defaultValue=""
+            >
+              <option value="">—</option>
+              {(partners ?? []).map((pp) => (
+                <option key={pp.id} value={pp.id}>
+                  {pp.name}
+                </option>
+              ))}
+            </select>
+          </label>
+          <button className="rounded border border-line px-4 py-2 text-sm hover:border-green hover:text-green">
+            زيد
+          </button>
+        </form>
+
+        <ul className="mt-4 space-y-2">
+          {(contributions ?? []).length === 0 && (
+            <li className="text-sm text-faint">ما فمّاش عنصر مسجّل.</li>
+          )}
+          {(contributions ?? []).map((c) => (
+            <li
+              key={c.id}
+              className="flex flex-wrap items-center justify-between gap-3 rounded border border-line px-3 py-2 text-sm"
+            >
+              <span>
+                <span className="text-xs text-bronze">{CONTRIBUTION_KINDS[c.kind] ?? c.kind}</span>{' '}
+                {c.label}
+                {c.value_tnd ? (
+                  <span className="num mr-2 text-xs text-muted">
+                    {formatTND(Number(c.value_tnd))}
+                  </span>
+                ) : null}
+              </span>
+              <form action={updateContributionAction} className="flex items-center gap-2">
+                <input type="hidden" name="contribution_id" value={c.id} />
+                <input type="hidden" name="request_id" value={r.id} />
+                <select
+                  name="status"
+                  defaultValue={c.status}
+                  className="rounded border border-line bg-surface px-2 py-1 text-xs"
+                >
+                  {Object.entries(CONTRIBUTION_STATUS).map(([k, v]) => (
+                    <option key={k} value={k}>
+                      {v}
+                    </option>
+                  ))}
+                </select>
+                <button className="rounded border border-line px-2 py-1 text-xs hover:border-green hover:text-green">
+                  حفظ
+                </button>
+              </form>
+            </li>
+          ))}
+        </ul>
+      </div>
+
+      {/* المهامّ — Module 8 */}
+      <div className="mt-6 rounded border border-line bg-surface p-6">
+        <h2 className="text-sm font-semibold">مهامّ الحلّ</h2>
+        <p className="mt-1 text-xs text-muted">
+          الحلّ يتقسّم مهامّ، وكل مهمّة تتسنّد لجهة معنيّة ويتّبع الفريق تقدّمها.
+        </p>
+
+        <form action={addTaskAction} className="mt-4 flex flex-wrap items-end gap-3">
+          <input type="hidden" name="id" value={r.id} />
+          <label className="block min-w-[220px] flex-1">
+            <span className="mb-1.5 block text-xs text-muted">المهمّة</span>
+            <input
+              name="title"
+              placeholder="مثال: تسريع رخصة البناء لدى البلدية"
+              className="w-full rounded border border-line bg-surface px-3 py-2 text-sm"
+            />
+          </label>
+          <label className="block">
+            <span className="mb-1.5 block text-xs text-muted">الجهة</span>
+            <select
+              name="partner_id"
+              className="rounded border border-line bg-surface px-3 py-2 text-sm"
+              defaultValue=""
+            >
+              <option value="">—</option>
+              {(partners ?? []).map((pp) => (
+                <option key={pp.id} value={pp.id}>
+                  {pp.name}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="block">
+            <span className="mb-1.5 block text-xs text-muted">الأجل</span>
+            <input
+              name="due_at"
+              type="date"
+              className="num rounded border border-line bg-surface px-3 py-2 text-sm"
+            />
+          </label>
+          <button className="rounded border border-line px-4 py-2 text-sm hover:border-green hover:text-green">
+            زيد
+          </button>
+        </form>
+
+        <ul className="mt-4 space-y-2">
+          {(tasks ?? []).length === 0 && <li className="text-sm text-faint">ما فمّاش مهمّة.</li>}
+          {(tasks ?? []).map((tk) => (
+            <li
+              key={tk.id}
+              className="flex flex-wrap items-center justify-between gap-3 rounded border border-line px-3 py-2 text-sm"
+            >
+              <span>
+                {tk.title}
+                {tk.due_at && <span className="num mr-2 text-xs text-faint">{tk.due_at}</span>}
+              </span>
+              <form action={updateTaskAction} className="flex items-center gap-2">
+                <input type="hidden" name="task_id" value={tk.id} />
+                <input type="hidden" name="request_id" value={r.id} />
+                <select
+                  name="status"
+                  defaultValue={tk.status}
+                  className="rounded border border-line bg-surface px-2 py-1 text-xs"
+                >
+                  {Object.entries(TASK_STATUS).map(([k, v]) => (
+                    <option key={k} value={k}>
+                      {v}
+                    </option>
+                  ))}
+                </select>
+                <button className="rounded border border-line px-2 py-1 text-xs hover:border-green hover:text-green">
+                  حفظ
+                </button>
+              </form>
+            </li>
+          ))}
+        </ul>
       </div>
 
       {/* العروض المقترحة — Matching Engine */}

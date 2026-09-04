@@ -16,9 +16,12 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   const links: { href: string; label: string }[] = [
     { href: '/admin', label: 'المطالب' },
     { href: '/admin/properties', label: 'العقارات' },
+    { href: '/admin/cases', label: 'الحالات المنجزة' },
   ]
-  if (can(staff.role, 'reference.manage'))
+  if (can(staff.role, 'reference.manage')) {
+    links.push({ href: '/admin/partners', label: 'الشركاء' })
     links.push({ href: '/admin/reference', label: 'المعطيات المرجعية' })
+  }
   if (can(staff.role, 'team.read')) links.push({ href: '/admin/team', label: 'الفريق' })
   links.push({ href: '/admin/account', label: 'حسابي' })
 
