@@ -9,6 +9,7 @@ const PAGES = [
   '/simulateur',
   '/suivi',
   '/proprietaire',
+  '/realisations',
   '/confidentialite',
 ] as const
 

@@ -263,6 +263,40 @@ const ar = {
             areaM2: 'المساحة لازم تكون رقماً صحيحاً.'
         } as Record<string, string>
     },
+    cases: {
+        navLink: 'حالات تمّ إنجازها',
+        pageTitle: 'حالات تمّ إنجازها — اللَّبنة',
+        title: 'حالات تمّ إنجازها',
+        lede: 'ملفّات ساهمت اللَّبنة في حلّها. كل حالة منشورة بموافقة صاحبها، وبلا أسماء.',
+        empty: 'مازال ما فمّاش حالة منشورة. أوّل الحالات المنجزة باش تظهر هنا.',
+        mapTitle: 'صفاقس حسب المعتمديات',
+        mapLede: 'أعداد فقط: حالات منجزة، ملفّات في الطريق، وعروض عقارية متاحة. بلا أيّ معطى شخصي.',
+        mapCompleted: 'منجزة',
+        mapActive: 'في الطريق',
+        mapProperties: 'عروض متاحة',
+        mapEmpty: 'ما فمّاش نشاط مسجّل في هالمعتمدية توّا.',
+        allDelegations: 'كلّ المعتمديات',
+        kinds: {
+            build_on_land: 'بناء فوق أرض الحريف',
+            land_and_house: 'أرض وبناء',
+            apartment: 'شراء شقة',
+            house: 'شراء منزل',
+            renovation: 'ترميم أو توسعة',
+            other: 'حالة أخرى'
+        } as Record<string, string>,
+        problemLabel: 'المشكلة',
+        solutionLabel: 'الحلّ',
+        resultLabel: 'النتيجة',
+        durationLabel: 'مدّة الإنجاز',
+        months: 'شهر',
+        areaLabel: 'المساحة',
+        beforeLabel: 'قبل',
+        afterLabel: 'بعد',
+        consentNote: 'كل حالة تُنشر بموافقة صاحبها، ومجهّلة الهوية ما لم يطلب غير ذلك.',
+        disclaimer: 'نعمل على دراسة كل ملف والبحث عن الحلول الممكنة بالتنسيق مع الأطراف المعنية.',
+        ctaTitle: 'ملفّك ينجّم يكون الحالة الجاية',
+        ctaBody: 'سجّل مطلبك وخلّي الفريق يدرسه.'
+    },
     sim: {
         title: 'محاكي التمويل',
         lede: 'عمّر دخلك والمساهمة الذاتية اللي عندك، وشوف قدّاش تنجّم توصّل ميزانيتك وقدّاش يجي القسط الشهري. كل شي يتحسب في التوّ.',
@@ -693,6 +727,40 @@ const fr: Dictionary = {
             priceTnd: 'Le prix doit être un nombre valide.',
             areaM2: 'La surface doit être un nombre valide.'
         } as Record<string, string>
+    },
+    cases: {
+        navLink: 'Réalisations',
+        pageTitle: 'Cas traités — ALLABINA',
+        title: 'Cas traités',
+        lede: "Des dossiers qu'ALLABINA a contribué à résoudre. Chaque cas est publié avec l'accord de son titulaire, sans noms.",
+        empty: "Aucun cas publié pour le moment. Les premières réalisations apparaîtront ici.",
+        mapTitle: 'Sfax par délégation',
+        mapLede: "Des nombres uniquement : cas réalisés, dossiers en cours et biens disponibles. Aucune donnée personnelle.",
+        mapCompleted: 'réalisés',
+        mapActive: 'en cours',
+        mapProperties: 'biens disponibles',
+        mapEmpty: "Aucune activité enregistrée dans cette délégation pour l'instant.",
+        allDelegations: 'Toutes les délégations',
+        kinds: {
+            build_on_land: 'Construction sur terrain du client',
+            land_and_house: 'Terrain et construction',
+            apartment: "Achat d'appartement",
+            house: "Achat de maison",
+            renovation: 'Rénovation ou extension',
+            other: 'Autre cas'
+        } as Record<string, string>,
+        problemLabel: 'Le problème',
+        solutionLabel: 'La solution',
+        resultLabel: 'Le résultat',
+        durationLabel: 'Durée de réalisation',
+        months: 'mois',
+        areaLabel: 'Surface',
+        beforeLabel: 'Avant',
+        afterLabel: 'Après',
+        consentNote: "Chaque cas est publié avec l'accord de son titulaire, et anonymisé sauf demande contraire.",
+        disclaimer: 'Nous étudions chaque dossier et recherchons les solutions possibles en coordination avec les parties concernées.',
+        ctaTitle: 'Votre dossier peut être le prochain cas',
+        ctaBody: "Déposez votre demande et laissez l'équipe l'étudier."
     },
     sim: {
         title: 'Simulateur de financement',
