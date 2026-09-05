@@ -81,6 +81,22 @@ begin
   end loop;
 end $$;
 
+-- price_references: إن بقي سطر قديم وبديله الجديد موجود، القديم يُحذف —
+-- وإلّا اصطدم مفتاحه الفريد بالجديد عند التحويل.
+delete from price_references p
+where p.tier in ('standard', 'mid', 'premium')
+  and exists (
+    select 1 from price_references q
+    where q.gov_code = p.gov_code
+      and q.product  = p.product
+      and q.zone is not distinct from p.zone
+      and q.tier = case p.tier
+                     when 'standard' then 'B01'
+                     when 'mid'      then 'B03'
+                     else                 'B05'
+                   end
+  );
+
 do $$
 declare
   t record;

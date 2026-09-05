@@ -1,6 +1,7 @@
 'use client'
 
 import { useActionState, useState } from 'react'
+import CoordsField from '@/components/CoordsField'
 import { submitProperty, type PropertyState } from '@/lib/actions/property'
 import { PROPERTY_KINDS, LEGAL_STATUSES } from '@/lib/property-schema'
 import type { Dictionary, Locale } from '@/lib/i18n'
@@ -172,14 +173,7 @@ export default function PropertyForm({
         </label>
 
         <div className="mt-6">
-          <span className="mb-1.5 block text-sm font-medium">
-            {t.coords}
-            <span className="mr-2 text-xs font-normal text-faint">{t.coordsHint}</span>
-          </span>
-          <div className="grid gap-3 sm:grid-cols-2">
-            <input type="text" name="lat" placeholder={t.lat} dir="ltr" className={inputCls} />
-            <input type="text" name="lng" placeholder={t.lng} dir="ltr" className={inputCls} />
-          </div>
+          <CoordsField t={t} inputCls={inputCls} />
         </div>
 
         <div className="mt-6">

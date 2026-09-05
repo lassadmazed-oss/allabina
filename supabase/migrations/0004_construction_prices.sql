@@ -31,12 +31,19 @@ create unique index if not exists price_references_unique_idx
 
 -- أسعار البناء: وطنية في هذه المرحلة (نفس الشبكة لكلّ الولايات)،
 -- تُخصَّص حسب الولاية لاحقاً عند توفّر معطيات ميدانية.
-insert into price_references (gov_code, zone, product, tier, price_per_m2_tnd, price_min_tnd, price_max_tnd, is_ht, source)
-values
-  ('SFX', null, 'construction', 'standard', 1200, 1200, 1350, true, 'سياسة التسعير الداخلية 2026 — HT'),
-  ('SFX', null, 'construction', 'mid',      1500, 1400, 1600, true, 'سياسة التسعير الداخلية 2026 — HT'),
-  ('SFX', null, 'construction', 'premium',  1850, 1700, 2000, true, 'سياسة التسعير الداخلية 2026 — HT')
-on conflict do nothing;
+-- بعد 0013 صارت مستويات التشطيب سطوراً في standing_levels، وهذي البذرة
+-- تخصّ المستويات الثلاثة القديمة. تُنفَّذ مرّة واحدة على قاعدة جديدة فقط،
+-- وإلّا أعادت خلق سطور قديمة تتصادم مع الجديدة عند كلّ إعادة تطبيق.
+do $$ begin
+  if to_regclass('public.standing_levels') is null then
+    insert into price_references (gov_code, zone, product, tier, price_per_m2_tnd, price_min_tnd, price_max_tnd, is_ht, source)
+    values
+      ('SFX', null, 'construction', 'standard', 1200, 1200, 1350, true, 'سياسة التسعير الداخلية 2026 — HT'),
+      ('SFX', null, 'construction', 'mid',      1500, 1400, 1600, true, 'سياسة التسعير الداخلية 2026 — HT'),
+      ('SFX', null, 'construction', 'premium',  1850, 1700, 2000, true, 'سياسة التسعير الداخلية 2026 — HT')
+    on conflict do nothing;
+  end if;
+end $$;
 
 -- تنظيف السطور القديمة الفارغة للبناء (بلا مستوى تشطيب)
 delete from price_references
