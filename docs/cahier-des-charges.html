@@ -1,0 +1,374 @@
+<title>كراس شروط اللَّبنة</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Reem+Kufi:wght@500;600;700&family=IBM+Plex+Sans+Arabic:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+:root{
+  --bg:#F1F4EF; --surface:#FFFFFF; --surface-2:#E9EEE7;
+  --ink:#0F211A; --muted:#54655B; --faint:#7C8C82;
+  --accent:#0E5138; --accent-soft:#DCE9E1; --bronze:#8F5F18; --bronze-soft:#F0E6D4;
+  --line:#D6DFD3; --line-strong:#B9C7B6;
+  --done:#0E5138; --partial:#8F5F18; --todo:#7C8C82;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0B1310; --surface:#111C17; --surface-2:#16241D;
+    --ink:#E6EDE7; --muted:#9BAFA2; --faint:#7B8E83;
+    --accent:#57B387; --accent-soft:#17352A; --bronze:#D2A45B; --bronze-soft:#2B2417;
+    --line:#22332B; --line-strong:#32473C;
+    --done:#57B387; --partial:#D2A45B; --todo:#7B8E83;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0B1310; --surface:#111C17; --surface-2:#16241D;
+  --ink:#E6EDE7; --muted:#9BAFA2; --faint:#7B8E83;
+  --accent:#57B387; --accent-soft:#17352A; --bronze:#D2A45B; --bronze-soft:#2B2417;
+  --line:#22332B; --line-strong:#32473C;
+  --done:#57B387; --partial:#D2A45B; --todo:#7B8E83;
+}
+*{box-sizing:border-box}
+body{direction:rtl;margin:0;background:var(--bg);color:var(--ink);
+  font-family:"IBM Plex Sans Arabic","Segoe UI",system-ui,sans-serif;font-size:16px;line-height:1.85;
+  -webkit-font-smoothing:antialiased}
+.wrap{max-width:920px;margin:0 auto;padding:0 24px 96px}
+h1,h2,h3,h4{font-family:"Reem Kufi","IBM Plex Sans Arabic",sans-serif;font-weight:600;text-wrap:balance;line-height:1.4;margin:0}
+p{margin:0}
+a{color:var(--accent)}
+
+.mast{position:relative;overflow:hidden;background:#0C1D16;color:#EAF2EC;border-bottom:3px solid #A87433}
+.mast::before{content:"";position:absolute;inset:0;opacity:.16;
+  background-image:linear-gradient(#F1F4EF 1px,transparent 1px),linear-gradient(90deg,#F1F4EF 1px,transparent 1px);
+  background-size:64px 26px;-webkit-mask-image:linear-gradient(to bottom left,#000,transparent 72%);
+  mask-image:linear-gradient(to bottom left,#000,transparent 72%)}
+.mast-in{position:relative;max-width:920px;margin:0 auto;padding:44px 24px 38px}
+.brand{display:flex;align-items:center;gap:12px;font-family:"Reem Kufi",sans-serif;font-size:15px;letter-spacing:.06em;color:#BFD3C6}
+.brick{display:inline-block;width:26px;height:13px;border-radius:2px;background:#A87433;flex:none}
+.mast h1{font-size:clamp(28px,5vw,42px);margin:18px 0 10px;color:#fff}
+.mast .lede{color:#B9CDBF;max-width:64ch;font-weight:300}
+.meta{display:flex;flex-wrap:wrap;gap:8px 10px;margin-top:26px;font-family:"IBM Plex Mono",monospace;font-size:12px}
+.meta span{border:1px solid #2C4437;padding:5px 10px;border-radius:3px;color:#9FBBAB}
+.meta span b{color:#EAF2EC;font-weight:500}
+
+section{margin-top:52px;scroll-margin-top:20px}
+.sec-head{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;border-bottom:1px solid var(--line-strong);padding-bottom:10px;margin-bottom:20px}
+.sec-num{font-family:"IBM Plex Mono",monospace;font-size:13px;color:var(--bronze);font-weight:500;flex:none}
+.sec-head h2{font-size:clamp(19px,2.6vw,24px);flex:1}
+h3{font-size:16.5px;margin:26px 0 8px}
+.lead{color:var(--muted);max-width:70ch}
+
+.toc{background:var(--surface);border:1px solid var(--line);border-radius:4px;padding:18px 22px;margin-top:34px}
+.toc ol{margin:0;padding:0;list-style:none;columns:2;column-gap:32px;font-size:14.5px}
+.toc li{break-inside:avoid;padding:3px 0}
+.toc a{text-decoration:none;color:var(--ink);border-bottom:1px solid transparent}
+.toc a:hover,.toc a:focus-visible{border-bottom-color:var(--accent);color:var(--accent)}
+.toc .n{font-family:"IBM Plex Mono",monospace;font-size:12px;color:var(--faint);margin-left:8px}
+@media(max-width:640px){.toc ol{columns:1}}
+
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:4px;padding:20px 22px}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:14px}
+.grid3{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px}
+.kicker{font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.1em;color:var(--bronze);text-transform:uppercase;display:block;margin-bottom:8px}
+
+ul.list{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:7px}
+ul.list li{position:relative;padding-right:20px;color:var(--muted);font-size:15px}
+ul.list li::before{content:"";position:absolute;right:0;top:.75em;width:11px;height:6px;border-radius:1px;background:var(--bronze)}
+ul.list li b{color:var(--ink);font-weight:600}
+
+/* حالة التنفيذ */
+.st{display:inline-flex;align-items:center;gap:6px;font-family:"IBM Plex Mono",monospace;font-size:11.5px;
+  padding:3px 9px;border-radius:3px;white-space:nowrap;font-weight:500}
+.st::before{content:"";width:7px;height:7px;border-radius:50%}
+.st.done{background:var(--accent-soft);color:var(--done)}
+.st.done::before{background:var(--done)}
+.st.partial{background:var(--bronze-soft);color:var(--partial)}
+.st.partial::before{background:var(--partial)}
+.st.todo{background:var(--surface-2);color:var(--todo)}
+.st.todo::before{background:var(--todo)}
+
+.built{border-right:3px solid var(--accent);background:var(--accent-soft);border-radius:4px;padding:12px 16px;margin-top:14px;font-size:14px;line-height:1.8}
+.gap{border-right:3px solid var(--bronze);background:var(--bronze-soft);border-radius:4px;padding:12px 16px;margin-top:12px;font-size:14px;line-height:1.8}
+.built b,.gap b{font-weight:600}
+code{font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:.88em;background:var(--surface-2);padding:1px 5px;border-radius:3px;direction:ltr;display:inline-block}
+
+/* سلسلة المبدأ */
+.chain{display:flex;flex-wrap:wrap;gap:6px;margin-top:18px}
+.chain span{background:var(--surface);border:1px solid var(--line);border-radius:3px;padding:7px 12px;font-size:13.5px;white-space:nowrap}
+.chain span.key{border-color:var(--accent);background:var(--accent-soft);color:var(--accent);font-weight:600}
+.chain i{color:var(--faint);font-style:normal;align-self:center}
+
+.tw{overflow-x:auto;border:1px solid var(--line);border-radius:4px;background:var(--surface);margin-top:16px}
+table{border-collapse:collapse;width:100%;min-width:520px;font-size:14.5px}
+th,td{text-align:right;padding:10px 14px;border-bottom:1px solid var(--line);vertical-align:top}
+thead th{background:var(--surface-2);font-weight:600;font-size:13px;white-space:nowrap}
+tbody tr:last-child td{border-bottom:0}
+td.num{font-family:"IBM Plex Mono",monospace;font-variant-numeric:tabular-nums;white-space:nowrap}
+
+.phase{display:grid;grid-template-columns:110px 1fr;gap:16px;padding:16px 20px;border-bottom:1px solid var(--line)}
+.phase:last-child{border-bottom:0}
+.phase .p{font-family:"IBM Plex Mono",monospace;font-size:12.5px;color:var(--bronze);padding-top:3px}
+.phase h4{margin:0 0 5px;font-size:15.5px}
+.phase p{color:var(--muted);font-size:14.5px;line-height:1.75}
+.road{border:1px solid var(--line);border-radius:4px;overflow:hidden;background:var(--surface);margin-top:16px}
+
+.note{background:var(--bronze-soft);border-radius:4px;padding:16px 20px;font-size:14.5px;line-height:1.85;margin-top:18px}
+footer{margin-top:60px;padding-top:22px;border-top:1px solid var(--line);color:var(--faint);font-size:13.5px;
+  display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
+:focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:2px}
+</style>
+
+<header class="mast">
+  <div class="mast-in">
+    <div class="brand"><span class="brick"></span> اللَّبنة للبناء والإعمار · ALLABINA</div>
+    <h1>كراس الشروط الوظيفي</h1>
+    <p class="lede">وثيقة موجَّهة للمطوّر. تصف ما تفعله المنصة ولماذا، وتبيّن عند كلّ وحدة <b>ما هو مُنفَّذ فعلاً في الكود اليوم</b> وما يبقى — حتى يبدأ من حيث انتهى العمل، لا من الصفر.</p>
+    <div class="meta">
+      <span>النسخة <b>1</b></span>
+      <span>التاريخ <b>2026-09-05</b></span>
+      <span>المرحلة التجريبية <b>ولاية صفاقس</b></span>
+      <span>اللغات <b>عربي · Français</b></span>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+
+<nav class="toc" aria-label="محتويات">
+  <ol>
+    <li><a href="#s1"><span class="n">01</span>مفهوم المشروع</a></li>
+    <li><a href="#s2"><span class="n">02</span>واجهة المواطن</a></li>
+    <li><a href="#s3"><span class="n">03</span>استمارة فهم المشكلة</a></li>
+    <li><a href="#s4"><span class="n">04</span>المكالمة الذكية</a></li>
+    <li><a href="#s5"><span class="n">05</span>ملفّ الحريف 360°</a></li>
+    <li><a href="#s6"><span class="n">06</span>الجاهزية والأولوية</a></li>
+    <li><a href="#s7"><span class="n">07</span>بنك الحلول</a></li>
+    <li><a href="#s8"><span class="n">08</span>بوابة أصحاب العقارات</a></li>
+    <li><a href="#s9"><span class="n">09</span>محرّك المطابقة</a></li>
+    <li><a href="#s10"><span class="n">10</span>المحاكي المالي</a></li>
+    <li><a href="#s11"><span class="n">11</span>البناء فوق أرض الحريف</a></li>
+    <li><a href="#s12"><span class="n">12</span>الحالات الاجتماعية</a></li>
+    <li><a href="#s13"><span class="n">13</span>قصص النجاح</a></li>
+    <li><a href="#s14"><span class="n">14</span>خريطة صفاقس ثمّ تونس</a></li>
+    <li><a href="#s15"><span class="n">15</span>المرصد العقاري</a></li>
+    <li><a href="#s16"><span class="n">16</span>واجهة المستثمر</a></li>
+    <li><a href="#s17"><span class="n">17</span>الـBack-office</a></li>
+    <li><a href="#s18"><span class="n">18</span>البنية التقنية</a></li>
+    <li><a href="#phases"><span class="n">19</span>المراحل وترتيب العمل</a></li>
+  </ol>
+</nav>
+
+<section id="s1">
+  <div class="sec-head"><span class="sec-num">01</span><h2>مفهوم المشروع</h2></div>
+  <p class="lead">اللَّبنة ليست موقعاً لبيع العقارات، وإنما <b>منظومة رقمية لإدارة حلول السكن</b>. تنطلق من مشكلة المواطن، تجمع المعطيات، تدرس الملفّ وتصنّفه، تبحث عن الحلول الممكنة، وتربطه عند الحاجة بمكوّنات المنظومة: البعث العقاري، المقاولات، مواد البناء، أصحاب الأراضي، المؤسّسات المالية، والخبراء والشركاء.</p>
+
+  <h3>السلسلة التي يجب أن يفهمها المطوّر</h3>
+  <div class="chain">
+    <span>مشكلة سكن</span><i>←</i>
+    <span>بيانات</span><i>←</i>
+    <span>دراسة</span><i>←</i>
+    <span>تصنيف</span><i>←</i>
+    <span>حلول محتملة</span><i>←</i>
+    <span>مطابقة</span><i>←</i>
+    <span class="key">قرار بشري</span><i>←</i>
+    <span>تنفيذ</span><i>←</i>
+    <span>متابعة</span><i>←</i>
+    <span>توثيق النتيجة</span>
+  </div>
+  <div class="note"><b>القاعدة الحاكمة:</b> الذكاء الاصطناعي ليس مشروع اللَّبنة. <b>البيانات ومسار حلّ المشكلة هما المشروع</b>، والذكاء الاصطناعي أداة تُسرّعهما وتجعلهما أذكى. أيّ خطوة تنتهي بقرار مصيري تمرّ بإنسان يُسجَّل اسمه وسببه.</div>
+
+  <h3>حالة الإنجاز اليوم</h3>
+  <div class="grid3" style="margin-top:14px">
+    <div class="panel"><span class="kicker">منفَّذ</span><p style="font-size:14.5px;color:var(--muted)">تسجيل المطالب · ملفّ الحريف · التصنيف · بوابة العقارات · محرّك المطابقة · المحاكي · متابعة الحرفاء · قصص النجاح · الشراكات · الأدوار والصلاحيات</p></div>
+    <div class="panel"><span class="kicker">جزئي</span><p style="font-size:14.5px;color:var(--muted)">استمارة التشخيص (تنقص أسئلة) · الجاهزية بمؤشّرات منفصلة · الخريطة الجغرافية · واجهة المؤسّسات المالية</p></div>
+    <div class="panel"><span class="kicker">غير منفَّذ</span><p style="font-size:14.5px;color:var(--muted)">المساعد الصوتي · بنك الحلول · المرصد العقاري · واجهة المستثمر · تخزين الصور والوثائق · الإشعارات</p></div>
+  </div>
+</section>
+
+<section id="s2">
+  <div class="sec-head"><span class="sec-num">02</span><h2>واجهة المواطن</h2><span class="st partial">جزئي</span></div>
+  <p class="lead">دعوة واضحة في الصفحة الرئيسية: «عندك مشكلة سكن؟ سجّل مطلبك وخلّي فريق اللَّبنة يدرس وضعيتك.» ثمّ يختار المواطن حاجته، <b>وتتغيّر الأسئلة حسب اختياره</b>.</p>
+  <div class="built"><b>منفَّذ:</b> خمسة مسارات في <code>REQUEST_TYPES</code> — بناء فوق أرضي · أرض ودار · شقة · سكن اقتصادي · كراء مملّك. الاستمارة تتفرّع فعلاً: مسار البناء يزيد خطوة الأرض ويقفزها الباقي.</div>
+  <div class="gap"><b>ينقص:</b> مساران من الوثيقة: <b>ترميم أو توسعة مسكن قائم</b>، و<b>مشكلة سكن أخرى تحتاج دراسة</b>. إضافتهما = قيمتان في نوع <code>request_type</code> + نصّان في ملفّ الترجمات + فرع أسئلة لكلّ واحد.</div>
+</section>
+
+<section id="s3">
+  <div class="sec-head"><span class="sec-num">03</span><h2>استمارة فهم المشكلة</h2><span class="st partial">جزئي</span></div>
+  <p class="lead">ليست استمارة إدارية، وإنما <b>Diagnostic Housing Form</b>: هدفها أن يفهم الفريق المشكلة لا أن يملأ خانات.</p>
+
+  <div class="tw">
+    <table>
+      <thead><tr><th>المحور</th><th>المطلوب</th><th>الحالة</th></tr></thead>
+      <tbody>
+        <tr><td>أ · معلومات أساسية</td><td>الاسم، الهاتف، الولاية، المعتمدية، المنطقة، المهنة</td><td><span class="st done">منفَّذ</span></td></tr>
+        <tr><td></td><td>العمر، الوضعية العائلية، عدد أفراد الأسرة</td><td><span class="st partial">في المسار الاجتماعي فقط</span></td></tr>
+        <tr><td>ب · الوضع السكني الحالي</td><td>وين تسكن حالياً (ملك · كراء · مع العائلة · سكن مؤقّت)، وشنيّة المشكلة الأساسية — كتابةً أو صوتاً</td><td><span class="st todo">ينقص</span></td></tr>
+        <tr><td>ج · الأرض</td><td>الملكية، الموقع، المساحة، GPS، الوثائق</td><td><span class="st done">منفَّذ</span></td></tr>
+        <tr><td></td><td>صور الأرض</td><td><span class="st todo">ينتظر التخزين</span></td></tr>
+        <tr><td>د · الحاجة</td><td>الموقع، المساحة، النوع، عدد الغرف، المواصفات</td><td><span class="st done">منفَّذ</span></td></tr>
+        <tr><td>هـ · القدرة المالية</td><td>الدخل، الالتزامات، المساهمة الذاتية، القسط الممكن</td><td><span class="st done">منفَّذ</span></td></tr>
+        <tr><td>و · FOPROLOS وبرامج المساعدة</td><td>معلومة لدراسة الملفّ — <b>بلا قرار أهلية ولا التزام</b></td><td><span class="st todo">ينقص</span></td></tr>
+        <tr><td>ز · درجة الاستعجال</td><td>من 1 إلى 10 مع سببها — <b>وحدها لا تحدّد الأولوية</b></td><td><span class="st todo">ينقص</span></td></tr>
+        <tr><td>ح · المرونة</td><td>منطقة قريبة؟ مساحة أصغر؟ كراء مملّك؟ بناء على مراحل؟ حلّ يقترحه الفريق؟</td><td><span class="st todo">ينقص</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="gap"><b>ملاحظة للمطوّر:</b> محور «ح · المرونة» هو الأهمّ لمحرّك الحلول: بلا معرفة ما يقبله الحريف، لا يستطيع النظام اقتراح البديل. يُخزَّن كحقول منطقية في <code>housing_requests</code> ويُقرأ في بنك الحلول (القسم 07).</div>
+</section>
+
+<section id="s4">
+  <div class="sec-head"><span class="sec-num">04</span><h2>المكالمة الذكية مع الحريف</h2><span class="st todo">غير منفَّذ</span></div>
+  <p class="lead">المساعد ليس <span dir="ltr">FAQ Bot</span>. وظيفته <b>مقابلة أوّلية منظّمة</b>: يبدأ بسؤال مفتوح — «فسّرلي وضعيتك السكنية وشنيّة أكثر حاجة مقلقتك فيها؟» — ثمّ ينتقل ديناميكياً <b>إلى الأسئلة الناقصة فقط</b>، ولا يعيد سؤالاً إجابته موجودة في الملفّ.</p>
+  <h3>مخرَج المكالمة</h3>
+  <p class="lead">ملخّص منظَّم يُلحق بالملفّ: المشكلة · الحلّ المطلوب · الموقع · المساحة · القدرة المالية · العائق الرئيسي · درجة الاستعجال · الحلول المقبولة · الخطوة المقترحة.</p>
+  <div class="note"><b>حدّ قاطع:</b> المساعد <b>لا يعِد بتمويل ولا بأرض ولا بقبول ملفّ</b>، ولا يصدر قرار أهلية. مخرجه اقتراح للفريق، لا جواب للحريف.</div>
+  <div class="gap"><b>قرارات مطلوبة قبل التنفيذ:</b> مزوّد الذكاء الاصطناعي ومفتاحه، وهل يُسجَّل الصوت (وبأيّ موافقة ومدّة حفظ)، وهل المقابلة نصّية أوّلاً ثمّ صوتية.</div>
+</section>
+
+<section id="s5">
+  <div class="sec-head"><span class="sec-num">05</span><h2>ملفّ الحريف 360°</h2><span class="st partial">جزئي</span></div>
+  <p class="lead">لكلّ مواطن ملفّ واحد يجمع: المعلومات · المكالمات · الوثائق · الصور · الأرض · المحاكاة المالية · الملاحظات · الزيارات · الحلول المقترحة · القرارات · تاريخ كلّ عملية.</p>
+  <div class="built"><b>منفَّذ:</b> الملفّ موجود في <code>/admin/[id]</code> ويجمع المطلب والملفّ المالي والأرض والتنقيط وتصنيف الدراسة والمسار الاجتماعي وعناصر الحلّ والمهامّ والعروض المقترحة والوثائق والاستفسارات، مع <b>Timeline كامل</b> في <code>request_events</code> يسجّل كلّ تغيير ومن قام به.</div>
+  <div class="gap"><b>ينقص:</b> تسجيلات المكالمات وتفريغها (مرتبط بالقسم 04)، وصور الوثائق والأرض (مرتبط بتفعيل التخزين).</div>
+</section>
+
+<section id="s6">
+  <div class="sec-head"><span class="sec-num">06</span><h2>نظام الجاهزية والأولوية</h2><span class="st partial">جزئي</span></div>
+  <p class="lead">السؤال العملي: عند اللَّبنة قدرة على بناء دار واحدة هذا الشهر و50 مطلباً. <b>شكون يبدا؟</b></p>
+  <p class="lead" style="margin-top:10px">المطلوب <b>Decision Support Engine</b> يعطي الإدارة مؤشّرات <b>منفصلة</b>، لا نتيجة واحدة غامضة: جاهزية الملفّ · الجاهزية القانونية · توفّر الأرض · الجاهزية الفنية · الجاهزية المالية · درجة الاستعجال · الأثر الاجتماعي · سهولة التنفيذ.</p>
+  <div class="built"><b>منفَّذ:</b> تنقيط من 100 نقطة على ستّة معايير (<code>lib/scoring.ts</code>) مع <b>سبب مكتوب لكلّ نقطة</b> وتخزين التفصيل ورقم نسخة الخوارزمية — فيمكن إعادة الحساب دون فقدان التاريخ.</div>
+  <div class="gap"><b>ينقص:</b> فصل المؤشّرات الثمانية بدل مجموع واحد، ونصّ تفسيري للترتيب («هذا الملفّ مقترح للتنفيذ لأنّ الأرض والوثائق والتمويل جاهزة»)، و<b>تسجيل القرار البشري</b>: من اختار، ولماذا، ومتى.</div>
+</section>
+
+<section id="s7">
+  <div class="sec-head"><span class="sec-num">07</span><h2>بنك الحلول</h2><span class="st todo">غير منفَّذ</span></div>
+  <p class="lead">النظام لا يقول «مقبول / مرفوض». لكلّ مشكلة <b>Solutions Engine</b> يقترح مسارات بديلة:</p>
+  <div class="grid3" style="margin-top:14px">
+    <div class="panel"><span class="kicker">A</span><p>بناء فوق أرضه</p></div>
+    <div class="panel"><span class="kicker">B</span><p>مساحة بناء أصغر</p></div>
+    <div class="panel"><span class="kicker">C</span><p>بناء مرحلي</p></div>
+    <div class="panel"><span class="kicker">D</span><p>كراء مملّك عند توفّر مشروع مناسب</p></div>
+    <div class="panel"><span class="kicker">E</span><p>مطابقة مع مشروع آخر</p></div>
+    <div class="panel"><span class="kicker">F</span><p>مسار اجتماعي أو تضامني</p></div>
+  </div>
+  <div class="note"><b>المبدأ:</b> الملفّ الذي لا يمكن حلّه اليوم <b>لا يُرمى</b> — يبقى في بنك الطلبات حتى يظهر حلّ مناسب. عملياً: كلّ مطلب مرفوض أو موقوف يُعاد تقييمه آلياً كلّما دخل عرض جديد أو تغيّرت ظروفه.</div>
+  <div class="gap"><b>ما يلزم لتنفيذه:</b> حقول المرونة من القسم 03، وجدول <code>solution_options</code> يحفظ البدائل المقترحة لكلّ ملفّ مع سببها وحالتها، وإعادة تشغيل دورية للمحرّك.</div>
+</section>
+
+<section id="s8">
+  <div class="sec-head"><span class="sec-num">08</span><h2>بوابة أصحاب العقارات</h2><span class="st done">منفَّذ</span></div>
+  <p class="lead">واجهة ثانية: «عندك أرض أو عقار تحبّ تبيعو؟» المالك يرسل الموقع وGPS والولاية والمعتمدية والمساحة والسعر والنوع والصور والفيديو والوثائق.</p>
+  <div class="built"><b>منفَّذ:</b> صفحة <code>/[locale]/proprietaire</code> بالعربية والفرنسية، وجدول <code>properties</code>، وشاشة مراجعة في <code>/admin/properties</code>. <b>العرض يدخل بحالة «في انتظار المراجعة» ولا يظهر لأحد قبلها</b>، والمطابقة تشمل المراجَع وحده.</div>
+  <div class="gap"><b>ينقص:</b> رفع الصور والفيديو والوثائق — جدول <code>property_media</code> جاهز وينتظر تفعيل التخزين.</div>
+</section>
+
+<section id="s9">
+  <div class="sec-head"><span class="sec-num">09</span><h2>محرّك المطابقة</h2><span class="st partial">جزئي</span></div>
+  <p class="lead">البحث المستمرّ عن التقاطع بين: طلب المواطن · العقارات المتوفّرة · مشاريع اللَّبنة · قدرة البناء · المقاولين · الإمكانيات التمويلية · الشركاء.</p>
+  <div class="built"><b>منفَّذ:</b> <code>lib/matching.ts</code> — 100 نقطة موزّعة: الموقع 35 · الميزانية 25 · النوع 20 · المساحة 15 · جاهزية الملفّ 5. <b>الموقع أثقل معيار عمداً</b>: المواطن يبني حيث يعيش لا حيث يتوفّر العرض. موانع قاطعة تُقصي العرض: ولاية مختلفة · نوع لا يخدم المطلب · ثمن يفوق الميزانية بأكثر من 15% · أرض أصغر بكثير · عرض غير مراجَع. كلّ اقتراح يظهر <b>بنسبته وأسبابه المكتوبة</b>، والقرار للفريق.</div>
+  <div class="gap"><b>ينقص — وهو أعلى قيمة تجارية:</b> اتجاه <b>Opportunities</b>: «37 مواطناً يبحثون عن أرض ودار في منطقة X، ولدينا مالك يعرض أرضاً مناسبة» — تجميع الطلب حسب المنطقة والنوع، وتنبيه الإدارة عند تقاطع مُجدٍ.</div>
+</section>
+
+<section id="s10">
+  <div class="sec-head"><span class="sec-num">10</span><h2>المحاكي المالي</h2><span class="st partial">جزئي</span></div>
+  <p class="lead">واجهة مستقلّة للمحاكاة. <b>لا تُثبَّت نسب البنوك في الكود.</b> الإدارة تحيّن من الـBack-office: نسبة/هامش التمويل، سقف الاستدانة، المساهمة الذاتية، المدّة، والمصاريف. والنتيجة تُعرض دائماً كمحاكاة أوّلية غير ملزمة.</p>
+  <div class="built"><b>منفَّذ:</b> <code>/[locale]/simulateur</code> — لا رقم مثبَّت في الكود؛ المستعمل يضبط المدّة والنسبة وسقف الاستدانة بنفسه، ويُذيَّل كلّ نتيجة بالنصّ المتّفق عليه: تُحدَّد الشروط وفق المعمول به لدى بنك الزيتونة والمؤسّسات البنكية التونسية والتشريع الجاري به العمل بتاريخ إسناد التمويل. صيغ التمويل في جدول <code>financing_products</code> مع مصدرها وتاريخ تثبّتها.</div>
+  <div class="gap"><b>ينقص:</b> اختيار المؤسّسة المالية داخل المحاكاة، وربط كلّ مؤسّسة بمتغيّراتها الخاصّة بدل مجموعة واحدة عامّة.</div>
+</section>
+
+<section id="s11">
+  <div class="sec-head"><span class="sec-num">11</span><h2>البناء فوق أرض الحريف</h2><span class="st partial">جزئي</span></div>
+  <p class="lead">تكلفة البناء متغيّر لا رقم ثابت. النطاق المرجعي: <b>1 200 – 2 000 د/م² HT</b> حسب الـStanding والمواصفات والتشطيب.</p>
+  <div class="built"><b>منفَّذ:</b> ثلاث فئات في <code>price_references</code> (عادي 1 200–1 350 · متوسّط 1 400–1 600 · Haut Standing 1 700–2 000) بمرجع 1 600، تُعرض في الصفحة التعريفية وفي الاستمارة والمحاكي. <b>تُعدَّل من القاعدة بلا تدخّل المطوّر</b> — مُختبَر: تغيير السعر ظهر فوراً في نسخة الإنتاج بلا إعادة نشر.</div>
+  <div class="gap"><b>ينقص:</b> <b>Packages</b> جاهزة (نموذج بمواصفات وتجهيزات وسعر) تُنشئها الإدارة وتُعرض على الحريف.</div>
+</section>
+
+<section id="s12">
+  <div class="sec-head"><span class="sec-num">12</span><h2>الحالات الاجتماعية</h2><span class="st done">منفَّذ</span></div>
+  <p class="lead">مسار خاصّ للحالات التي يصعب حلّها تجارياً. <b>المنصة لا تعِد المواطن بالمساعدة</b>، وإنما تتيح للفريق فهم الحالة والبحث عن تركيبة حلّ: أرض + مواد بناء + مساهمة مقاول + شريك اجتماعي + تمويل قانوني = مشروع محتمل.</p>
+  <div class="built"><b>منفَّذ:</b> <code>social_assessments</code> بمؤشّرات ترتيب الأولوية (عدد الأفراد، المُعالون، إعاقة، وضعية السكن، استقرار الدخل) — <b>مكتوب في الشاشة أنّها لترتيب الدراسة لا للحكم الآلي</b>، والأولوية يقرّرها إنسان ويُسجَّل اسمه وتاريخه. وجدول <code>contributions</code> لعناصر الحلّ مع الجهة المساهمة وحالتها.</div>
+  <div class="note"><b>مؤجَّل عمداً:</b> أيّ آلية تبرّعات أو <span dir="ltr">crowdfunding</span> تحتاج مساراً قانونياً ومالياً مستقلاً قبل جمع أيّ مال. لا يُبنى شيء منها قبل استكمال الإطار.</div>
+</section>
+
+<section id="s13">
+  <div class="sec-head"><span class="sec-num">13</span><h2>قصص النجاح والتقدّم</h2><span class="st partial">جزئي</span></div>
+  <p class="lead">قسم عمومي «اللَّبنة في الميدان»: حالات حقيقية بعد الحصول على الموافقات — صور قبل/بعد، فيديو، نوع المشكلة، المنطقة، مراحل التدخّل، والنتيجة.</p>
+  <div class="built"><b>منفَّذ:</b> <code>/[locale]/realisations</code> وجدول <code>case_studies</code> وشاشة تحرير في <code>/admin/cases</code>. <b>حماية الموافقة مبنية في قاعدة البيانات لا في الواجهة</b>: قيد SQL يمنع النشر ما دامت الموافقة غير مسجَّلة، والحالات مجهّلة الهوية افتراضياً.</div>
+  <div class="gap"><b>ينقص:</b> <b>Progress %</b> للمشاريع الجارية («مشروع قيد البناء 65%»)، ورفع الصور (ينتظر التخزين — حالياً روابط).</div>
+</section>
+
+<section id="s14">
+  <div class="sec-head"><span class="sec-num">14</span><h2>خريطة صفاقس ثمّ تونس</h2><span class="st partial">جزئي</span></div>
+  <p class="lead">المرحلة الأولى صفاقس بكامل معتمدياتها، تعرض: الطلبات · المشاريع · العقارات · الحالات المنجزة · الطلب حسب نوع السكن. ثمّ تتوسّع البنية إلى: تونس ← ولاية ← معتمدية ← عمادة.</p>
+  <div class="built"><b>منفَّذ:</b> البنية الهرمية كاملة (<code>governorates</code> ← <code>delegations</code> ← <code>imadas</code>) و24 ولاية و16 معتمدية لصفاقس حسب تقسيم وزارة الداخلية، وشبكة معتمديات تفاعلية في صفحة الإنجازات مع أعداد لكلّ معتمدية.</div>
+  <div class="gap"><b>ينقص:</b> خريطة <b>جغرافية</b> بحدود المعتمديات — تحتاج ملفّ GeoJSON رسمياً. لا تُخترع الحدود.</div>
+</section>
+
+<section id="s15">
+  <div class="sec-head"><span class="sec-num">15</span><h2>المرصد العقاري والسكني</h2><span class="st todo">غير منفَّذ</span></div>
+  <p class="lead">وحدة استراتيجية: بما أنّ المنصة تجمع <b>طلباً حقيقياً</b>، يمكنها إنتاج مؤشّرات مجهّلة ومجمَّعة — أين يوجد الطلب؟ ماذا يريد الناس؟ متوسّط المساحات؟ القدرة المالية؟ أكثر الحلول طلباً؟ أين يوجد نقص في العرض؟</p>
+  <div class="note">بدل أن يقرّر المستثمر بناء 100 شقة اعتماداً على الحدس، يرى <b>Demand Data</b> قبل دراسة المشروع. هذه من أهمّ قيم المنصة على المدى المتوسّط.</div>
+  <div class="built"><b>الأساس موجود:</b> المعطيات تُجمَع اليوم بالشكل الذي يسمح بذلك (المنطقة، المساحة، الميزانية، نوع الحلّ، الجاهزية)، وتوجد <code>views</code> مجمَّعة للعرض العمومي بلا معطى شخصي.</div>
+</section>
+
+<section id="s16">
+  <div class="sec-head"><span class="sec-num">16</span><h2>واجهة المستثمر</h2><span class="st todo">غير منفَّذ</span></div>
+  <p class="lead">واجهة تعرض فرصاً ومؤشّرات <b>مجمَّعة</b> — لا معطيات شخصية للحرفاء إطلاقاً. مثال: «صفاقس – منطقة X: 420 طلباً · المساحة الأكثر طلباً 70–90 م² · الفئة السعرية الأكثر طلباً · عدد الملفّات عالية الجاهزية · العرض المتوفّر · فجوة العرض والطلب.»</p>
+  <div class="gap"><b>شرط تصميمي:</b> تُبنى فوق المرصد (القسم 15) وتُقرأ من <code>views</code> مجمَّعة فقط. لا تصل هذه الواجهة إلى جدول فيه اسم أو هاتف أو مبلغ فردي.</div>
+</section>
+
+<section id="s17">
+  <div class="sec-head"><span class="sec-num">17</span><h2>الـBack-office</h2><span class="st partial">جزئي</span></div>
+  <p class="lead">اللوحة المركزية تجيب الإدارة كلّ صباح عن ثلاثة أسئلة: <b>شنوّة المشاكل الموجودة؟ شنوّة الملفّات الأقرب للحلّ؟ شنوّة يلزمنا نعملو اليوم؟</b></p>
+  <div class="built"><b>منفَّذ:</b> لوحة بمؤشّرات (مطالب اليوم، نسبة الأصناف، معدّل الميزانية، استفسارات مفتوحة)، توزيع الطلب حسب الولاية والمعتمدية، إجراءات في انتظار التنفيذ، فلاتر مركّبة، تصدير CSV، وشاشات: المطالب · العقارات · الحالات المنجزة · الشركاء · المعطيات المرجعية · الفريق. مع أدوار وصلاحيات (مالك · مدير · وكيل · مطّلع) وسجلّ تدقيق.</div>
+  <div class="gap"><b>ينقص:</b> إعادة ترتيب اللوحة حول الأسئلة الثلاثة صراحةً، ومؤشّرات: <b>مدّة معالجة الملفّ</b>، الزيارات الميدانية، والمشاريع قيد الإنجاز.</div>
+</section>
+
+<section id="s18">
+  <div class="sec-head"><span class="sec-num">18</span><h2>البنية التقنية</h2><span class="st partial">جزئي</span></div>
+  <p class="lead">المشروع <b>Cloud Platform</b> لا موقع تقليدي. وتُبنى الـAPIs من البداية حتى يمكن لاحقاً ربط تطبيق الهاتف وواتساب والمساعد الصوتي والمؤسّسات المالية والشركاء.</p>
+  <div class="tw">
+    <table>
+      <thead><tr><th>المكوّن</th><th>الحالة</th><th>ملاحظة</th></tr></thead>
+      <tbody>
+        <tr><td>Frontend + Backend</td><td><span class="st done">منفَّذ</span></td><td>Next.js 15 · TypeScript · عربي RTL وفرنسي LTR</td></tr>
+        <tr><td>Database</td><td><span class="st done">منفَّذ</span></td><td>Supabase/Postgres · 23 جدولاً · RLS على كلّ جدول</td></tr>
+        <tr><td>Authentication</td><td><span class="st done">منفَّذ</span></td><td>Supabase Auth</td></tr>
+        <tr><td>Roles &amp; Permissions</td><td><span class="st done">منفَّذ</span></td><td>أربعة أدوار بمصفوفة صلاحيات واحدة</td></tr>
+        <tr><td>Audit Logs</td><td><span class="st done">منفَّذ</span></td><td><code>request_events</code> · <code>staff_events</code></td></tr>
+        <tr><td>Backup</td><td><span class="st done">منفَّذ</span></td><td>نسخ Supabase التلقائية</td></tr>
+        <tr><td>Secure Document &amp; Media Storage</td><td><span class="st todo">ينقص</span></td><td>الجداول جاهزة · يحتاج تفعيل Supabase Storage وسياسات نفاذ</td></tr>
+        <tr><td>Notifications (SMS · WhatsApp · Email)</td><td><span class="st todo">ينقص</span></td><td>يحتاج اختيار مزوّد وميزانية</td></tr>
+        <tr><td>Public API</td><td><span class="st todo">ينقص</span></td><td>المنطق مفصول في <code>lib/</code> فالانتقال إلى API مباشر</td></tr>
+        <tr><td>AI Layer</td><td><span class="st todo">ينقص</span></td><td>القسم 04</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="note"><b>ما يجده المطوّر جاهزاً:</b> 9 هجرات SQL مرقّمة وقابلة لإعادة التشغيل · 84 اختباراً آلياً يحمي الحسابات والتنقيط والمطابقة والتحقّق من المدخلات · مستودع git · وثائق في <code>docs/</code> و<code>README.md</code>.</div>
+</section>
+
+<section id="phases">
+  <div class="sec-head"><span class="sec-num">19</span><h2>المراحل وترتيب العمل</h2></div>
+  <p class="lead">المطوّر لا يبدأ بالخمسين ميزة دفعةً واحدة. النسخة الأولى تشتغل وتجمع بيانات حقيقية بسرعة، وكلّ قرار تطوير لاحق يُبنى على <b>استعمال الحرفاء الحقيقي لا على فرضيات</b>.</p>
+  <div class="road">
+    <div class="phase"><div class="p">Phase 1</div><div><h4>الأساس <span class="st done">منجَز</span></h4><p>طلب السكن · ملفّ 360° · الـBack-office · بوابة أصحاب العقارات · متابعة الملفّات.</p></div></div>
+    <div class="phase"><div class="p">Phase 2</div><div><h4>الربط <span class="st partial">شبه منجَز</span></h4><p>المطابقة ✓ · المحاكاة المالية ✓ · قصص النجاح ✓ · الخرائط: شبكة معتمديات ✓ وخريطة جغرافية تنتظر GeoJSON.</p></div></div>
+    <div class="phase"><div class="p">Phase 3</div><div><h4>الذكاء <span class="st todo">لم يبدأ</span></h4><p>المساعد الصوتي · دعم القرار بمؤشّرات منفصلة · بنك الحلول · المرصد · واجهة المستثمر.</p></div></div>
+    <div class="phase"><div class="p">Phase 4</div><div><h4>التوسّع <span class="st partial">جزئي</span></h4><p>الشراكات وعناصر الحلّ ✓ · الحالات الاجتماعية ✓ · التوسّع الوطني: البنية جاهزة وتنتظر بيانات الولايات.</p></div></div>
+  </div>
+
+  <h3>ما يحتاج قراراً قبل الانطلاق</h3>
+  <ul class="list" style="margin-top:12px">
+    <li><b>تفعيل التخزين</b> — يفتح: صور الأرض، وثائق الملفّ، صور العقارات، صور قبل/بعد.</li>
+    <li><b>مزوّد الذكاء الاصطناعي ومفتاحه</b> — وقرار تسجيل الصوت وموافقته ومدّة حفظه.</li>
+    <li><b>ملفّ GeoJSON</b> لحدود معتمديات صفاقس.</li>
+    <li><b>متغيّرات كلّ مؤسّسة مالية</b> على حدة، وتثبّت رسمي من صيغ التمويل المسجّلة.</li>
+    <li><b>مزوّد الإشعارات</b> (SMS/واتساب) وميزانيته.</li>
+    <li><b>الإطار القانوني</b> لأيّ جمع تبرّعات قبل بناء أيّ شيء منه.</li>
+  </ul>
+</section>
+
+<footer>
+  <span>اللَّبنة للبناء والإعمار — ALLABINA Construction &amp; Développement</span>
+  <span>كراس الشروط الوظيفي · النسخة 1</span>
+</footer>
+</div>
+<script>document.documentElement.setAttribute("lang","ar");document.documentElement.setAttribute("dir","rtl");</script>
