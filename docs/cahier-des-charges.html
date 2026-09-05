@@ -345,8 +345,11 @@ footer{margin-top:60px;padding-top:22px;border-top:1px solid var(--line);color:v
     <span>إنشاء مطلب</span><i>←</i>
     <span>معلومات الأرض</span><i>←</i>
     <span>مواصفات الدار</span><i>←</i>
-    <span class="key">Devis estimatif</span><i>←</i>
+    <span class="key">سعر/م² وتكلفة إجمالية</span><i>←</i>
+    <span>تفاصيل السعر حسب الـLot</span><i>←</i>
     <span>اختيار التشطيبات</span><i>←</i>
+    <span>Plus / moins-value</span><i>←</i>
+    <span>Devis estimatif</span><i>←</i>
     <span>محاكي مالي</span><i>←</i>
     <span>مقارنة بالقدرة</span><i>←</i>
     <span>اقتراح حلول</span><i>←</i>
@@ -367,7 +370,81 @@ footer{margin-top:60px;padding-top:22px;border-top:1px solid var(--line);color:v
   <div class="built"><b>منفَّذ جزئياً:</b> تقدير إجمالي بالمتر المربّع حسب الـStanding (1 200 – 2 000 د/م² HT) يظهر للمواطن في الاستمارة وصفحة الشكر.</div>
   <div class="gap"><b>ينقص:</b> التفصيل على الـLots والـArticles — أي الـDevis الحقيقي بدل الرقم الإجمالي.</div>
 
-  <h3>4 · Master Bordereau</h3>
+  <h3>4 · Bordereau des prix au m² — الواجهة البسيطة للحريف</h3>
+  <p class="lead">قبل أيّ تفصيل، المواطن يأخذ <b>تقديراً سريعاً</b>: مساحة البناء × مستوى التشطيب. الـBordereau التفصيلي مقالاً مقالاً يبقى في الخلفية للاستعمال الفنّي والإداري.</p>
+
+  <h4 style="margin-top:18px;font-size:15px">مرجع الأسعار بالمتر المربّع</h4>
+  <div class="tw">
+    <table>
+      <thead><tr><th>Code</th><th>المستوى</th><th class="num">د/م² HT</th><th class="num">مثال 120 م²</th></tr></thead>
+      <tbody>
+        <tr><td class="num">B01</td><td>Économique / Essentiel</td><td class="num">1 200</td><td class="num">144 000 د</td></tr>
+        <tr><td class="num">B02</td><td>Standard</td><td class="num">1 400</td><td class="num">168 000 د</td></tr>
+        <tr><td class="num">B03</td><td>Confort</td><td class="num">1 600</td><td class="num">192 000 د</td></tr>
+        <tr><td class="num">B04</td><td>Supérieur</td><td class="num">1 800</td><td class="num">216 000 د</td></tr>
+        <tr><td class="num">B05</td><td>Premium</td><td class="num">2 000</td><td class="num">240 000 د</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="note"><b>مرجع داخلي قابل للتحيين، وليس أسعاراً نهائية ملزمة.</b></div>
+
+  <h4 style="margin-top:22px;font-size:15px">تفكيك السعر على الـLots</h4>
+  <p class="lead">لا يكفي أن يعرف النظام أنّ البناء = 1 600 د/م². <b>لازم يعرف وين يمشي الـ1 600 دينار.</b> مثال توزيع المستوى Confort:</p>
+  <div class="tw">
+    <table>
+      <thead><tr><th>Lot</th><th class="num">د/م²</th><th>Lot</th><th class="num">د/م²</th></tr></thead>
+      <tbody>
+        <tr><td>Études + préparation</td><td class="num">40</td><td>Aluminium</td><td class="num">100</td></tr>
+        <tr><td>Terrassement</td><td class="num">40</td><td>Menuiserie bois</td><td class="num">75</td></tr>
+        <tr><td>Fondations</td><td class="num">140</td><td>Ferronnerie</td><td class="num">25</td></tr>
+        <tr><td>Structure / béton armé</td><td class="num">265</td><td>Peinture</td><td class="num">65</td></tr>
+        <tr><td>Maçonnerie</td><td class="num">115</td><td>Cuisine</td><td class="num">60</td></tr>
+        <tr><td>Enduits</td><td class="num">85</td><td>Faux plafond</td><td class="num">40</td></tr>
+        <tr><td>Étanchéité / isolation</td><td class="num">60</td><td>Climatisation — pré-équipement</td><td class="num">25</td></tr>
+        <tr><td>Plomberie + sanitaires</td><td class="num">100</td><td>Façade</td><td class="num">40</td></tr>
+        <tr><td>Électricité</td><td class="num">90</td><td>Extérieurs</td><td class="num">60</td></tr>
+        <tr><td>Revêtements</td><td class="num">135</td><td>Nettoyage / réception</td><td class="num">25</td></tr>
+        <tr><td colspan="2"><b>المجموع</b></td><td colspan="2" class="num"><b>1 600 د/م² HT</b></td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="note"><b>نموذج توزيع داخلي للمنصة، وليس métré technique نهائياً.</b> غايته أن يرى المواطن أين تذهب نقوده، وأن يحسب النظام الفوارق عند تغيير التشطيبات.</div>
+
+  <h4 style="margin-top:22px;font-size:15px">كيف يشتغل مع المواطن</h4>
+  <p class="lead">يقول «نحبّ نبني 120 م²» فتظهر له الخمسة مباشرة (144 000 → 240 000 د HT). والأهمّ: يضغط <b>«شوف التفاصيل»</b> فيرى تفكيك المستوى الذي اختاره:</p>
+  <div class="tw">
+    <table>
+      <thead><tr><th>Lot</th><th class="num">د/م²</th><th class="num">× 120 م²</th></tr></thead>
+      <tbody>
+        <tr><td>Structure</td><td class="num">265</td><td class="num">31 800 د</td></tr>
+        <tr><td>Maçonnerie</td><td class="num">115</td><td class="num">13 800 د</td></tr>
+        <tr><td>Plomberie</td><td class="num">100</td><td class="num">12 000 د</td></tr>
+        <tr><td>Revêtements</td><td class="num">135</td><td class="num">16 200 د</td></tr>
+        <tr><td colspan="3" style="color:var(--faint)">… وبقيّة الـLots</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h4 style="margin-top:22px;font-size:15px">Plus / moins-value على التشطيبات</h4>
+  <p class="lead">داخل بعض الـLots يختار المواطن. مثال: الـRevêtement يبدأ بـ135 د/م² <b>ضمن الحزمة</b>؛ فإن اختار تشطيباً أعلى، <b>يُحتسب الفارق وحده</b> لا السعر كاملاً. هكذا لا يضيع بين آلاف المقالات: يبدأ من رقم واحد ويهبط في التفصيل بقدر ما يريد.</p>
+  <div class="chain">
+    <span>مساحة الدار</span><i>←</i><span>سعر/م²</span><i>←</i><span>تكلفة إجمالية</span><i>←</i>
+    <span>تفاصيل السعر</span><i>←</i><span>اختيار التشطيبات</span><i>←</i>
+    <span class="key">Plus / moins-value</span><i>←</i><span>Devis estimatif</span><i>←</i><span>المحاكي المالي</span>
+  </div>
+
+  <h4 style="margin-top:22px;font-size:15px">ما تفعله الإدارة بلا مطوّر</h4>
+  <ul class="list" style="margin-top:10px">
+    <li>تغيير الأسعار الخمسة (1 200 · 1 400 · 1 600 · 1 800 · 2 000).</li>
+    <li>تغيير <b>توزيع كلّ سعر على الـ20 Lot</b>، مع تنبيه إن لم يساوِ المجموعُ السعرَ المعلن.</li>
+    <li><b>إضافة مستوى جديد</b> (B06 وما بعده) بترتيبه وتوزيعه.</li>
+  </ul>
+
+  <div class="gap"><b>ملاحظة تقنية موجَّهة للمطوّر — تغيير في القائم:</b> مستويات التشطيب اليوم <b>نوع ثابت في قاعدة البيانات</b> (<code>standing_tier</code>) بثلاث قيم. هذا يمنع الإدارة من إضافة مستوى جديد بلا مطوّر، وهو خلاف ما تطلبه هذه الوحدة. المطلوب تحويلها إلى <b>جدول</b> (<code>standing_levels</code>: code · اسم · سعر/م² · ترتيب · نشط) مع جدول ثانٍ للتوزيع (<code>standing_lot_shares</code>: المستوى · الـLot · د/م²). حينها تصير الخمسة معطياتٍ لا كوداً، وتُضاف السادسة من الشاشة.</div>
+
+  <div class="built"><b>ما هو قائم اليوم:</b> ثلاثة مستويات بنطاقات سعرية (1 200–1 350 · 1 400–1 600 · 1 700–2 000) تُضبط من قاعدة البيانات وتظهر للمواطن. ينقص: الأسعار الخمسة المفردة، تفكيكها على الـLots، شاشة «شوف التفاصيل»، وحساب الـPlus-value.</div>
+
+  <h3>5 · Master Bordereau</h3>
   <p class="lead">يُبنى قابلاً للإدارة من الـBack-office. <b>لا تُوضع الأسعار داخل الكود.</b> الهيكلة:</p>
   <div class="chain" style="margin-top:12px">
     <span>LOT</span><i>←</i><span>ARTICLE</span><i>←</i><span>UNITÉ</span><i>←</i><span>QUANTITÉ</span><i>←</i><span>PRIX UNITAIRE</span><i>←</i><span class="key">TOTAL</span>
@@ -390,7 +467,7 @@ footer{margin-top:60px;padding-top:22px;border-top:1px solid var(--line);color:v
     </table>
   </div>
 
-  <h3>5 · بنية الـArticle</h3>
+  <h3>6 · بنية الـArticle</h3>
   <p class="lead">كلّ Article يحتوي على الأقلّ:</p>
   <div class="tw">
     <table>
@@ -409,12 +486,12 @@ footer{margin-top:60px;padding-top:22px;border-top:1px solid var(--line);color:v
     </table>
   </div>
 
-  <h3>6 · قاعدة الأسعار — Base de Prix</h3>
+  <h3>7 · قاعدة الأسعار — Base de Prix</h3>
   <p class="lead">قاعدة مستقلّة، <b>الإدارة تبدّل الأسعار دون تدخّل المطوّر</b>. مثال: بلاط X من 42 إلى 46 د/م² — تُحدَّث، ومن ذلك التاريخ تستعمل الـDevis الجديدة السعر الجديد.</p>
   <div class="note"><b>قاعدة تصميمية لا يُتهاون فيها:</b> الـDevis القديمة تبقى محتفظة بالسعر الذي حُسبت به وقت إنشائها. عملياً: كلّ سطر Devis <b>ينسخ</b> السعر والكمية والوحدة وقت التوليد، ولا يشير إلى سعر حيّ يتغيّر تحته. بلا ذلك يُعاد كتابة تاريخ العروض كلّما تغيّر سعر، وتضيع المقارنة والمساءلة.</div>
   <div class="built"><b>السابقة موجودة:</b> نفس المبدأ مطبَّق اليوم في التنقيط — كلّ نتيجة تُخزَّن مع تفصيلها ورقم نسخة الخوارزمية، فتغيير القواعد لاحقاً لا يغيّر ما حُسب سابقاً.</div>
 
-  <h3>7 · مستويات التشطيب — Standing</h3>
+  <h3>8 · مستويات التشطيب — Standing</h3>
   <p class="lead">المواطن لا يرى Bordereau هندسياً معقّداً من البداية، بل ثلاثة اختيارات واضحة — و<b>في الـBack-office كلّ Standing مربوط بـArticles وأسعار حقيقية</b>.</p>
   <div class="grid3" style="margin-top:12px">
     <div class="panel"><span class="kicker">Standard</span><p>حلّ اقتصادي محترم.</p></div>
@@ -424,9 +501,11 @@ footer{margin-top:60px;padding-top:22px;border-top:1px solid var(--line);color:v
   <div class="built"><b>منفَّذ:</b> المستويات الثلاثة موجودة بنطاقاتها السعرية وتظهر للمواطن في الاستمارة والصفحة التعريفية والمحاكي.</div>
   <div class="gap"><b>ينقص:</b> ربط كلّ Standing بقائمة Articles بدل نطاق سعر بالمتر.</div>
 
-  <h3>8 · مُعِدّ التشطيبات — Configurateur des Finitions</h3>
+  <h3>9 · مُعِدّ التشطيبات — Configurateur des Finitions</h3>
   <p class="lead">تجربة قويّة للمواطن: يدخل على Revêtement فيرى اختيارات <b>بالصور</b>، كلّ واحد بصورته ونوعه ومواصفاته وسعر المتر <b>والفرق في السعر</b> عمّا اختاره. ونفس الشيء لـ: Carrelage · Faïence · Aluminium · Portes · Peinture · Sanitaires · Robinetterie · Cuisine · Façade.</p>
   <div class="gap"><b>ينقص كلّياً</b>، ويتوقّف على تفعيل التخزين (صور الخيارات). التصميم المقترح: <code>finish_categories</code> ← <code>finish_options</code> (صورة · مواصفات · سعر الوحدة · Standing المرجعي)، والفرق يُحتسب مقابل خيار الـStanding الافتراضي.</div>
+
+  <div class="note"><b>طبقتان لا واحدة:</b> الـBordereau بالمتر المربّع هو <b>واجهة الحريف</b> — رقم واحد ثمّ تفكيك مفهوم؛ والـBordereau مقالاً مقالاً هو <b>الخلفية الفنّية والإدارية</b> للتنفيذ والتعاقد. الأولى تُبنى أوّلاً لأنّها ما يراه المواطن.</div>
 
   <div class="note"><b>ما يبنيه المطوّر الآن وما يُملأ لاحقاً:</b> تُبنى <b>البنية</b> كاملة الآن (الجداول والشاشات ومنطق التوليد والنسخ التاريخي)، أمّا <b>الأسعار والـArticles</b> فتُملأ من الـBack-office بعد ذلك. لا ينتظر المطوّر البوردرو ليبدأ، ولا يُدخل رقماً واحداً في الكود.</div>
 </section>
