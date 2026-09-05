@@ -100,6 +100,12 @@ export default async function SiteLayout({
                 {t.cases.navLink}
               </Link>
               <Link
+                href={p('/soutien')}
+                className="hidden rounded px-2 py-1 text-muted hover:text-green lg:inline"
+              >
+                {t.soutien.navLink}
+              </Link>
+              <Link
                 href={p('/proprietaire')}
                 className="hidden rounded px-2 py-1 text-muted hover:text-green md:inline"
               >
@@ -141,6 +147,9 @@ export default async function SiteLayout({
                 </Link>
                 <Link href={p('/realisations')} className="hover:text-green">
                   {t.cases.navLink}
+                </Link>
+                <Link href={p('/soutien')} className="hover:text-green">
+                  {t.soutien.navLink}
                 </Link>
                 <Link href={p('/proprietaire')} className="hover:text-green">
                   {t.proprietaire.navCta}

@@ -129,6 +129,14 @@ const DOC_TYPES = [
   'أمثلة ودراسات',
 ]
 
+const LEDGER_EVENT_LABELS: Record<string, string> = {
+  needed: 'مطلوب',
+  pledged: 'تعهّد',
+  confirmed: 'مؤكّد',
+  delivered: 'وصل',
+  cancelled: 'ملغى',
+}
+
 export default async function RequestDetail({ params }: { params: Promise<{ id: string }> }) {
   const me = await requireStaff()
   const canEdit = can(me.role, 'requests.update')
@@ -148,6 +156,8 @@ export default async function RequestDetail({ params }: { params: Promise<{ id: 
     { data: config },
     { data: latestDevis },
     { data: contributions },
+    { data: supportCase },
+    { data: supportLedger },
     { data: tasks },
     { data: partners },
     { data: team },
@@ -186,6 +196,14 @@ export default async function RequestDetail({ params }: { params: Promise<{ id: 
       .limit(1)
       .maybeSingle(),
     db.from('contributions').select('*').eq('request_id', id).order('created_at'),
+    db.from('support_cases').select('id, published, consent_given').eq('request_id', id).maybeSingle(),
+    db
+      .from('support_ledger')
+      .select('id, event, label, occurred_at, partner_public')
+      .eq('request_id', id)
+      .order('occurred_at', { ascending: false })
+      .order('id', { ascending: false })
+      .limit(6),
     db.from('tasks').select('*').eq('request_id', id).order('created_at'),
     db.from('partners').select('id, name, kind').eq('is_active', true).order('name'),
     db.from('staff').select('user_id, full_name, email').eq('active', true).order('full_name'),
@@ -748,6 +766,64 @@ export default async function RequestDetail({ params }: { params: Promise<{ id: 
             حفظ
           </button>
         </form>
+      </div>
+
+      {/* المساندة ودفتر الشفافية — Module 12-bis */}
+      <div className="mt-6 rounded border border-line bg-surface p-6">
+        <div className="flex flex-wrap items-baseline justify-between gap-3">
+          <h2 className="text-sm font-semibold">المساندة ودفتر الشفافية</h2>
+          <Link
+            href={`/admin/support?request=${id}`}
+            className="text-xs text-green hover:underline"
+          >
+            {supportCase ? 'افتح الدفتر ←' : 'افتح حالة مساندة ←'}
+          </Link>
+        </div>
+
+        {supportCase ? (
+          <>
+            <div className="mt-2 flex flex-wrap items-center gap-2 text-xs">
+              <span
+                className={`rounded px-2 py-0.5 ${
+                  supportCase.consent_given ? 'bg-green-soft text-green' : 'bg-bronze-soft text-bronze'
+                }`}
+              >
+                {supportCase.consent_given ? 'موافقة صاحب الحالة موجودة' : 'بلا موافقة'}
+              </span>
+              <span
+                className={`rounded px-2 py-0.5 ${
+                  supportCase.published ? 'bg-green-soft text-green' : 'text-faint'
+                }`}
+              >
+                {supportCase.published ? 'منشورة للعموم' : 'غير منشورة'}
+              </span>
+            </div>
+
+            {(supportLedger ?? []).length === 0 ? (
+              <p className="mt-3 text-xs text-faint">ما فمّا حتّى قيد في الدفتر توّا.</p>
+            ) : (
+              <ol className="mt-3 flex flex-col gap-1.5 text-sm">
+                {(supportLedger ?? []).map((l) => (
+                  <li key={l.id} className="flex flex-wrap items-baseline gap-x-3">
+                    <span className="rounded border border-line bg-surface-2 px-2 py-0.5 text-xs text-muted">
+                      {LEDGER_EVENT_LABELS[l.event] ?? l.event}
+                    </span>
+                    <span className="num text-xs text-faint">{l.occurred_at}</span>
+                    <span>{l.label}</span>
+                    {l.partner_public && (
+                      <span className="text-xs text-muted">— {l.partner_public}</span>
+                    )}
+                  </li>
+                ))}
+              </ol>
+            )}
+          </>
+        ) : (
+          <p className="mt-2 text-xs leading-6 text-muted">
+            كي المسار التجاري وحده ما يكفيش، افتح حالة مساندة: نسجّلو الحاجيات وما يوصل في سجلّ
+            ما يتعدّلش. <b>المنصة ما تجمعش أموالاً</b> — المساندة عينية.
+          </p>
+        )}
       </div>
 
       {/* عناصر الحلّ — Module 7/8 */}

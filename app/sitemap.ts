@@ -10,6 +10,7 @@ const PAGES = [
   '/suivi',
   '/proprietaire',
   '/realisations',
+  '/soutien',
   '/confidentialite',
 ] as const
 

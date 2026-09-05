@@ -181,7 +181,7 @@ footer{margin-top:60px;padding-top:22px;border-top:1px solid var(--line);color:v
   <div class="grid3" style="margin-top:14px">
     <div class="panel"><span class="kicker">منفَّذ</span><p style="font-size:14.5px;color:var(--muted)">تسجيل المطالب · ملفّ الحريف · التصنيف · بوابة العقارات · محرّك المطابقة · المحاكي · متابعة الحرفاء · قصص النجاح · الشراكات · الأدوار والصلاحيات</p></div>
     <div class="panel"><span class="kicker">جزئي</span><p style="font-size:14.5px;color:var(--muted)">استمارة التشخيص (تنقص أسئلة) · الجاهزية بمؤشّرات منفصلة · الخريطة الجغرافية · <b>المحاكي الذكي</b> (الحساب موجود، والسحب التلقائي من الملفّ ينقص)</p></div>
-    <div class="panel"><span class="kicker">غير منفَّذ</span><p style="font-size:14.5px;color:var(--muted)">المساعد الصوتي · بنك الحلول · <b>التحصيل التضامني (مقفول قانونياً)</b> · <b>الـDevis والبوردرو</b> · مُعِدّ التشطيبات · المرصد · واجهة المستثمر · التخزين · الإشعارات</p></div>
+    <div class="panel"><span class="kicker">غير منفَّذ</span><p style="font-size:14.5px;color:var(--muted)">المساعد الصوتي · بنك الحلول · <b>تحصيل الأموال (مقفول قانونياً)</b> · <b>الـDevis والبوردرو</b> · مُعِدّ التشطيبات · المرصد · واجهة المستثمر · التخزين · الإشعارات</p></div>
   </div>
 </section>
 
@@ -523,7 +523,7 @@ footer{margin-top:60px;padding-top:22px;border-top:1px solid var(--line);color:v
 </section>
 
 <section id="s12b">
-  <div class="sec-head"><span class="sec-num">12-bis</span><h2>التمويل التضامني والتبرّعات</h2><span class="st todo">مقفول قانونياً</span></div>
+  <div class="sec-head"><span class="sec-num">12-bis</span><h2>التمويل التضامني والتبرّعات</h2><span class="st partial">التنظيم منفَّذ · التحصيل مقفول قانونياً</span></div>
 
   <div class="note" style="margin-top:0"><b>الحدّ الفاصل في هذه الوحدة:</b> جمع المال من العموم ليس ميزة برمجية، بل نشاط منظَّم قانونياً. لذلك تنقسم الوحدة قسمين: ما يُبنى الآن ولا يمسّ مالاً، وما لا يُكتب فيه سطر واحد قبل استكمال الإطار القانوني والمالي.</p></div>
 
@@ -535,7 +535,16 @@ footer{margin-top:60px;padding-top:22px;border-top:1px solid var(--line);color:v
     <li><b>دفتر شفافية لكلّ حالة</b> — ماذا طُلب، ماذا وصل، من قدّمه، ومتى. مقروء لمن يعنيه الأمر.</li>
     <li><b>صفحة «حالات تحتاج مساندة»</b> — بموافقة صاحب الحالة ومجهّلة الهوية افتراضياً، تعرض الحاجة لا الشخص.</li>
   </ul>
-  <div class="built"><b>القائم اليوم:</b> جدول <code>contributions</code> يسجّل عناصر الحلّ (أرض · تمويل · مواد · يد عاملة · دراسة · دعم إداري) بقيمتها وجهتها وحالتها (مقترحة · مؤكّدة · مُنجزة)، مرتبطاً بجدول الشركاء. ينقص: دفتر الشفافية والصفحة العمومية.</div>
+  <div class="built"><b>القائم اليوم:</b> جدول <code>contributions</code> يسجّل عناصر الحلّ (أرض · تمويل · مواد · يد عاملة · دراسة · دعم إداري) بقيمتها وجهتها وحالتها، مرتبطاً بجدول الشركاء. وفوقه بُنيت وحدة المساندة كاملةً:
+  <ul class="list" style="margin-top:10px">
+    <li><code>support_cases</code> — الحالة المعروضة للعموم، بقيد في القاعدة يمنع النشر بلا موافقة (<code>published = false or consent_given = true</code>)، ومجهّلة الهوية افتراضياً، وحالة واحدة لكلّ مطلب.</li>
+    <li><code>support_ledger</code> — دفتر الشفافية: <b>سجلّ إضافي محروس بمُطلِق</b> يرفع استثناءً عند أيّ <code>update</code> أو <code>delete</code>. التصحيح يكون بقيد جديد. كلّ قيد حدث من خمسة: مطلوب · تعهّد · مؤكّد · وصل · ملغى، ويشير <code>need_id</code> إلى الحاجة التي يسدّها.</li>
+    <li><code>support_pledges</code> — تعهّدات العموم، <b>عينية فقط</b>: قيد <code>kind &lt;&gt; 'funding'</code> في القاعدة يمنع أيّ تعهّد مالي مهما جاء من الواجهة.</li>
+    <li><code>support_case_public</code> — عرض عمومي بأعداد الحاجيات فقط: <code>needs_count</code> · <code>delivered_count</code> · <code>pledged_count</code> · <code>covered_needs</code>. <b>لا حقل مبلغ فيه أصلاً.</b> القيمة التقديرية <code>value_tnd</code> تبقى داخلية في الدفتر ولا تُسحب في الصفحة العمومية.</li>
+    <li>صفحة <code>/[locale]/soutien</code> بالعربية والفرنسية: الحاجيات المفتوحة، شريط تقدّم بالأعداد لا بالدنانير، دفتر كلّ حالة، ونموذج تعهّد عيني بلا أيّ حقل دفع.</li>
+    <li>شاشة <code>/admin/support</code>: صندوق التعهّدات الواردة، فتح الحالات بمفتاحَي الموافقة والنشر، وإضافة قيود الدفتر. وبطاقة مختصرة داخل صفحة المطلب تفتح الدفتر مباشرةً.</li>
+  </ul>
+  ينقص: صور الحالات في Supabase Storage، وإشعار الفريق عند وصول تعهّد جديد.</div>
 
   <h3>ما لا يُبنى قبل الإطار القانوني</h3>
   <ul class="list" style="margin-top:10px">
@@ -663,7 +672,7 @@ footer{margin-top:60px;padding-top:22px;border-top:1px solid var(--line);color:v
     <div class="phase"><div class="p">Phase 1</div><div><h4>الأساس <span class="st done">منجَز</span></h4><p>طلب السكن · ملفّ 360° · الـBack-office · بوابة أصحاب العقارات · متابعة الملفّات.</p></div></div>
     <div class="phase"><div class="p">Phase 2</div><div><h4>الربط <span class="st partial">شبه منجَز</span></h4><p>المطابقة ✓ · المحاكاة المالية ✓ · قصص النجاح ✓ · الخرائط: شبكة معتمديات ✓ وخريطة جغرافية تنتظر GeoJSON · <b>الـDevis والبوردرو: بنيتهما تُبنى في هذه المرحلة والأسعار تُملأ بعدها</b>.</p></div></div>
     <div class="phase"><div class="p">Phase 3</div><div><h4>الذكاء <span class="st todo">لم يبدأ</span></h4><p>المساعد الصوتي · دعم القرار بمؤشّرات منفصلة · بنك الحلول · <b>المحاكي المالي الذكي</b> · المرصد · واجهة المستثمر.</p></div></div>
-    <div class="phase"><div class="p">Phase 4</div><div><h4>التوسّع <span class="st partial">جزئي</span></h4><p>الشراكات وعناصر الحلّ ✓ · الحالات الاجتماعية ✓ · <b>التمويل التضامني: التنظيم والتعهّدات العينية تُبنى، والتحصيل ينتظر الإطار القانوني</b> · التوسّع الوطني: البنية جاهزة وتنتظر بيانات الولايات.</p></div></div>
+    <div class="phase"><div class="p">Phase 4</div><div><h4>التوسّع <span class="st partial">جزئي</span></h4><p>الشراكات وعناصر الحلّ ✓ · الحالات الاجتماعية ✓ · <b>التمويل التضامني: دفتر الشفافية والتعهّدات العينية ✓ · التحصيل ينتظر الإطار القانوني</b> · التوسّع الوطني: البنية جاهزة وتنتظر بيانات الولايات.</p></div></div>
   </div>
 
   <h3>ما يحتاج قراراً قبل الانطلاق</h3>
