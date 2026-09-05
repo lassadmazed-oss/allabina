@@ -124,6 +124,26 @@ export async function getImadas(govCode = 'SFX'): Promise<Imada[]> {
   return (data ?? []) as Imada[]
 }
 
+export type Zone = {
+  id: number
+  gov_code: string
+  delegation_id: number | null
+  name_ar: string
+  name_fr: string | null
+}
+
+/** المناطق المتداولة المقترحة في خانة الموقع — تُدار من الـBack-office */
+export async function getZones(govCode = 'SFX'): Promise<Zone[]> {
+  const { data } = await db
+    .from('zones')
+    .select('id, gov_code, delegation_id, name_ar, name_fr')
+    .eq('gov_code', govCode)
+    .eq('is_active', true)
+    .order('sort_order')
+    .order('name_ar')
+  return (data ?? []) as Zone[]
+}
+
 /**
  * أسعار البناء حسب مستوى التشطيب (HT) من قاعدة البيانات.
  * عند غياب السطور نرجع للقيم الافتراضية في lib/pricing.ts.

@@ -5,6 +5,7 @@ import {
   getFinanceContext,
   getGovernorates,
   getImadas,
+  getZones,
 } from '@/lib/supabase/server'
 import { getDictionary, isLocale, type Locale } from '@/lib/i18n'
 
@@ -21,10 +22,11 @@ export default async function DemandePage({
   const locale: Locale = isLocale(raw) ? raw : 'ar'
   const t = getDictionary(locale)
 
-  const [governorates, delegations, imadas, finance, build] = await Promise.all([
+  const [governorates, delegations, imadas, zones, finance, build] = await Promise.all([
     getGovernorates(),
     getDelegations('SFX'),
     getImadas('SFX'),
+    getZones('SFX'),
     getFinanceContext(),
     getBuildTiers('SFX'),
   ])
@@ -45,6 +47,7 @@ export default async function DemandePage({
         governorates={governorates}
         delegations={delegations}
         imadas={imadas}
+        zones={zones}
         assumptions={finance.assumptions}
         bankTermsNote={finance.bankTermsNote}
         tiers={build.tiers}

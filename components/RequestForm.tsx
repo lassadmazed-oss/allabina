@@ -2,6 +2,7 @@
 
 import { useActionState, useEffect, useMemo, useState } from 'react'
 import { submitRequest, type SubmitState } from '@/lib/actions/request'
+import ZoneInput, { type Zone } from '@/components/ZoneInput'
 import { REQUEST_TYPES, EMPLOYMENT_TYPES, HORIZONS, TITLE_STATUSES } from '@/lib/schema'
 import { computeCapacity, formatTND, type FinanceSettings } from '@/lib/finance'
 import { buildCostRange, tierByKey, type TierPrice } from '@/lib/pricing'
@@ -83,6 +84,7 @@ export default function RequestForm({
   governorates,
   delegations,
   imadas,
+  zones,
   assumptions,
   bankTermsNote,
   tiers,
@@ -94,6 +96,7 @@ export default function RequestForm({
   governorates: Gov[]
   delegations: Deleg[]
   imadas: Imada[]
+  zones: Zone[]
   assumptions: FinanceSettings
   bankTermsNote: string
   tiers: TierPrice[]
@@ -336,11 +339,14 @@ export default function RequestForm({
 
           <div className="sm:col-span-2">
             <Field label={t.landLocation} hint={t.landLocationHint}>
-              <input
-                type="text"
+              <ZoneInput
                 name="landLocation"
+                zones={zones}
+                govCode={String(values.govCode ?? 'SFX')}
+                delegationId={String(values.delegationId ?? '')}
+                locale={locale}
                 value={String(values.landLocation ?? '')}
-                onChange={(e) => set('landLocation', e.target.value)}
+                onChange={(v) => set('landLocation', v)}
                 className={inputCls}
                 placeholder={t.landLocationPlaceholder}
               />

@@ -2,6 +2,7 @@
 
 import { useActionState, useState } from 'react'
 import CoordsField from '@/components/CoordsField'
+import ZoneInput, { type Zone } from '@/components/ZoneInput'
 import { submitProperty, type PropertyState } from '@/lib/actions/property'
 import { PROPERTY_KINDS, LEGAL_STATUSES } from '@/lib/property-schema'
 import type { Dictionary, Locale } from '@/lib/i18n'
@@ -18,12 +19,14 @@ export default function PropertyForm({
   governorates,
   delegations,
   imadas,
+  zones,
 }: {
   locale: Locale
   t: Dictionary['proprietaire']
   governorates: Gov[]
   delegations: Deleg[]
   imadas: Imada[]
+  zones: Zone[]
 }) {
   const [state, formAction, pending] = useActionState(submitProperty, initial)
   const [kind, setKind] = useState('')
@@ -132,7 +135,15 @@ export default function PropertyForm({
 
           <div className="sm:col-span-2">
             <Field label={t.address} hint={t.addressHint}>
-              <input type="text" name="address" className={inputCls} />
+              <ZoneInput
+                name="address"
+                zones={zones}
+                govCode={gov}
+                delegationId={delegationId}
+                locale={locale}
+                className={inputCls}
+                placeholder={t.addressPlaceholder}
+              />
             </Field>
           </div>
 

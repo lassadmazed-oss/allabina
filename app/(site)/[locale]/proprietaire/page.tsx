@@ -1,5 +1,5 @@
 import PropertyForm from '@/components/PropertyForm'
-import { getDelegations, getGovernorates, getImadas } from '@/lib/supabase/server'
+import { getDelegations, getGovernorates, getImadas, getZones } from '@/lib/supabase/server'
 import { getDictionary, isLocale, type Locale } from '@/lib/i18n'
 
 export const dynamic = 'force-dynamic'
@@ -19,10 +19,11 @@ export default async function ProprietairePage({
   const locale: Locale = isLocale(raw) ? raw : 'ar'
   const t = getDictionary(locale)
 
-  const [governorates, delegations, imadas] = await Promise.all([
+  const [governorates, delegations, imadas, zones] = await Promise.all([
     getGovernorates(),
     getDelegations('SFX'),
     getImadas('SFX'),
+    getZones('SFX'),
   ])
 
   return (
@@ -53,6 +54,7 @@ export default async function ProprietairePage({
         governorates={governorates}
         delegations={delegations}
         imadas={imadas}
+        zones={zones}
       />
     </div>
   )
