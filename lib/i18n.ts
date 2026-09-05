@@ -157,7 +157,7 @@ const ar = {
         downPayment: 'المساهمة الذاتية المتوفّرة (د.ت)',
         maxMonthly: 'القسط الشهري اللي تنجّم تخلّص (د.ت)',
         employment: 'نوع النشاط',
-        seniority: 'الأقدمية في العمل (بالأشهر)',
+        seniority: 'الأقدمية في العمل (بالسنين)',
         isExpat: 'أنا تونسي مقيم بالخارج',
         expatCountry: 'بلد الإقامة',
         estimateTitle: 'تقدير أوّلي حسب معطياتك',
@@ -187,7 +187,16 @@ const ar = {
             fullName: 'الاسم واللقب مطلوب (3 أحرف على الأقلّ).',
             phone: 'رقم الهاتف غير صحيح. مثال: 20123456 ولا +33...',
             email: 'البريد الإلكتروني غير صحيح.',
-            consentRequired: 'لازم توافق على معالجة المعطيات باش نكمّلو.'
+            consentRequired: 'لازم توافق على معالجة المعطيات باش نكمّلو.',
+            seniorityYears: 'الأقدمية بالسنين — رقم بين 0 و50.',
+            spouseIncome: 'دخل القرين لازم يكون رقماً صحيحاً.',
+            otherIncome: 'الدخل الآخر لازم يكون رقماً صحيحاً.',
+            existingLoans: 'الأقساط الجارية لازم تكون رقماً صحيحاً.',
+            downPayment: 'المساهمة الذاتية لازم تكون رقماً صحيحاً.',
+            maxMonthly: 'القسط الشهري لازم يكون رقماً صحيحاً.',
+            standing: 'اختار مستوى البناء والتشطيب.',
+            titleStatus: 'اختار الوضعية العقارية.',
+            expatCountry: 'عمّر بلد الإقامة.'
         } as Record<string, string>
     },
     proprietaire: {
@@ -622,7 +631,7 @@ const fr: Dictionary = {
         downPayment: 'Apport personnel disponible (DT)',
         maxMonthly: 'Mensualité que vous pouvez payer (DT)',
         employment: 'Type d’activité',
-        seniority: 'Ancienneté (en mois)',
+        seniority: 'Ancienneté (en années)',
         isExpat: 'Je suis Tunisien résidant à l’étranger',
         expatCountry: 'Pays de résidence',
         estimateTitle: 'Estimation préliminaire selon vos données',
@@ -652,7 +661,16 @@ const fr: Dictionary = {
             fullName: 'Nom et prénom requis (3 caractères minimum).',
             phone: 'Numéro invalide. Ex. : 20123456 ou +33…',
             email: 'Adresse e-mail invalide.',
-            consentRequired: 'Votre accord est nécessaire pour continuer.'
+            consentRequired: 'Votre accord est nécessaire pour continuer.',
+            seniorityYears: "L'ancienneté en années — un nombre entre 0 et 50.",
+            spouseIncome: 'Le revenu du conjoint doit être un nombre valide.',
+            otherIncome: 'Les autres revenus doivent être un nombre valide.',
+            existingLoans: 'Les mensualités en cours doivent être un nombre valide.',
+            downPayment: "L'apport doit être un nombre valide.",
+            maxMonthly: 'La mensualité doit être un nombre valide.',
+            standing: 'Choisissez le niveau de construction et de finition.',
+            titleStatus: 'Choisissez la situation foncière.',
+            expatCountry: 'Renseignez votre pays de résidence.'
         } as Record<string, string>
     },
     proprietaire: {

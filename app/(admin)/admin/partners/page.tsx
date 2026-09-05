@@ -6,7 +6,7 @@ import { upsertPartnerAction } from '@/lib/actions/solutions'
 export const metadata = { title: 'الشركاء — اللَّبنة' }
 export const dynamic = 'force-dynamic'
 
-export const PARTNER_KINDS: Record<string, string> = {
+const PARTNER_KINDS: Record<string, string> = {
   public: 'جهة عمومية',
   bank: 'مؤسّسة مالية',
   company: 'شركة خاصة',

@@ -40,13 +40,40 @@ const FIELD_STEP: Record<string, number> = {
   downPayment: 4,
   maxMonthly: 4,
   employment: 4,
-  seniorityMonths: 4,
+  seniorityYears: 4,
   isExpat: 4,
   expatCountry: 4,
   fullName: 5,
   phone: 5,
   email: 5,
   consent: 5,
+}
+
+/** اسم كلّ حقل كما يراه الحريف — يُستعمل في لافتة الخطأ */
+function fieldLabels(t: Dictionary['form']): Record<string, string> {
+  return {
+    requestType: t.s1Title,
+    govCode: t.governorate,
+    horizon: t.horizon,
+    desiredAreaM2: t.area,
+    bedrooms: t.bedrooms,
+    standing: t.standingTitle,
+    landAreaM2: t.landArea,
+    titleStatus: t.titleStatus,
+    monthlyIncome: t.income,
+    spouseIncome: t.spouseIncome,
+    otherIncome: t.otherIncome,
+    existingLoans: t.existingLoans,
+    downPayment: t.downPayment,
+    maxMonthly: t.maxMonthly,
+    employment: t.employment,
+    seniorityYears: t.seniority,
+    expatCountry: t.expatCountry,
+    fullName: t.fullName,
+    phone: t.phone,
+    email: t.email,
+    consent: t.consent.slice(0, 40) + '…',
+  }
 }
 
 export default function RequestForm({
@@ -148,22 +175,38 @@ export default function RequestForm({
       ? t.errors[k === 'consent' ? 'consentRequired' : k] ?? t.errors.fallback
       : undefined
 
-  // عند فشل التحقّق: نرجّعو الحريف للخطوة الأولى اللي فيها حقل خاطئ
+  const fieldNames = fieldLabels(t)
+
+  /** أسماء الحقول الخاطئة كما يقرأها الحريف */
+  const badFields = (state.fields ?? []).map((f) => fieldNames[f] ?? f)
+
+  // عند فشل التحقّق: نرجّعو الحريف للخطوة اللي فيها المشكل ونحطّو المؤشّر في الحقل
   useEffect(() => {
     if (!state.fields?.length) return
-    const target = state.fields
-      .map((f) => FIELD_STEP[f] ?? 5)
-      .filter((n) => order.includes(n))
-      .sort((a, b) => a - b)[0]
-    if (target) {
-      setStep(target)
-      if (typeof window !== 'undefined') window.scrollTo({ top: 0, behavior: 'smooth' })
+    const first = [...state.fields].sort(
+      (a, b) => (FIELD_STEP[a] ?? 5) - (FIELD_STEP[b] ?? 5)
+    )[0]
+    const target = FIELD_STEP[first] ?? 5
+    if (order.includes(target)) setStep(target)
+
+    if (typeof window !== 'undefined') {
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+      // نستنّى الخطوة تتعرض قبل ما نحطّو المؤشّر
+      const timer = window.setTimeout(() => {
+        const el = document.querySelector<HTMLElement>(`[name="${first}"]`)
+        el?.focus({ preventScroll: false })
+      }, 250)
+      return () => window.clearTimeout(timer)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state])
 
   return (
-    <form action={formAction} className="mx-auto max-w-3xl px-5 py-10">
+    <form
+      action={formAction}
+      noValidate
+      className="mx-auto max-w-3xl px-5 py-10"
+    >
       <input type="hidden" name="locale" value={locale} />
 
       <div className="mb-8">
@@ -186,9 +229,18 @@ export default function RequestForm({
       {state.error && (
         <div
           role="alert"
-          className="mb-6 rounded border border-[#e0b4ac] bg-[#fbeeeb] p-4 text-sm text-[#8c2f22]"
+          className="mb-6 rounded border border-[#e0b4ac] bg-[#fbeeeb] p-4 text-sm leading-7 text-[#8c2f22]"
         >
           {t.errors[state.error] ?? t.genericError}
+          {badFields.length > 0 && (
+            <ul className="mt-2 flex flex-wrap gap-x-2 gap-y-1">
+              {badFields.map((f) => (
+                <li key={f} className="rounded bg-[#f4dcd6] px-2 py-0.5 text-xs font-medium">
+                  {f}
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
       )}
 
@@ -549,9 +601,10 @@ export default function RequestForm({
             <input
               type="number"
               inputMode="numeric"
-              name="seniorityMonths"
-              value={String(values.seniorityMonths ?? '')}
-              onChange={(e) => set('seniorityMonths', e.target.value)}
+              name="seniorityYears"
+              max={50}
+              value={String(values.seniorityYears ?? '')}
+              onChange={(e) => set('seniorityYears', e.target.value)}
               className={inputCls}
             />
           </Field>
@@ -704,7 +757,13 @@ function Field({
   children: React.ReactNode
 }) {
   return (
-    <label className="block">
+    <label
+      className={`block ${
+        error
+          ? '[&_input]:border-[#c0796b] [&_select]:border-[#c0796b] [&_textarea]:border-[#c0796b]'
+          : ''
+      }`}
+    >
       <span className="mb-1.5 flex items-baseline gap-2 text-sm font-medium">
         {label}
         {hint && <span className="text-xs font-normal text-faint">{hint}</span>}

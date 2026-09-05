@@ -5,7 +5,7 @@ import { can } from '@/lib/permissions'
 import { db, getFinancingProducts } from '@/lib/supabase/server'
 import { LABELS } from '@/lib/schema'
 import { formatTND } from '@/lib/finance'
-import { labelEmployment } from '@/lib/scoring'
+import { labelEmployment, seniorityYearsLabel } from '@/lib/scoring'
 import { publicStateOf } from '@/lib/public-state'
 import { rankProperties, type MatchProperty } from '@/lib/matching'
 import { formatNumber } from '@/lib/format'
@@ -285,7 +285,7 @@ export default async function RequestDetail({ params }: { params: Promise<{ id: 
             <Row k="الأقساط الجارية" v={formatTND(Number(fin.existing_loans_tnd ?? 0))} />
             <Row k="التسبقة" v={formatTND(Number(fin.down_payment_tnd ?? 0))} />
             <Row k="نوع النشاط" v={labelEmployment(fin.employment)} />
-            <Row k="الأقدمية" v={`${fin.seniority_months ?? 0} شهراً`} />
+            <Row k="الأقدمية" v={seniorityYearsLabel(fin.seniority_months ?? 0)} />
             <Row k="مقيم بالخارج" v={fin.is_expat ? `نعم — ${fin.expat_country ?? ''}` : 'لا'} />
           </Card>
         )}

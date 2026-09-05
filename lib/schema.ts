@@ -80,7 +80,8 @@ export const requestSchema = z.object({
   downPayment: optionalNum(0, 5000000),
   maxMonthly: optionalNum(0, 100000),
   employment: z.enum(EMPLOYMENT_TYPES),
-  seniorityMonths: optionalNum(0, 600),
+  /** تُدخَل بالسنين وتُخزَّن بالأشهر — انظر lib/actions/request.ts */
+  seniorityYears: optionalNum(0, 50),
   isExpat: optionalFlag,
   expatCountry: z.string().max(60).optional().transform((v) => v ?? ''),
 

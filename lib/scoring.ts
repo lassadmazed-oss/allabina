@@ -126,7 +126,7 @@ export function computeScore(input: ScoreInput): ScoreResult {
     label: 'استقرار الدخل',
     weight: 15,
     points: round(base + seniority),
-    reason: `${labelEmployment(input.employment)}، أقدمية ${input.seniorityMonths || 0} شهراً`,
+    reason: `${labelEmployment(input.employment)}، أقدمية ${seniorityYearsLabel(input.seniorityMonths)}`,
   })
 
   // 4) اكتمال الملفّ — 12
@@ -187,6 +187,22 @@ export function computeScore(input: ScoreInput): ScoreResult {
     maxPayment: Math.round(capacity.maxPayment),
     algoVersion: ALGO_VERSION,
   }
+}
+
+/**
+ * الأقدمية تُعرض بالسنين وإن كانت مخزّنة بالأشهر،
+ * مع صيغة الجمع العربية: سنة · سنتان · 3 سنوات · 11 سنة.
+ */
+export function seniorityYearsLabel(months?: number): string {
+  const m = months || 0
+  if (m < 12) return 'أقلّ من سنة'
+
+  const years = Math.round((m / 12) * 10) / 10
+  if (!Number.isInteger(years)) return `${years.toFixed(1)} سنة`
+  if (years === 1) return 'سنة'
+  if (years === 2) return 'سنتان'
+  if (years <= 10) return `${years} سنوات`
+  return `${years} سنة`
 }
 
 export function labelEmployment(v: string): string {

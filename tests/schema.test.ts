@@ -16,7 +16,7 @@ const apartmentForm = {
   downPayment: '40000',
   maxMonthly: '',
   employment: 'private',
-  seniorityMonths: '36',
+  seniorityYears: '3',
   fullName: 'أمينة الشابي',
   phone: '25444333',
   email: '',

@@ -36,7 +36,7 @@ export default function PropertyForm({
   const delegationImadas = imadas.filter((i) => String(i.delegation_id) === delegationId)
 
   return (
-    <form action={formAction} className="mt-8 flex flex-col gap-6">
+    <form action={formAction} noValidate className="mt-8 flex flex-col gap-6">
       <input type="hidden" name="locale" value={locale} />
 
       {state.error && (

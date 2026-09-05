@@ -65,6 +65,9 @@ export async function submitRequest(
     return { ok: false, error: 'rateLimited' }
   }
 
+  // الحريف يدخل الأقدمية بالسنين، والقاعدة والتنقيط يشتغلان بالأشهر
+  const seniorityMonths = Math.round((d.seniorityYears || 0) * 12)
+
   const { assumptions } = await getFinanceContext()
   const { tiers } = await getBuildTiers(d.govCode)
 
@@ -83,7 +86,7 @@ export async function submitRequest(
     d.otherIncome || null,
     d.downPayment || null,
     d.maxMonthly || null,
-    d.seniorityMonths || null,
+    d.seniorityYears || null,
     d.email || null,
   ]
   const filledFields = optional.filter(Boolean).length
@@ -96,7 +99,7 @@ export async function submitRequest(
     downPayment: d.downPayment,
     maxMonthly: d.maxMonthly,
     employment: d.employment,
-    seniorityMonths: d.seniorityMonths,
+    seniorityMonths,
     horizon: d.horizon,
     ownsLand: d.requestType === 'build_on_land' || Boolean(d.landAreaM2),
     landTitleStatus: d.titleStatus,
@@ -147,7 +150,7 @@ export async function submitRequest(
     down_payment_tnd: d.downPayment,
     max_monthly_tnd: d.maxMonthly || null,
     employment: d.employment,
-    seniority_months: d.seniorityMonths,
+    seniority_months: seniorityMonths,
     is_expat: d.isExpat,
     expat_country: d.expatCountry || null,
   })

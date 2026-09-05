@@ -135,3 +135,38 @@ describe('رسالة الحريف', () => {
     }
   })
 })
+
+import { seniorityYearsLabel } from '@/lib/scoring'
+
+describe('عرض الأقدمية بالسنين', () => {
+  it('يحوّل الأشهر المخزّنة إلى سنين', () => {
+    expect(seniorityYearsLabel(36)).toBe('3 سنوات')
+    expect(seniorityYearsLabel(24)).toBe('سنتان')
+    expect(seniorityYearsLabel(12)).toBe('سنة')
+  })
+
+  it('يحترم صيغة الجمع العربية فوق العشرة', () => {
+    expect(seniorityYearsLabel(144)).toBe('12 سنة')
+    expect(seniorityYearsLabel(120)).toBe('10 سنوات')
+  })
+
+  it('أقلّ من سنة تُكتب كما هي لا صفراً', () => {
+    expect(seniorityYearsLabel(8)).toBe('أقلّ من سنة')
+    expect(seniorityYearsLabel(0)).toBe('أقلّ من سنة')
+    expect(seniorityYearsLabel(undefined)).toBe('أقلّ من سنة')
+  })
+
+  it('الكسور تُعرض بمنزلة واحدة', () => {
+    expect(seniorityYearsLabel(18)).toBe('1.5 سنة')
+  })
+
+  it('سنتان من الأقدمية تعطيان كامل نقاط الاستقرار الزمني', () => {
+    const junior = computeScore({ ...base, seniorityMonths: 0 })
+    const senior = computeScore({ ...base, seniorityMonths: 24 })
+    const veteran = computeScore({ ...base, seniorityMonths: 120 })
+    const pts = (r: ReturnType<typeof computeScore>) =>
+      r.criteria.find((c) => c.key === 'stability')!.points
+    expect(pts(senior)).toBeGreaterThan(pts(junior))
+    expect(pts(veteran)).toBe(pts(senior))
+  })
+})
