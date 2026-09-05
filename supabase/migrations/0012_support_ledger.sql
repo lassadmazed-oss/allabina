@@ -117,7 +117,10 @@ create index if not exists support_pledges_status_idx on support_pledges (status
 
 -- ---------- عرض عمومي: أعداد لا مبالغ ----------
 -- عمداً بلا أيّ مجموع مالي: لا عدّاد «جُمع X من Y».
-create or replace view support_case_public as
+-- يُسقَط قبل الإنشاء: هجرات لاحقة تزيد أعمدة على هذا العرض،
+-- و create or replace ما ينجّمش يحذف عموداً من عرض قائم.
+drop view if exists support_case_public;
+create view support_case_public as
 select
   c.id,
   c.title_ar, c.title_fr, c.summary_ar, c.summary_fr,

@@ -6,7 +6,15 @@ export const REQUEST_TYPES = [
   'apartment',
   'economic',
   'rent_to_own',
+  'renovation',
+  'other',
 ] as const
+
+/** درجة الاستعجال — ترتّب عمل المستشار، فالحرج يطلع فوق مهما كان تاريخه */
+export const URGENCIES = ['planning', 'within_year', 'urgent', 'critical'] as const
+
+/** على شنوّة الحريف مستعدّ يتنازل — هذا اللي يفتح الحلول البديلة */
+export const FLEXIBILITIES = ['area', 'zone', 'standing', 'timing', 'type', 'budget'] as const
 
 export const EMPLOYMENT_TYPES = [
   'public',
@@ -50,6 +58,16 @@ const nullableEnum = <T extends readonly [string, ...string[]]>(values: T) =>
     .optional()
     .transform((v) => (v === '' || v === undefined ? null : v))
 
+/** خانات متعدّدة الاختيار: القيم المرسلة فقط، والباقي مهمَل */
+const multiEnum = <T extends readonly [string, ...string[]]>(values: T) =>
+  z
+    .union([z.string(), z.array(z.string())])
+    .optional()
+    .transform((v) => {
+      const list = v === undefined ? [] : Array.isArray(v) ? v : [v]
+      return list.filter((x): x is T[number] => (values as readonly string[]).includes(x))
+    })
+
 const optionalFlag = z
   .union([z.boolean(), z.literal('on'), z.literal('')])
   .optional()
@@ -72,6 +90,10 @@ export const requestSchema = z.object({
     .transform((v) => (v ? v : null)),
   imadaId: nullableNum(1, 1000000),
   landLocation: z.string().max(200).optional().transform((v) => v ?? ''),
+  urgency: nullableEnum(URGENCIES),
+  urgencyNote: z.string().max(300).optional().transform((v) => v ?? ''),
+  flexibility: multiEnum(FLEXIBILITIES),
+  problemNote: z.string().max(1000).optional().transform((v) => v ?? ''),
 
   // 3 — الأرض (مسار البناء)
   landAreaM2: nullableNum(50, 5000),
@@ -93,6 +115,13 @@ export const requestSchema = z.object({
   seniorityYears: optionalNum(0, 50),
   isExpat: optionalFlag,
   expatCountry: z.string().max(60).optional().transform((v) => v ?? ''),
+
+  // 4-bis — السكن الاجتماعي: نجمّعو المعطيات، والأهلية تتقرّر مع الجهة المعنية
+  foprolosInterest: optionalFlag,
+  isFirstHome: optionalFlag,
+  hasSocialHousing: optionalFlag,
+  cnssAffiliated: optionalFlag,
+  cnssYears: nullableNum(0, 60),
 
   // 5 — الاتصال والموافقة
   fullName: z.string().trim().min(3, 'الاسم الكامل مطلوب').max(120),
@@ -122,6 +151,22 @@ export const LABELS = {
     apartment: 'نحبّ شقة',
     economic: 'سكن اقتصادي',
     rent_to_own: 'كراء مملّك',
+    renovation: 'ترميم ولا توسعة',
+    other: 'مشكل سكني آخر',
+  } as Record<string, string>,
+  urgency: {
+    planning: 'نخطّط، ما فمّاش أجل',
+    within_year: 'خلال سنة',
+    urgent: 'مستعجل — أقلّ من ستّة أشهر',
+    critical: 'وضعية حرجة',
+  } as Record<string, string>,
+  flexibility: {
+    area: 'مساحة أصغر',
+    zone: 'منطقة أخرى',
+    standing: 'تشطيب أبسط',
+    timing: 'أجل أطول',
+    type: 'نوع سكن آخر',
+    budget: 'ميزانية أكبر شويّة',
   } as Record<string, string>,
   employment: {
     public: 'وظيفة عمومية',

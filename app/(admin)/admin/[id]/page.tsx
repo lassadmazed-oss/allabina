@@ -129,6 +129,22 @@ const DOC_TYPES = [
   'أمثلة ودراسات',
 ]
 
+const URGENCY_LABELS: Record<string, string> = {
+  planning: 'يخطّط بلا أجل',
+  within_year: 'خلال سنة',
+  urgent: 'مستعجل',
+  critical: 'وضعية حرجة',
+}
+
+const FLEX_LABELS: Record<string, string> = {
+  area: 'مساحة أصغر',
+  zone: 'منطقة أخرى',
+  standing: 'تشطيب أبسط',
+  timing: 'أجل أطول',
+  type: 'نوع سكن آخر',
+  budget: 'ميزانية أكبر',
+}
+
 const LEDGER_EVENT_LABELS: Record<string, string> = {
   needed: 'مطلوب',
   pledged: 'تعهّد',
@@ -337,10 +353,49 @@ export default async function RequestDetail({ params }: { params: Promise<{ id: 
           <Row k="موقع الأرض" v={r.land_location || '—'} />
           <Row k="المساحة" v={r.desired_area_m2 ? `${r.desired_area_m2} م²` : '—'} />
           <Row k="عدد الغرف" v={r.bedrooms ? String(r.bedrooms) : '—'} />
-          <Row k="مستوى التشطيب" v={LABELS.standing[r.standing] ?? '—'} />
+          <Row k="مستوى التشطيب" v={standingLevels.find((l) => l.code === r.standing)?.nameAr ?? '—'} />
           <Row k="الأفق الزمني" v={LABELS.horizon[r.horizon] ?? '—'} />
           <Row k="الحالة" v={LABELS.status[r.status] ?? r.status} />
           <Row k="تاريخ التسجيل" v={new Date(r.created_at).toLocaleString('fr-TN')} />
+          <Row
+            k="درجة الاستعجال"
+            v={
+              r.urgency
+                ? `${URGENCY_LABELS[r.urgency] ?? r.urgency}${r.urgency_note ? ` — ${r.urgency_note}` : ''}`
+                : '—'
+            }
+          />
+          <Row
+            k="مستعدّ يتنازل على"
+            v={
+              r.flexibility?.length
+                ? (r.flexibility as string[]).map((f) => FLEX_LABELS[f] ?? f).join(' · ')
+                : '—'
+            }
+          />
+          <Row
+            k="السكن الاجتماعي"
+            v={
+              r.foprolos_interest
+                ? [
+                    'يهمّه برنامج مدعّم',
+                    r.is_first_home ? 'أوّل مسكن' : null,
+                    r.has_social_housing ? 'سبق وانتفع' : null,
+                    r.cnss_affiliated
+                      ? `مضمون${r.cnss_number_years ? ` (${r.cnss_number_years} سنة)` : ''}`
+                      : null,
+                  ]
+                    .filter(Boolean)
+                    .join(' · ')
+                : '—'
+            }
+          />
+          {r.problem_note && (
+            <div className="sm:col-span-2 mt-2 rounded border border-line bg-surface-2 p-4">
+              <div className="text-xs font-medium text-muted">المشكل بكلام الحريف</div>
+              <p className="mt-1.5 text-sm leading-7">{r.problem_note}</p>
+            </div>
+          )}
         </Card>
 
         {fin && (

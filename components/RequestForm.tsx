@@ -3,7 +3,14 @@
 import { useActionState, useEffect, useMemo, useState } from 'react'
 import { submitRequest, type SubmitState } from '@/lib/actions/request'
 import ZoneInput, { type Zone } from '@/components/ZoneInput'
-import { REQUEST_TYPES, EMPLOYMENT_TYPES, HORIZONS, TITLE_STATUSES } from '@/lib/schema'
+import {
+  REQUEST_TYPES,
+  EMPLOYMENT_TYPES,
+  HORIZONS,
+  TITLE_STATUSES,
+  URGENCIES,
+  FLEXIBILITIES,
+} from '@/lib/schema'
 import { computeCapacity, formatTND, type FinanceSettings } from '@/lib/finance'
 import { buildCostRange, tierByKey, type TierPrice } from '@/lib/pricing'
 import { fmt, type Dictionary, type Locale } from '@/lib/i18n'
@@ -133,6 +140,21 @@ export default function RequestForm({
   const num = (k: string) => Number(values[k] || 0)
   const perM2 = perM2Label(locale)
   const m2 = areaLabel(locale)
+
+  const flexibility = String(values.flexibility ?? '')
+    .split(',')
+    .filter(Boolean)
+
+  /**
+   * التبديل يقرأ الحالة السابقة لا اللقطة المرسومة: نقرتان متتاليتان قبل
+   * إعادة الرسم كانتا تُلغي إحداهما الأخرى.
+   */
+  const toggleFlexibility = (f: string) =>
+    setValues((s) => {
+      const current = String(s.flexibility ?? '').split(',').filter(Boolean)
+      const next = current.includes(f) ? current.filter((x) => x !== f) : [...current, f]
+      return { ...s, flexibility: next.join(',') }
+    })
 
   const isBuild = values.requestType === 'build_on_land'
   const needsStanding = isBuild || values.requestType === 'land_and_house'
@@ -461,6 +483,90 @@ export default function RequestForm({
             )}
           </div>
         )}
+
+        {/* درجة الاستعجال */}
+        <div className="mt-8">
+          <span className="mb-1 block text-sm font-medium">{t.urgencyTitle}</span>
+          <p className="mb-3 text-sm text-muted">{t.urgencyLede}</p>
+          <div className="grid gap-2 sm:grid-cols-2">
+            {URGENCIES.map((u) => (
+              <label
+                key={u}
+                className={`cursor-pointer rounded border px-4 py-3 text-sm transition ${
+                  values.urgency === u
+                    ? 'border-brand bg-brand-soft'
+                    : 'border-line bg-surface hover:border-line-strong'
+                }`}
+              >
+                <input
+                  type="radio"
+                  name="urgency"
+                  value={u}
+                  checked={values.urgency === u}
+                  onChange={(e) => set('urgency', e.target.value)}
+                  className="sr-only"
+                />
+                {labels.urgency[u]}
+              </label>
+            ))}
+          </div>
+          <label className="mt-3 block">
+            <span className="mb-1.5 block text-xs text-muted">{t.urgencyNote}</span>
+            <input
+              type="text"
+              name="urgencyNote"
+              value={String(values.urgencyNote ?? '')}
+              onChange={(e) => set('urgencyNote', e.target.value)}
+              className={inputCls}
+              placeholder={t.urgencyNotePlaceholder}
+            />
+          </label>
+        </div>
+
+        {/* المرونة */}
+        <div className="mt-8">
+          <span className="mb-1 block text-sm font-medium">{t.flexTitle}</span>
+          <p className="mb-3 text-sm text-muted">{t.flexLede}</p>
+          <div className="flex flex-wrap gap-2">
+            {FLEXIBILITIES.map((f) => {
+              const on = flexibility.includes(f)
+              return (
+                <label
+                  key={f}
+                  className={`cursor-pointer rounded border px-4 py-2 text-sm transition ${
+                    on
+                      ? 'border-brand bg-brand-soft'
+                      : 'border-line bg-surface hover:border-line-strong'
+                  }`}
+                >
+                  <input
+                    type="checkbox"
+                    name="flexibility"
+                    value={f}
+                    checked={on}
+                    onChange={() => toggleFlexibility(f)}
+                    className="sr-only"
+                  />
+                  {labels.flexibility[f]}
+                </label>
+              )
+            })}
+          </div>
+        </div>
+
+        {/* حكاية المشكل */}
+        <div className="mt-8">
+          <span className="mb-1 block text-sm font-medium">{t.problemTitle}</span>
+          <p className="mb-3 text-sm text-muted">{t.problemLede}</p>
+          <textarea
+            name="problemNote"
+            rows={4}
+            value={String(values.problemNote ?? '')}
+            onChange={(e) => set('problemNote', e.target.value)}
+            className={inputCls}
+            placeholder={t.problemPlaceholder}
+          />
+        </div>
       </fieldset>
 
       {/* 3 */}
@@ -651,6 +757,51 @@ export default function RequestForm({
             <p className="mt-3 text-xs leading-6 text-muted">{bankTermsNote}</p>
           </div>
         )}
+
+        {/* السكن الاجتماعي */}
+        <div className="mt-8 rounded border border-line bg-surface-2 p-5">
+          <span className="block text-sm font-medium">{t.socialTitle}</span>
+          <p className="mt-1 text-sm leading-7 text-muted">{t.socialLede}</p>
+
+          <div className="mt-4 flex flex-col gap-3 text-sm">
+            {(
+              [
+                ['foprolosInterest', t.foprolos],
+                ['isFirstHome', t.firstHome],
+                ['hasSocialHousing', t.hasSocialHousing],
+                ['cnssAffiliated', t.cnssAffiliated],
+              ] as const
+            ).map(([key, label]) => (
+              <label key={key} className="flex items-start gap-2.5 leading-6">
+                <input
+                  type="checkbox"
+                  name={key}
+                  checked={values[key] === true}
+                  onChange={(e) => set(key, e.target.checked)}
+                  className="mt-1 size-4 accent-[#1d3a5f]"
+                />
+                <span>{label}</span>
+              </label>
+            ))}
+          </div>
+
+          {values.cnssAffiliated === true && (
+            <label className="mt-4 block max-w-56">
+              <span className="mb-1.5 block text-xs text-muted">{t.cnssYears}</span>
+              <input
+                type="number"
+                name="cnssYears"
+                min={0}
+                max={60}
+                value={String(values.cnssYears ?? '')}
+                onChange={(e) => set('cnssYears', e.target.value)}
+                className={`${inputCls} num`}
+              />
+            </label>
+          )}
+
+          <p className="mt-4 text-xs leading-6 text-faint">{t.socialNote}</p>
+        </div>
       </fieldset>
 
       {/* 5 */}
