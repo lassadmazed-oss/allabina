@@ -11,7 +11,8 @@
     "start": "next start -p 3100",
     "migrate": "node scripts/apply-migrations.mjs",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "check:bordereau": "vitest run --config vitest.checks.config.ts --reporter=verbose"
   },
   "keywords": [],
   "author": "",
