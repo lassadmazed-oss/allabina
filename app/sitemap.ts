@@ -7,6 +7,7 @@ const PAGES = [
   '',
   '/demande',
   '/simulateur',
+  '/standing',
   '/suivi',
   '/proprietaire',
   '/realisations',

@@ -94,6 +94,12 @@ export default async function SiteLayout({
                 {t.nav.track}
               </Link>
               <Link
+                href={p('/standing')}
+                className="hidden rounded px-2 py-1 text-muted hover:text-brand md:inline"
+              >
+                {t.standingPage.navLink}
+              </Link>
+              <Link
                 href={p('/realisations')}
                 className="hidden rounded px-2 py-1 text-muted hover:text-brand lg:inline"
               >
@@ -142,6 +148,9 @@ export default async function SiteLayout({
                 </Link>
                 <Link href={p('/simulateur')} className="hover:text-brand">
                   {t.footer.simulator}
+                </Link>
+                <Link href={p('/standing')} className="hover:text-brand">
+                  {t.standingPage.navLink}
                 </Link>
                 <Link href={p('/suivi')} className="hover:text-brand">
                   {t.footer.track}

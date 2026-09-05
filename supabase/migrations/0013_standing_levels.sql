@@ -153,11 +153,17 @@ end $$;
 create table if not exists standing_lot_shares (
   standing_code text not null references standing_levels(code) on update cascade on delete cascade,
   lot_code      int  not null references lots(code) on delete cascade,
-  share_pct     numeric(6,3) not null check (share_pct >= 0 and share_pct <= 100),
+  share_pct     numeric(9,6) not null check (share_pct >= 0 and share_pct <= 100),
   note          text,
   updated_at    timestamptz not null default now(),
   primary key (standing_code, lot_code)
 );
+
+-- ثلاث منازل ما تكفيش: 28 د/م² من 1 800 = 1.555556% وليس 1.556%،
+-- والفرق يظهر للحريف ديناراً زائداً في كلّ سطر من جدول التوزيع.
+-- العرض يعتمد على العمود، فيُسقَط قبل التوسيع ويُعاد إنشاؤه أسفل الملفّ
+drop view if exists standing_share_totals;
+alter table standing_lot_shares alter column share_pct type numeric(9,6);
 
 drop trigger if exists standing_lot_shares_touch on standing_lot_shares;
 create trigger standing_lot_shares_touch before update on standing_lot_shares
@@ -194,7 +200,7 @@ with seed(standing_code, lot_code, amount_m2) as (
 )
 insert into standing_lot_shares (standing_code, lot_code, share_pct)
 select s.standing_code, s.lot_code,
-       round(s.amount_m2 * 100.0 / l.price_ht_m2, 3)
+       round(s.amount_m2 * 100.0 / l.price_ht_m2, 6)
 from seed s
 join standing_levels l on l.code = s.standing_code
 on conflict (standing_code, lot_code) do nothing;
@@ -218,6 +224,43 @@ update standing_lot_shares s
  where s.standing_code = 'B05'
    and s.lot_code = f.lot_code
    and s.share_pct = f.old_pct;
+
+-- إعادة اشتقاق النسب بالدقّة الجديدة — للسطور التي ما زالت تحمل قيمة
+-- البذرة القديمة بثلاث منازل وحدها. أيّ سطر عدّلته الإدارة يبقى كما هو.
+with seed(standing_code, lot_code, amount_m2) as (
+  values
+    ('B01', 1,  24), ('B01', 2,  24), ('B01', 3,  84), ('B01', 4, 240), ('B01', 5, 132),
+    ('B01', 6,  84), ('B01', 7,  36), ('B01', 8,  60), ('B01', 9,  60), ('B01', 10, 96),
+    ('B01', 11, 72), ('B01', 12, 48), ('B01', 13, 36), ('B01', 14, 48), ('B01', 15, 30),
+    ('B01', 16,  6), ('B01', 17,  0), ('B01', 18, 36), ('B01', 19, 48), ('B01', 20, 36),
+
+    ('B02', 1,  26), ('B02', 2,  25), ('B02', 3,  90), ('B02', 4, 248), ('B02', 5, 140),
+    ('B02', 6,  95), ('B02', 7,  42), ('B02', 8,  68), ('B02', 9,  70), ('B02', 10, 130),
+    ('B02', 11, 86), ('B02', 12, 58), ('B02', 13, 42), ('B02', 14, 56), ('B02', 15, 56),
+    ('B02', 16, 16), ('B02', 17, 12), ('B02', 18, 46), ('B02', 19, 56), ('B02', 20, 38),
+
+    ('B03', 1,  28), ('B03', 2,  26), ('B03', 3,  92), ('B03', 4, 256), ('B03', 5, 140),
+    ('B03', 6, 100), ('B03', 7,  48), ('B03', 8,  78), ('B03', 9,  82), ('B03', 10, 160),
+    ('B03', 11, 108),('B03', 12, 70), ('B03', 13, 48), ('B03', 14, 66), ('B03', 15, 76),
+    ('B03', 16, 28), ('B03', 17, 30), ('B03', 18, 58), ('B03', 19, 66), ('B03', 20, 40),
+
+    ('B04', 1,  32), ('B04', 2,  28), ('B04', 3,  96), ('B04', 4, 264), ('B04', 5, 146),
+    ('B04', 6, 104), ('B04', 7,  56), ('B04', 8,  90), ('B04', 9,  96), ('B04', 10, 178),
+    ('B04', 11, 120),('B04', 12, 84), ('B04', 13, 56), ('B04', 14, 78), ('B04', 15, 86),
+    ('B04', 16, 42), ('B04', 17, 52), ('B04', 18, 72), ('B04', 19, 78), ('B04', 20, 42),
+
+    ('B05', 1,  36), ('B05', 2,  30), ('B05', 3,  98), ('B05', 4, 268), ('B05', 5, 150),
+    ('B05', 6, 108), ('B05', 7,  62), ('B05', 8, 100), ('B05', 9, 108), ('B05', 10, 196),
+    ('B05', 11, 138),('B05', 12, 96), ('B05', 13, 62), ('B05', 14, 88), ('B05', 15, 112),
+    ('B05', 16, 56), ('B05', 17, 76), ('B05', 18, 84), ('B05', 19, 88), ('B05', 20, 44)
+)
+update standing_lot_shares s
+   set share_pct = round(seed.amount_m2 * 100.0 / l.price_ht_m2, 6)
+  from seed
+  join standing_levels l on l.code = seed.standing_code
+ where s.standing_code = seed.standing_code
+   and s.lot_code = seed.lot_code
+   and s.share_pct = round(seed.amount_m2 * 100.0 / l.price_ht_m2, 3);
 
 -- مراقبة: مجموع النسب لكلّ مستوى — تُعرض في الـBack-office كتنبيه لا كمنع،
 -- لأنّ الإدارة قد تعدّل سطراً سطراً وتحتاج حفظ عمل ناقص.
