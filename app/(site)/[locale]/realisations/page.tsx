@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { db } from '@/lib/supabase/server'
 import { getDictionary, isLocale, path, type Locale } from '@/lib/i18n'
 import { formatNumber } from '@/lib/format'
+import DemoBadge from '@/components/DemoBadge'
 
 export const dynamic = 'force-dynamic'
 
@@ -28,6 +29,7 @@ type CaseStudy = {
   completed_at: string | null
   photo_before: string | null
   photo_after: string | null
+  is_demo: boolean
 }
 
 type Activity = {
@@ -145,6 +147,12 @@ export default async function RealisationsPage({
       </section>
 
       {/* الحالات — Les cas */}
+      {cases.some((c) => c.is_demo) && (
+        <p className="mt-6 rounded border border-gold/40 bg-gold-soft px-4 py-3 text-sm leading-7 text-gold">
+          {t.demoNotice}
+        </p>
+      )}
+
       <section className="mt-12">
         {cases.length === 0 ? (
           <p className="rounded border border-line bg-surface p-10 text-center leading-8 text-muted">
@@ -160,7 +168,10 @@ export default async function RealisationsPage({
               return (
                 <article key={c.id} className="rounded border border-line bg-surface p-6 sm:p-8">
                   <div className="flex flex-wrap items-baseline justify-between gap-3">
-                    <h3 className="display text-xl font-semibold">{title}</h3>
+                    <h3 className="display text-xl font-semibold">
+                      {title}
+                      {c.is_demo && <DemoBadge label={t.demoBadge} />}
+                    </h3>
                     <span className="rounded bg-brand-soft px-3 py-1 text-xs font-medium text-brand">
                       {t.cases.kinds[c.kind] ?? c.kind}
                     </span>

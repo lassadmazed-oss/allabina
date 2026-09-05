@@ -3,6 +3,7 @@ import PledgeForm from '@/components/PledgeForm'
 import { db } from '@/lib/supabase/server'
 import { fmt, getDictionary, isLocale, path, type Locale } from '@/lib/i18n'
 import { needsProgress } from '@/lib/support'
+import DemoBadge from '@/components/DemoBadge'
 
 export const dynamic = 'force-dynamic'
 
@@ -21,6 +22,7 @@ type SupportCase = {
   summary_fr: string | null
   delegation_id: number | null
   created_at: string
+  is_demo: boolean
 }
 
 /**
@@ -56,7 +58,9 @@ export default async function SoutienPage({ params }: { params: Promise<{ locale
 
   const { data: casesRaw } = await db
     .from('support_cases')
-    .select('id, request_id, title_ar, title_fr, summary_ar, summary_fr, delegation_id, created_at')
+    .select(
+      'id, request_id, title_ar, title_fr, summary_ar, summary_fr, delegation_id, created_at, is_demo'
+    )
     .eq('published', true)
     .is('closed_at', null)
     .order('created_at', { ascending: false })
@@ -96,6 +100,12 @@ export default async function SoutienPage({ params }: { params: Promise<{ locale
       <h1 className="display text-3xl font-semibold">{t.title}</h1>
       <p className="mt-4 max-w-3xl leading-8 text-muted">{t.lede}</p>
 
+      {cases.some((c) => c.is_demo) && (
+        <p className="mt-6 rounded border border-gold/40 bg-gold-soft px-4 py-3 text-sm leading-7 text-gold">
+          {dict.demoNotice}
+        </p>
+      )}
+
       <ul className="mt-6 flex flex-col gap-2 rounded border border-line bg-surface p-6 text-sm leading-7 text-muted">
         {t.principles.map((line) => (
           <li key={line} className="flex gap-2">
@@ -126,7 +136,10 @@ export default async function SoutienPage({ params }: { params: Promise<{ locale
               return (
                 <article key={c.id} className="rounded border border-line bg-surface p-6 sm:p-8">
                   <div className="flex flex-wrap items-baseline justify-between gap-3">
-                    <h2 className="display text-xl font-semibold">{title}</h2>
+                    <h2 className="display text-xl font-semibold">
+                      {title}
+                      {c.is_demo && <DemoBadge label={dict.demoBadge} />}
+                    </h2>
                     {c.delegation_id && delegationName.has(c.delegation_id) && (
                       <span className="rounded bg-surface-2 px-3 py-1 text-xs text-muted">
                         {delegationName.get(c.delegation_id)}

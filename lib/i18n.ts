@@ -16,6 +16,8 @@ export const fmt = (template: string, vars: Record<string, string | number>) =>
 const ar = {
     dirLabel: 'rtl',
     langName: 'العربية',
+    demoBadge: 'بيانات تجريبية',
+    demoNotice: 'بعض ما يظهر هنا بيانات تجريبية لعرض المنصّة — معلّمة بشارة، والقصص فيها مخترعة.',
     otherLangName: 'Français',
     nav: {
         brand: 'اللَّبنة',
@@ -617,6 +619,8 @@ export type Dictionary = typeof ar
 const fr: Dictionary = {
     dirLabel: 'ltr',
     langName: 'Français',
+    demoBadge: 'Données de démonstration',
+    demoNotice: "Certains éléments affichés sont des données de démonstration, signalées par un badge : les situations décrites sont fictives.",
     otherLangName: 'العربية',
     nav: {
         brand: 'AL-LUBNA',
