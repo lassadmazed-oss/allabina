@@ -51,14 +51,14 @@ export default async function MerciPage({
           {score ? t.labels.citizenMsg[score.band] : t.merci.fallbackMsg}
         </p>
 
-        <div className="mt-8 rounded border border-line bg-green-soft p-6">
+        <div className="mt-8 rounded border border-line bg-brand-soft p-6">
           <div className="text-sm text-muted">{t.merci.refLabel}</div>
-          <div className="num mt-1 text-3xl font-semibold text-green" dir="ltr">
+          <div className="num mt-1 text-3xl font-semibold text-brand" dir="ltr">
             {request.ref_code}
           </div>
           <p className="mt-3 text-sm leading-7 text-ink-soft">
             {t.merci.refBody}{' '}
-            <Link href={path(locale, '/suivi')} className="font-medium text-green underline">
+            <Link href={path(locale, '/suivi')} className="font-medium text-brand underline">
               {t.merci.trackLink}
             </Link>
             .
@@ -77,11 +77,11 @@ export default async function MerciPage({
         )}
 
         {costRange && tier && (
-          <div className="mt-6 rounded border border-line bg-bronze-soft p-5">
+          <div className="mt-6 rounded border border-line bg-gold-soft p-5">
             <div className="text-sm font-medium">
               {t.merci.buildCost} {t.labels.standing[tier.tier]}
             </div>
-            <div className="num mt-1 text-xl font-semibold text-green">
+            <div className="num mt-1 text-xl font-semibold text-brand">
               <bdi dir="ltr">{formatRange(costRange.min, costRange.max)}</bdi>{' '}
               {currencyLabel(locale)}
             </div>
@@ -128,7 +128,7 @@ export default async function MerciPage({
         </Link>
         <Link
           href={path(locale, '/simulateur')}
-          className="rounded bg-green px-6 py-3 text-sm font-medium text-white hover:bg-green-deep"
+          className="rounded bg-brand px-6 py-3 text-sm font-medium text-white hover:bg-brand-deep"
         >
           {t.merci.trySim}
         </Link>
@@ -141,7 +141,7 @@ function Box({ label, value }: { label: string; value: string }) {
   return (
     <div className="rounded border border-line p-4">
       <div className="text-xs text-muted">{label}</div>
-      <div className="num mt-1 text-lg font-medium text-green">
+      <div className="num mt-1 text-lg font-medium text-brand">
         <bdi>{value}</bdi>
       </div>
     </div>

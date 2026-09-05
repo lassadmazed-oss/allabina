@@ -24,9 +24,9 @@ export default async function PropertyThanksPage({
         <p className="mt-3 leading-8 text-muted">{t.proprietaire.thanksBody}</p>
 
         {sp.ref && (
-          <div className="mt-8 rounded border border-line bg-green-soft p-6">
+          <div className="mt-8 rounded border border-line bg-brand-soft p-6">
             <div className="text-sm text-muted">{t.proprietaire.refLabel}</div>
-            <div className="num mt-1 text-3xl font-semibold text-green" dir="ltr">
+            <div className="num mt-1 text-3xl font-semibold text-brand" dir="ltr">
               {sp.ref}
             </div>
           </div>

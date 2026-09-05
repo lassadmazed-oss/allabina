@@ -35,7 +35,7 @@ export default async function PrivacyPage({ params }: { params: Promise<{ locale
         <p>{t.privacy.s5body}</p>
       </Section>
 
-      <p className="mt-10 rounded border border-line bg-bronze-soft p-5 text-sm leading-7">
+      <p className="mt-10 rounded border border-line bg-gold-soft p-5 text-sm leading-7">
         {t.privacy.note}
       </p>
     </div>

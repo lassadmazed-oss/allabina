@@ -39,7 +39,7 @@ export default async function CasesAdminPage() {
 
   return (
     <div className="mx-auto max-w-5xl px-5 py-10">
-      <Link href="/admin" className="text-sm text-muted hover:text-green">
+      <Link href="/admin" className="text-sm text-muted hover:text-brand">
         ← لوحة القيادة
       </Link>
       <h1 className="display mt-2 text-2xl font-semibold">حالات تمّ إنجازها</h1>
@@ -128,9 +128,9 @@ export default async function CasesAdminPage() {
             <input name="photo_after" dir="ltr" className={inputCls} />
           </label>
 
-          <div className="rounded border border-bronze-light bg-bronze-soft p-4 text-sm sm:col-span-2">
+          <div className="rounded border border-gold-light bg-gold-soft p-4 text-sm sm:col-span-2">
             <label className="flex items-start gap-3">
-              <input type="checkbox" name="consent_given" className="mt-1 size-4 accent-[#0e5138]" />
+              <input type="checkbox" name="consent_given" className="mt-1 size-4 accent-[#1d3a5f]" />
               <span className="leading-7">
                 <b>الحريف وافق على نشر حالته.</b> بلا هالموافقة ما تتنشرش الحالة، حتّى لو
                 اخترت النشر.
@@ -141,17 +141,17 @@ export default async function CasesAdminPage() {
                 type="checkbox"
                 name="anonymised"
                 defaultChecked
-                className="size-4 accent-[#0e5138]"
+                className="size-4 accent-[#1d3a5f]"
               />
               <span>مجهّلة الهوية (بلا اسم الحريف)</span>
             </label>
             <label className="mt-3 flex items-center gap-3">
-              <input type="checkbox" name="published" className="size-4 accent-[#0e5138]" />
+              <input type="checkbox" name="published" className="size-4 accent-[#1d3a5f]" />
               <span>انشرها في الصفحة العمومية</span>
             </label>
           </div>
 
-          <button className="justify-self-start rounded bg-green px-6 py-2.5 text-sm font-medium text-white hover:bg-green-deep">
+          <button className="justify-self-start rounded bg-brand px-6 py-2.5 text-sm font-medium text-white hover:bg-brand-deep">
             حفظ الحالة
           </button>
         </form>
@@ -188,18 +188,18 @@ export default async function CasesAdminPage() {
                 <td className="num px-4 py-3 text-xs text-faint">{c.completed_at ?? '—'}</td>
                 <td className="px-4 py-3">
                   {c.consent_given ? (
-                    <span className="rounded bg-green-soft px-2 py-0.5 text-xs text-green">
+                    <span className="rounded bg-brand-soft px-2 py-0.5 text-xs text-brand">
                       موافق
                     </span>
                   ) : (
-                    <span className="rounded bg-bronze-soft px-2 py-0.5 text-xs text-bronze">
+                    <span className="rounded bg-gold-soft px-2 py-0.5 text-xs text-gold">
                       بلا موافقة
                     </span>
                   )}
                 </td>
                 <td className="px-4 py-3">
                   {c.published ? (
-                    <span className="rounded bg-green-soft px-2 py-0.5 text-xs text-green">
+                    <span className="rounded bg-brand-soft px-2 py-0.5 text-xs text-brand">
                       منشورة
                     </span>
                   ) : (
@@ -215,7 +215,7 @@ export default async function CasesAdminPage() {
   )
 }
 
-const inputCls = 'w-full rounded border border-line bg-surface px-3 py-2 text-sm outline-none focus:border-green'
+const inputCls = 'w-full rounded border border-line bg-surface px-3 py-2 text-sm outline-none focus:border-brand'
 
 function Th({ children }: { children: React.ReactNode }) {
   return <th className="px-4 py-3 text-right text-xs font-semibold text-muted">{children}</th>

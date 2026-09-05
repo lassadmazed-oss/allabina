@@ -25,7 +25,7 @@ export default function AdminLogin({ next }: { next?: string }) {
               autoFocus
               required
               dir="ltr"
-              className="w-full rounded border border-line px-3.5 py-2.5 text-left outline-none focus:border-green"
+              className="w-full rounded border border-line px-3.5 py-2.5 text-left outline-none focus:border-brand"
             />
           </label>
 
@@ -37,7 +37,7 @@ export default function AdminLogin({ next }: { next?: string }) {
               autoComplete="current-password"
               required
               dir="ltr"
-              className="w-full rounded border border-line px-3.5 py-2.5 text-left outline-none focus:border-green"
+              className="w-full rounded border border-line px-3.5 py-2.5 text-left outline-none focus:border-brand"
             />
           </label>
 
@@ -50,7 +50,7 @@ export default function AdminLogin({ next }: { next?: string }) {
           <button
             type="submit"
             disabled={pending}
-            className="w-full rounded bg-green px-5 py-3 font-medium text-white transition hover:bg-green-deep disabled:opacity-60"
+            className="w-full rounded bg-brand px-5 py-3 font-medium text-white transition hover:bg-brand-deep disabled:opacity-60"
           >
             {pending ? 'جاري التحقّق…' : 'دخول'}
           </button>

@@ -31,7 +31,7 @@ export default async function ReferencePage() {
 
   return (
     <div className="mx-auto max-w-5xl px-5 py-10">
-      <Link href="/admin" className="text-sm text-muted hover:text-green">
+      <Link href="/admin" className="text-sm text-muted hover:text-brand">
         ← رجوع للوحة القيادة
       </Link>
       <h1 className="display mt-3 text-2xl font-semibold">المعطيات المرجعية للمشروع</h1>
@@ -42,7 +42,7 @@ export default async function ReferencePage() {
 
       {/* الفرضيات البنكية */}
       <Section title="الفرضيات البنكية والمالية">
-        <div className="rounded border border-line bg-bronze-soft p-5 text-sm leading-8">
+        <div className="rounded border border-line bg-gold-soft p-5 text-sm leading-8">
           {finance.bankTermsNote}
         </div>
         <p className="mt-4 text-sm leading-7 text-muted">
@@ -94,9 +94,9 @@ export default async function ReferencePage() {
                   </td>
                   <td className="px-4 py-3">
                     {p.verified_at ? (
-                      <span className="num text-xs text-green">{p.verified_at}</span>
+                      <span className="num text-xs text-brand">{p.verified_at}</span>
                     ) : (
-                      <span className="rounded bg-bronze-soft px-2 py-0.5 text-xs text-bronze">
+                      <span className="rounded bg-gold-soft px-2 py-0.5 text-xs text-gold">
                         في طور التثبّت
                       </span>
                     )}
@@ -114,7 +114,7 @@ export default async function ReferencePage() {
           {build.tiers.map((t) => (
             <div key={t.tier} className="rounded border border-line bg-surface p-5">
               <div className="font-semibold">{t.label}</div>
-              <div className="num mt-1 text-lg text-green">
+              <div className="num mt-1 text-lg text-brand">
                 <bdi dir="ltr">{formatRange(t.min, t.max)}</bdi> د/م²
               </div>
               <div className="mt-2 text-xs text-muted">مرجعي: {formatNumber(t.price)}</div>
@@ -152,7 +152,7 @@ export default async function ReferencePage() {
                     {p.price_per_m2_tnd ? (
                       formatNumber(Number(p.price_per_m2_tnd))
                     ) : (
-                      <span className="text-bronze">غير معبّأ</span>
+                      <span className="text-gold">غير معبّأ</span>
                     )}
                   </td>
                 </tr>
@@ -177,7 +177,7 @@ export default async function ReferencePage() {
               <span>{d.name_ar}</span>
               <span
                 className={`num text-xs ${
-                  imadaCount.get(d.id) ? 'text-green' : 'text-faint'
+                  imadaCount.get(d.id) ? 'text-brand' : 'text-faint'
                 }`}
               >
                 {imadaCount.get(d.id) ?? 0}

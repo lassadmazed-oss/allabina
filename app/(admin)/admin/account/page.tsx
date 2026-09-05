@@ -18,7 +18,7 @@ export default async function AccountPage() {
       <div className="mt-6 rounded border border-line bg-surface p-5">
         <div className="flex items-center gap-2 text-sm">
           <span className="text-muted">الدور:</span>
-          <span className="rounded-full bg-green-soft px-2.5 py-0.5 text-xs text-green">
+          <span className="rounded-full bg-brand-soft px-2.5 py-0.5 text-xs text-brand">
             {ROLE_LABELS[staff.role]}
           </span>
         </div>
@@ -40,7 +40,7 @@ export default async function AccountPage() {
       <div className="mt-4 rounded border border-line bg-surface p-5">
         <h2 className="text-base font-medium">كلمة السرّ</h2>
         {staff.mustChangePassword && (
-          <p className="mt-2 rounded border border-[#e8dcc2] bg-bronze-soft px-3 py-2 text-sm text-bronze">
+          <p className="mt-2 rounded border border-[#ecdcb8] bg-gold-soft px-3 py-2 text-sm text-gold">
             كلمة سرّك مؤقّتة ضبطها لك مدير اللوحة. غيّرها الآن.
           </p>
         )}

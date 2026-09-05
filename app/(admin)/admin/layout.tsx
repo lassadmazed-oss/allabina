@@ -34,14 +34,14 @@ export default async function AdminLayout({ children }: { children: React.ReactN
           <div className="flex items-center gap-5">
             <Link href="/admin" className="flex items-center gap-2.5">
               <span className="brick" aria-hidden="true" />
-              <span className="display font-semibold text-green-deep">اللَّبنة</span>
+              <span className="display font-semibold text-brand-deep">اللَّبنة</span>
             </Link>
             <nav className="flex items-center gap-1 text-sm">
               {links.map((l) => (
                 <Link
                   key={l.href}
                   href={l.href}
-                  className="rounded px-2.5 py-1.5 text-muted transition hover:bg-surface-2 hover:text-green"
+                  className="rounded px-2.5 py-1.5 text-muted transition hover:bg-surface-2 hover:text-brand"
                 >
                   {l.label}
                 </Link>
@@ -60,7 +60,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
             )}
             <span className="flex items-center gap-2">
               <span className="font-medium">{staff.fullName}</span>
-              <span className="rounded-full bg-green-soft px-2.5 py-0.5 text-xs text-green">
+              <span className="rounded-full bg-brand-soft px-2.5 py-0.5 text-xs text-brand">
                 {ROLE_LABELS[staff.role]}
               </span>
             </span>
@@ -74,8 +74,8 @@ export default async function AdminLayout({ children }: { children: React.ReactN
       </header>
 
       {staff.mustChangePassword && (
-        <div className="border-b border-[#e8dcc2] bg-bronze-soft">
-          <div className="mx-auto max-w-7xl px-5 py-2.5 text-sm text-bronze">
+        <div className="border-b border-[#ecdcb8] bg-gold-soft">
+          <div className="mx-auto max-w-7xl px-5 py-2.5 text-sm text-gold">
             كلمة سرّك مؤقّتة — غيّرها من{' '}
             <Link href="/admin/account" className="underline">
               صفحة حسابي

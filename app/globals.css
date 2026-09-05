@@ -1,21 +1,25 @@
 @import "tailwindcss";
 
 @theme {
-  --color-ink: #0f211a;
-  --color-ink-soft: #2a3d34;
-  --color-muted: #54655b;
-  --color-faint: #7c8c82;
-  --color-ground: #f1f4ef;
+  /* ---------------------------------------------------------------
+     هوية اللَّبنة: كحلي عميق للثقة، وذهبي للّبنة نفسها.
+     الكحلي للنصّ والأفعال، والذهبي للتمييز لا للتزيين.
+     --------------------------------------------------------------- */
+  --color-ink: #12202f;
+  --color-ink-soft: #2c3d50;
+  --color-muted: #55677d;
+  --color-faint: #7d8da0;
+  --color-ground: #f3f5f8;
   --color-surface: #ffffff;
-  --color-surface-2: #e9eee7;
-  --color-line: #d6dfd3;
-  --color-line-strong: #b9c7b6;
-  --color-green: #0e5138;
-  --color-green-deep: #0c1d16;
-  --color-green-soft: #dce9e1;
-  --color-bronze: #8f5f18;
-  --color-bronze-light: #a87433;
-  --color-bronze-soft: #f0e6d4;
+  --color-surface-2: #e8ecf2;
+  --color-line: #dbe1ea;
+  --color-line-strong: #bcc7d6;
+  --color-brand: #1d3a5f;
+  --color-brand-deep: #12243c;
+  --color-brand-soft: #e4eaf2;
+  --color-gold: #a8781f;
+  --color-gold-light: #c79a3d;
+  --color-gold-soft: #f7efdf;
   --font-display: "Reem Kufi", "IBM Plex Sans Arabic", sans-serif;
   --font-body: "IBM Plex Sans Arabic", "Segoe UI", system-ui, sans-serif;
   --font-mono: "IBM Plex Mono", ui-monospace, monospace;
@@ -52,12 +56,12 @@ h1, h2, h3, h4, .display {
   width: 26px;
   height: 13px;
   border-radius: 2px;
-  background: var(--color-bronze-light);
+  background: var(--color-gold-light);
 }
 
 .brick-pattern {
-  background-image: linear-gradient(#f1f4ef 1px, transparent 1px),
-    linear-gradient(90deg, #f1f4ef 1px, transparent 1px);
+  background-image: linear-gradient(#f3f5f8 1px, transparent 1px),
+    linear-gradient(90deg, #f3f5f8 1px, transparent 1px);
   background-size: 64px 26px;
   opacity: 0.16;
   -webkit-mask-image: linear-gradient(to bottom left, #000, transparent 72%);
@@ -78,7 +82,7 @@ input[type="number"] {
 }
 
 *:focus-visible {
-  outline: 2px solid var(--color-green);
+  outline: 2px solid var(--color-brand);
   outline-offset: 2px;
 }
 

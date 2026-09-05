@@ -40,10 +40,10 @@ type LedgerRow = {
 }
 
 const EVENT_TONE: Record<string, string> = {
-  needed: 'border-bronze/40 bg-bronze-soft text-bronze',
+  needed: 'border-gold/40 bg-gold-soft text-gold',
   pledged: 'border-line-strong bg-surface-2 text-muted',
-  confirmed: 'border-green/40 bg-green-soft text-green',
-  delivered: 'border-green bg-green-soft text-green-deep',
+  confirmed: 'border-brand/40 bg-brand-soft text-brand',
+  delivered: 'border-brand bg-brand-soft text-brand-deep',
   cancelled: 'border-line bg-surface-2 text-faint',
 }
 
@@ -99,7 +99,7 @@ export default async function SoutienPage({ params }: { params: Promise<{ locale
       <ul className="mt-6 flex flex-col gap-2 rounded border border-line bg-surface p-6 text-sm leading-7 text-muted">
         {t.principles.map((line) => (
           <li key={line} className="flex gap-2">
-            <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-green" aria-hidden="true" />
+            <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-brand" aria-hidden="true" />
             <span>{line}</span>
           </li>
         ))}
@@ -147,7 +147,7 @@ export default async function SoutienPage({ params }: { params: Promise<{ locale
                       </div>
                       <div className="mt-2 h-1.5 rounded-full bg-surface-2" aria-hidden="true">
                         <div
-                          className="h-1.5 rounded-full bg-green"
+                          className="h-1.5 rounded-full bg-brand"
                           style={{ width: `${progress.percent}%` }}
                         />
                       </div>
@@ -162,7 +162,7 @@ export default async function SoutienPage({ params }: { params: Promise<{ locale
                       {open.map((n) => (
                         <li
                           key={n.id}
-                          className="rounded border border-bronze/40 bg-bronze-soft px-3 py-1.5 text-sm text-bronze"
+                          className="rounded border border-gold/40 bg-gold-soft px-3 py-1.5 text-sm text-gold"
                         >
                           {n.label}
                           {n.quantity_note && (
@@ -175,7 +175,7 @@ export default async function SoutienPage({ params }: { params: Promise<{ locale
 
                   {rows.length > 0 && (
                     <details className="mt-6 border-t border-line pt-4">
-                      <summary className="cursor-pointer text-sm font-medium text-green">
+                      <summary className="cursor-pointer text-sm font-medium text-brand">
                         {t.caseLink}
                       </summary>
                       <p className="mt-2 text-xs leading-6 text-faint">{t.ledgerLede}</p>
@@ -227,12 +227,12 @@ export default async function SoutienPage({ params }: { params: Promise<{ locale
         </div>
       </section>
 
-      <p className="mt-8 rounded border border-line bg-bronze-soft p-4 text-sm leading-7">
+      <p className="mt-8 rounded border border-line bg-gold-soft p-4 text-sm leading-7">
         {dict.cases.disclaimer}
       </p>
 
       <div className="mt-6 text-sm">
-        <Link href={path(locale, '/realisations')} className="text-green hover:underline">
+        <Link href={path(locale, '/realisations')} className="text-brand hover:underline">
           {dict.cases.navLink} ←
         </Link>
       </div>

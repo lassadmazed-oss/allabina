@@ -211,7 +211,7 @@ export default function RequestForm({
 
       <div className="mb-8">
         <div className="mb-3 flex items-center justify-between text-sm">
-          <span className="font-medium text-green">
+          <span className="font-medium text-brand">
             {fmt(t.stepOf, { i: stepIndex + 1, n: steps.length })}
           </span>
           <span className="text-faint">{steps[stepIndex]}</span>
@@ -220,7 +220,7 @@ export default function RequestForm({
           {steps.map((_, i) => (
             <div
               key={i}
-              className={`h-1.5 flex-1 rounded-full ${i <= stepIndex ? 'bg-green' : 'bg-line'}`}
+              className={`h-1.5 flex-1 rounded-full ${i <= stepIndex ? 'bg-brand' : 'bg-line'}`}
             />
           ))}
         </div>
@@ -254,7 +254,7 @@ export default function RequestForm({
               key={rt}
               className={`cursor-pointer rounded border p-5 transition ${
                 values.requestType === rt
-                  ? 'border-green bg-green-soft'
+                  ? 'border-brand bg-brand-soft'
                   : 'border-line bg-surface hover:border-line-strong'
               }`}
             >
@@ -358,7 +358,7 @@ export default function RequestForm({
                 onClick={() => set('desiredAreaM2', String(a))}
                 className={`rounded border px-5 py-2.5 text-sm transition ${
                   String(values.desiredAreaM2) === String(a)
-                    ? 'border-green bg-green text-white'
+                    ? 'border-brand bg-brand text-white'
                     : 'border-line bg-surface hover:border-line-strong'
                 }`}
               >
@@ -420,7 +420,7 @@ export default function RequestForm({
                   key={tier.tier}
                   className={`cursor-pointer rounded border p-4 transition ${
                     values.standing === tier.tier
-                      ? 'border-green bg-green-soft'
+                      ? 'border-brand bg-brand-soft'
                       : 'border-line bg-surface hover:border-line-strong'
                   }`}
                 >
@@ -433,7 +433,7 @@ export default function RequestForm({
                     className="sr-only"
                   />
                   <span className="block font-semibold">{labels.standing[tier.tier]}</span>
-                  <span className="num mt-1 block text-sm text-green">
+                  <span className="num mt-1 block text-sm text-brand">
                     <bdi dir="ltr">{formatRange(tier.min, tier.max)}</bdi> {perM2}
                   </span>
                   <span className="mt-2 block text-xs leading-6 text-muted">
@@ -446,7 +446,7 @@ export default function RequestForm({
             {costRange && selectedTier && (
               <div className="mt-4 rounded border border-line bg-surface-2 p-4 text-sm">
                 {fmt(t.costFor, { area: areaForCost, tier: labels.standing[selectedTier.tier] })}{' '}
-                <span className="num font-semibold text-green">
+                <span className="num font-semibold text-brand">
                   <bdi dir="ltr">{formatRange(costRange.min, costRange.max)}</bdi>{' '}
                   {currencyLabel(locale)}
                 </span>
@@ -507,7 +507,7 @@ export default function RequestForm({
                   name={k}
                   checked={Boolean(values[k])}
                   onChange={(e) => set(k, e.target.checked)}
-                  className="size-4 accent-[#0e5138]"
+                  className="size-4 accent-[#1d3a5f]"
                 />
                 <span className="text-sm">{label}</span>
               </label>
@@ -616,7 +616,7 @@ export default function RequestForm({
             name="isExpat"
             checked={Boolean(values.isExpat)}
             onChange={(e) => set('isExpat', e.target.checked)}
-            className="size-4 accent-[#0e5138]"
+            className="size-4 accent-[#1d3a5f]"
           />
           <span className="text-sm">{t.isExpat}</span>
         </label>
@@ -635,8 +635,8 @@ export default function RequestForm({
         )}
 
         {num('monthlyIncome') > 0 && (
-          <div className="mt-6 rounded border border-line bg-green-soft p-5">
-            <div className="text-sm font-medium text-green">{t.estimateTitle}</div>
+          <div className="mt-6 rounded border border-line bg-brand-soft p-5">
+            <div className="text-sm font-medium text-brand">{t.estimateTitle}</div>
             <div className="mt-3 grid gap-4 sm:grid-cols-3">
               <Stat label={t.maxPayment} value={formatTND(capacity.maxPayment, locale)} />
               <Stat label={t.maxLoan} value={formatTND(capacity.maxLoan, locale)} />
@@ -692,7 +692,7 @@ export default function RequestForm({
             name="consent"
             checked={Boolean(values.consent)}
             onChange={(e) => set('consent', e.target.checked)}
-            className="mt-1 size-4 accent-[#0e5138]"
+            className="mt-1 size-4 accent-[#1d3a5f]"
           />
           <span className="text-sm leading-7">{t.consent}</span>
         </label>
@@ -724,7 +724,7 @@ export default function RequestForm({
             type="button"
             onClick={() => canNext() && go(1)}
             disabled={!canNext()}
-            className="rounded bg-green px-8 py-3 font-medium text-white transition hover:bg-green-deep disabled:opacity-40"
+            className="rounded bg-brand px-8 py-3 font-medium text-white transition hover:bg-brand-deep disabled:opacity-40"
           >
             {t.next}
           </button>
@@ -732,7 +732,7 @@ export default function RequestForm({
           <button
             type="submit"
             disabled={pending}
-            className="rounded bg-green px-8 py-3 font-medium text-white transition hover:bg-green-deep disabled:opacity-60"
+            className="rounded bg-brand px-8 py-3 font-medium text-white transition hover:bg-brand-deep disabled:opacity-60"
           >
             {pending ? t.submitting : t.submit}
           </button>
@@ -743,7 +743,7 @@ export default function RequestForm({
 }
 
 const inputCls =
-  'w-full rounded border border-line bg-surface px-3.5 py-2.5 text-[15px] outline-none transition focus:border-green'
+  'w-full rounded border border-line bg-surface px-3.5 py-2.5 text-[15px] outline-none transition focus:border-brand'
 
 function Field({
   label,
@@ -778,7 +778,7 @@ function Stat({ label, value }: { label: string; value: string }) {
   return (
     <div>
       <div className="text-xs text-muted">{label}</div>
-      <div className="num mt-0.5 text-lg font-medium text-green">
+      <div className="num mt-0.5 text-lg font-medium text-brand">
         <bdi>{value}</bdi>
       </div>
     </div>

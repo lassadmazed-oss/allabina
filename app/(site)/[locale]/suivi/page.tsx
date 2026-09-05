@@ -13,8 +13,8 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
 }
 
 const STATE_STYLE: Record<PublicState, string> = {
-  resolved: 'border-green bg-green-soft text-green',
-  in_progress: 'border-bronze-light bg-bronze-soft text-bronze',
+  resolved: 'border-brand bg-brand-soft text-brand',
+  in_progress: 'border-gold-light bg-gold-soft text-gold',
   waiting: 'border-line-strong bg-surface-2 text-muted',
   closed: 'border-line-strong bg-surface-2 text-muted',
 }
@@ -65,7 +65,7 @@ export default async function SuiviPage({
               dir="ltr"
               required
               placeholder="LB-2026-000001"
-              className="num w-full rounded border border-line px-3.5 py-2.5 outline-none focus:border-green"
+              className="num w-full rounded border border-line px-3.5 py-2.5 outline-none focus:border-brand"
             />
           </label>
           <span className="hidden items-end pb-3 text-sm text-faint sm:flex">{t.suivi.and}</span>
@@ -77,12 +77,12 @@ export default async function SuiviPage({
               dir="ltr"
               required
               placeholder="20123456"
-              className="num w-full rounded border border-line px-3.5 py-2.5 outline-none focus:border-green"
+              className="num w-full rounded border border-line px-3.5 py-2.5 outline-none focus:border-brand"
             />
           </label>
           <button
             type="submit"
-            className="self-end rounded bg-green px-6 py-2.5 font-medium text-white transition hover:bg-green-deep"
+            className="self-end rounded bg-brand px-6 py-2.5 font-medium text-white transition hover:bg-brand-deep"
           >
             {t.suivi.submit}
           </button>
@@ -106,7 +106,7 @@ export default async function SuiviPage({
             <div className="flex flex-wrap items-baseline justify-between gap-3">
               <div>
                 <div className="text-xs text-muted">{t.suivi.refCode}</div>
-                <div className="num text-xl font-semibold text-green" dir="ltr">
+                <div className="num text-xl font-semibold text-brand" dir="ltr">
                   {result.refCode}
                 </div>
               </div>
@@ -172,11 +172,11 @@ export default async function SuiviPage({
         <p className="mt-1 text-sm text-muted">{t.suivi.statsLede}</p>
         <div className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <Stat label={t.suivi.statsReceived} value={stats.received} tone="ink" />
-          <Stat label={t.suivi.statsResolved} value={stats.resolved} tone="green" />
-          <Stat label={t.suivi.statsInProgress} value={stats.in_progress} tone="bronze" />
+          <Stat label={t.suivi.statsResolved} value={stats.resolved} tone="brand" />
+          <Stat label={t.suivi.statsInProgress} value={stats.in_progress} tone="gold" />
           <Stat label={t.suivi.statsWaiting} value={stats.waiting} tone="muted" />
         </div>
-        <p className="mt-5 rounded border border-line bg-bronze-soft p-4 text-sm leading-7">
+        <p className="mt-5 rounded border border-line bg-gold-soft p-4 text-sm leading-7">
           {t.suivi.disclaimer}
         </p>
         <p className="mt-3 text-xs leading-6 text-faint">{t.suivi.privacyNote}</p>
@@ -192,12 +192,12 @@ function Stat({
 }: {
   label: string
   value: number
-  tone: 'ink' | 'green' | 'bronze' | 'muted'
+  tone: 'ink' | 'brand' | 'gold' | 'muted'
 }) {
   const color = {
     ink: 'text-ink',
-    green: 'text-green',
-    bronze: 'text-bronze',
+    brand: 'text-brand',
+    gold: 'text-gold',
     muted: 'text-muted',
   }[tone]
 

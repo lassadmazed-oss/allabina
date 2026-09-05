@@ -4,9 +4,9 @@ import { useActionState } from 'react'
 import { changePasswordAction, updateOwnNameAction, type FormState } from '@/lib/actions/auth'
 
 const field =
-  'w-full rounded border border-line px-3.5 py-2.5 outline-none focus:border-green'
+  'w-full rounded border border-line px-3.5 py-2.5 outline-none focus:border-brand'
 const button =
-  'rounded bg-green px-5 py-2.5 font-medium text-white transition hover:bg-green-deep disabled:opacity-60'
+  'rounded bg-brand px-5 py-2.5 font-medium text-white transition hover:bg-brand-deep disabled:opacity-60'
 
 function Feedback({ state }: { state: FormState }) {
   if (state?.error)
@@ -17,7 +17,7 @@ function Feedback({ state }: { state: FormState }) {
     )
   if (state?.ok)
     return (
-      <p className="rounded border border-line bg-green-soft px-3 py-2 text-sm text-green">
+      <p className="rounded border border-line bg-brand-soft px-3 py-2 text-sm text-brand">
         {state.ok}
       </p>
     )

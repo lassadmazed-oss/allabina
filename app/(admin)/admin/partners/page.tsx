@@ -36,7 +36,7 @@ export default async function PartnersPage() {
 
   return (
     <div className="mx-auto max-w-5xl px-5 py-10">
-      <Link href="/admin" className="text-sm text-muted hover:text-green">
+      <Link href="/admin" className="text-sm text-muted hover:text-brand">
         ← لوحة القيادة
       </Link>
       <h1 className="display mt-2 text-2xl font-semibold">الشركاء</h1>
@@ -75,7 +75,7 @@ export default async function PartnersPage() {
             <span className="mb-1.5 block text-xs text-muted">ملاحظات</span>
             <input name="notes" className={inputCls} />
           </label>
-          <button className="justify-self-start rounded bg-green px-5 py-2 text-sm font-medium text-white hover:bg-green-deep">
+          <button className="justify-self-start rounded bg-brand px-5 py-2 text-sm font-medium text-white hover:bg-brand-deep">
             إضافة
           </button>
         </form>
@@ -118,11 +118,11 @@ export default async function PartnersPage() {
                 type="checkbox"
                 name="is_active"
                 defaultChecked={p.is_active}
-                className="size-4 accent-[#0e5138]"
+                className="size-4 accent-[#1d3a5f]"
               />
               نشط
             </label>
-            <button className="rounded border border-line px-4 py-2 text-sm hover:border-green hover:text-green">
+            <button className="rounded border border-line px-4 py-2 text-sm hover:border-brand hover:text-brand">
               حفظ
             </button>
           </form>
@@ -132,4 +132,4 @@ export default async function PartnersPage() {
   )
 }
 
-const inputCls = 'w-full rounded border border-line bg-surface px-3 py-2 text-sm outline-none focus:border-green'
+const inputCls = 'w-full rounded border border-line bg-surface px-3 py-2 text-sm outline-none focus:border-brand'

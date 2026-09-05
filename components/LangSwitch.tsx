@@ -21,7 +21,7 @@ export default function LangSwitch({ current, other, label }: { current: Locale;
       hrefLang={other}
       lang={other}
       dir={other === 'ar' ? 'rtl' : 'ltr'}
-      className="rounded border border-line px-2.5 py-1 text-xs text-muted transition hover:border-green hover:text-green"
+      className="rounded border border-line px-2.5 py-1 text-xs text-muted transition hover:border-brand hover:text-brand"
     >
       {label}
     </Link>

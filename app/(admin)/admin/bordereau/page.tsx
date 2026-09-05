@@ -61,7 +61,7 @@ export default async function BordereauPage({
 
   return (
     <div className="mx-auto max-w-6xl px-5 py-10">
-      <Link href="/admin" className="text-sm text-muted hover:text-green">
+      <Link href="/admin" className="text-sm text-muted hover:text-brand">
         ← لوحة القيادة
       </Link>
       <h1 className="display mt-2 text-2xl font-semibold">البوردرو وقاعدة الأسعار</h1>
@@ -70,7 +70,7 @@ export default async function BordereauPage({
         والعروض التقديرية تتولّد منها. <b>ما فمّاش سعر مكتوب في الكود</b> — كل شي من هنا.
       </p>
 
-      <div className="mt-4 rounded border border-line bg-bronze-soft p-4 text-sm leading-7">
+      <div className="mt-4 rounded border border-line bg-gold-soft p-4 text-sm leading-7">
         <b>تنبيه:</b> تغيير سعر يُطبَّق على العروض <b>الجديدة</b> فقط. العروض اللي تولّدت قبل
         يبقاو بأسعارهم كما هي — كل سطر عرض ينسخ سعره وقت التوليد.
       </div>
@@ -80,7 +80,7 @@ export default async function BordereauPage({
         <Link
           href="/admin/bordereau"
           className={`rounded border px-3 py-1.5 transition ${
-            !selectedLot ? 'border-green bg-green text-white' : 'border-line bg-surface hover:border-line-strong'
+            !selectedLot ? 'border-brand bg-brand text-white' : 'border-line bg-surface hover:border-line-strong'
           }`}
         >
           الكلّ ({articles.length})
@@ -91,7 +91,7 @@ export default async function BordereauPage({
             href={`/admin/bordereau?lot=${l.id}`}
             className={`rounded border px-3 py-1.5 transition ${
               selectedLot === l.id
-                ? 'border-green bg-green text-white'
+                ? 'border-brand bg-brand text-white'
                 : 'border-line bg-surface hover:border-line-strong'
             }`}
           >
@@ -159,7 +159,7 @@ export default async function BordereauPage({
             <input name="qty_formula" defaultValue="surface" dir="ltr" className={`${inputCls} text-left`} />
           </label>
 
-          <button className="justify-self-start rounded bg-green px-6 py-2.5 text-sm font-medium text-white hover:bg-green-deep">
+          <button className="justify-self-start rounded bg-brand px-6 py-2.5 text-sm font-medium text-white hover:bg-brand-deep">
             إضافة المقال
           </button>
         </form>
@@ -207,7 +207,7 @@ export default async function BordereauPage({
                 </td>
                 <td className="num px-3 py-2">{formatNumber(Number(a.pu_fourniture_ht), 3)}</td>
                 <td className="num px-3 py-2">{formatNumber(Number(a.pu_main_oeuvre_ht), 3)}</td>
-                <td className="num px-3 py-2 font-medium text-green">
+                <td className="num px-3 py-2 font-medium text-brand">
                   {formatNumber(Number(a.pu_fourniture_ht) + Number(a.pu_main_oeuvre_ht), 3)}
                 </td>
                 <td className="px-3 py-2">
@@ -235,7 +235,7 @@ export default async function BordereauPage({
                       className="num w-20 rounded border border-line px-2 py-1 text-xs"
                       aria-label="سعر اليد العاملة"
                     />
-                    <button className="rounded border border-line px-2 py-1 text-xs hover:border-green hover:text-green">
+                    <button className="rounded border border-line px-2 py-1 text-xs hover:border-brand hover:text-brand">
                       حفظ
                     </button>
                   </form>
@@ -249,7 +249,7 @@ export default async function BordereauPage({
   )
 }
 
-const inputCls = 'w-full rounded border border-line bg-surface px-3 py-2 text-sm outline-none focus:border-green'
+const inputCls = 'w-full rounded border border-line bg-surface px-3 py-2 text-sm outline-none focus:border-brand'
 
 function Th({ children }: { children?: React.ReactNode }) {
   return <th className="px-3 py-3 text-right text-xs font-semibold text-muted">{children}</th>

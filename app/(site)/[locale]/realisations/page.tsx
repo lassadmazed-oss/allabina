@@ -101,7 +101,7 @@ export default async function RealisationsPage({
                 }
                 className={`rounded border p-4 transition ${
                   active
-                    ? 'border-green bg-green-soft'
+                    ? 'border-brand bg-brand-soft'
                     : 'border-line bg-surface hover:border-line-strong'
                 }`}
               >
@@ -114,7 +114,7 @@ export default async function RealisationsPage({
                   aria-hidden="true"
                 >
                   <div
-                    className="h-1.5 rounded-full bg-green"
+                    className="h-1.5 rounded-full bg-brand"
                     style={{ width: `${Math.round((total / maxActivity) * 100)}%` }}
                   />
                 </div>
@@ -137,7 +137,7 @@ export default async function RealisationsPage({
         {selected && (
           <Link
             href={path(locale, '/realisations')}
-            className="mt-4 inline-block text-sm text-green hover:underline"
+            className="mt-4 inline-block text-sm text-brand hover:underline"
           >
             ← {t.cases.allDelegations}
           </Link>
@@ -161,7 +161,7 @@ export default async function RealisationsPage({
                 <article key={c.id} className="rounded border border-line bg-surface p-6 sm:p-8">
                   <div className="flex flex-wrap items-baseline justify-between gap-3">
                     <h3 className="display text-xl font-semibold">{title}</h3>
-                    <span className="rounded bg-green-soft px-3 py-1 text-xs font-medium text-green">
+                    <span className="rounded bg-brand-soft px-3 py-1 text-xs font-medium text-brand">
                       {t.cases.kinds[c.kind] ?? c.kind}
                     </span>
                   </div>
@@ -197,11 +197,11 @@ export default async function RealisationsPage({
 
                   <dl className="mt-5 space-y-3 text-sm leading-7">
                     <div>
-                      <dt className="font-medium text-bronze">{t.cases.problemLabel}</dt>
+                      <dt className="font-medium text-gold">{t.cases.problemLabel}</dt>
                       <dd className="text-muted">{problem}</dd>
                     </div>
                     <div>
-                      <dt className="font-medium text-green">{t.cases.solutionLabel}</dt>
+                      <dt className="font-medium text-brand">{t.cases.solutionLabel}</dt>
                       <dd className="text-muted">{solution}</dd>
                     </div>
                     {result && (
@@ -233,7 +233,7 @@ export default async function RealisationsPage({
       </section>
 
       <p className="mt-8 text-xs leading-6 text-faint">{t.cases.consentNote}</p>
-      <p className="mt-3 rounded border border-line bg-bronze-soft p-4 text-sm leading-7">
+      <p className="mt-3 rounded border border-line bg-gold-soft p-4 text-sm leading-7">
         {t.cases.disclaimer}
       </p>
 
@@ -244,7 +244,7 @@ export default async function RealisationsPage({
         </div>
         <Link
           href={path(locale, '/demande')}
-          className="rounded bg-green px-6 py-3 text-sm font-medium text-white hover:bg-green-deep"
+          className="rounded bg-brand px-6 py-3 text-sm font-medium text-white hover:bg-brand-deep"
         >
           {t.nav.cta}
         </Link>

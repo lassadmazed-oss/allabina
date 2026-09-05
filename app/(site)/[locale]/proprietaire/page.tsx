@@ -30,12 +30,12 @@ export default async function ProprietairePage({
       <h1 className="display text-3xl font-semibold">{t.proprietaire.title}</h1>
       <p className="mt-4 leading-8 text-muted">{t.proprietaire.lede}</p>
 
-      <section className="mt-8 rounded border border-line bg-bronze-soft p-6">
+      <section className="mt-8 rounded border border-line bg-gold-soft p-6">
         <h2 className="font-semibold">{t.proprietaire.howTitle}</h2>
         <ol className="mt-3 space-y-2 text-sm leading-7">
           {t.proprietaire.how.map((step, i) => (
             <li key={i} className="flex gap-3">
-              <span className="num shrink-0 font-medium text-bronze">
+              <span className="num shrink-0 font-medium text-gold">
                 {String(i + 1).padStart(2, '0')}
               </span>
               <span>{step}</span>

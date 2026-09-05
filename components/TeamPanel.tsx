@@ -4,9 +4,9 @@ import { useActionState, useState } from 'react'
 import { createMemberAction, setPasswordAction, type TeamState } from '@/lib/actions/team'
 import { ROLE_DESCRIPTIONS, ROLE_LABELS, type Role } from '@/lib/permissions'
 
-const field = 'w-full rounded border border-line px-3.5 py-2.5 outline-none focus:border-green'
+const field = 'w-full rounded border border-line px-3.5 py-2.5 outline-none focus:border-brand'
 const button =
-  'rounded bg-green px-5 py-2.5 font-medium text-white transition hover:bg-green-deep disabled:opacity-60'
+  'rounded bg-brand px-5 py-2.5 font-medium text-white transition hover:bg-brand-deep disabled:opacity-60'
 
 function Feedback({ state }: { state: TeamState }) {
   if (state?.error)
@@ -17,7 +17,7 @@ function Feedback({ state }: { state: TeamState }) {
     )
   if (state?.ok)
     return (
-      <p className="rounded border border-line bg-green-soft px-3 py-2 text-sm text-green">
+      <p className="rounded border border-line bg-brand-soft px-3 py-2 text-sm text-brand">
         {state.ok}
       </p>
     )
@@ -112,12 +112,12 @@ export function ResetPasswordForm({ userId, name }: { userId: string; name: stri
         dir="ltr"
         autoComplete="new-password"
         placeholder={`كلمة سرّ لـ ${name}`}
-        className="w-44 rounded border border-line px-2.5 py-1 text-left text-xs outline-none focus:border-green"
+        className="w-44 rounded border border-line px-2.5 py-1 text-left text-xs outline-none focus:border-brand"
       />
       <button
         type="submit"
         disabled={pending}
-        className="rounded bg-green px-2.5 py-1 text-xs text-white disabled:opacity-60"
+        className="rounded bg-brand px-2.5 py-1 text-xs text-white disabled:opacity-60"
       >
         {pending ? '…' : 'ضبط'}
       </button>
@@ -129,7 +129,7 @@ export function ResetPasswordForm({ userId, name }: { userId: string; name: stri
         إلغاء
       </button>
       {(state?.error || state?.ok) && (
-        <span className={`text-xs ${state.error ? 'text-[#8c2f22]' : 'text-green'}`}>
+        <span className={`text-xs ${state.error ? 'text-[#8c2f22]' : 'text-brand'}`}>
           {state.error ?? state.ok}
         </span>
       )}

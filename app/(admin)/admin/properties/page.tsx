@@ -33,10 +33,10 @@ const LEGAL_AR: Record<string, string> = {
 }
 
 const STATUS_STYLE: Record<string, string> = {
-  pending: 'bg-bronze-soft text-bronze',
-  approved: 'bg-green-soft text-green',
+  pending: 'bg-gold-soft text-gold',
+  approved: 'bg-brand-soft text-brand',
   rejected: 'bg-surface-2 text-muted',
-  reserved: 'bg-green-soft text-green',
+  reserved: 'bg-brand-soft text-brand',
   sold: 'bg-surface-2 text-faint',
 }
 
@@ -92,7 +92,7 @@ export default async function PropertiesPage({
     <div className="mx-auto max-w-6xl px-5 py-10">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <Link href="/admin" className="text-sm text-muted hover:text-green">
+          <Link href="/admin" className="text-sm text-muted hover:text-brand">
             ← لوحة القيادة
           </Link>
           <h1 className="display mt-2 text-2xl font-semibold">العقارات المعروضة</h1>
@@ -105,8 +105,8 @@ export default async function PropertiesPage({
       {stats && (
         <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <Kpi label="مجموع العروض" value={Number(stats.total ?? 0)} />
-          <Kpi label="في انتظار المراجعة" value={Number(stats.pending ?? 0)} tone="bronze" />
-          <Kpi label="صالحة للمطابقة" value={Number(stats.approved ?? 0)} tone="green" />
+          <Kpi label="في انتظار المراجعة" value={Number(stats.pending ?? 0)} tone="gold" />
+          <Kpi label="صالحة للمطابقة" value={Number(stats.approved ?? 0)} tone="brand" />
           <Kpi label="أراضٍ متاحة" value={Number(stats.land_available ?? 0)} />
         </div>
       )}
@@ -134,7 +134,7 @@ export default async function PropertiesPage({
           <article key={p.id} className="rounded border border-line bg-surface p-6">
             <div className="flex flex-wrap items-baseline justify-between gap-3">
               <div>
-                <span className="num text-sm text-green" dir="ltr">
+                <span className="num text-sm text-brand" dir="ltr">
                   {p.ref_code}
                 </span>
                 <h2 className="mt-1 text-lg font-semibold">
@@ -214,7 +214,7 @@ export default async function PropertiesPage({
                   className="w-full rounded border border-line bg-surface px-3 py-2 text-sm"
                 />
               </label>
-              <button className="rounded bg-green px-5 py-2 text-sm font-medium text-white hover:bg-green-deep">
+              <button className="rounded bg-brand px-5 py-2 text-sm font-medium text-white hover:bg-brand-deep">
                 حفظ
               </button>
             </form>
@@ -225,8 +225,8 @@ export default async function PropertiesPage({
   )
 }
 
-function Kpi({ label, value, tone }: { label: string; value: number; tone?: 'green' | 'bronze' }) {
-  const color = tone === 'green' ? 'text-green' : tone === 'bronze' ? 'text-bronze' : 'text-ink'
+function Kpi({ label, value, tone }: { label: string; value: number; tone?: 'brand' | 'gold' }) {
+  const color = tone === 'brand' ? 'text-brand' : tone === 'gold' ? 'text-gold' : 'text-ink'
   return (
     <div className="rounded border border-line bg-surface p-5">
       <div className="text-xs text-muted">{label}</div>
@@ -250,7 +250,7 @@ function Filter({ active, href, label }: { active: boolean; href: string; label:
       href={href}
       className={`rounded border px-3 py-1.5 transition ${
         active
-          ? 'border-green bg-green text-white'
+          ? 'border-brand bg-brand text-white'
           : 'border-line bg-surface hover:border-line-strong'
       }`}
     >

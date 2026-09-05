@@ -142,7 +142,7 @@ export default async function AdminPage({
                 <span className="w-16 shrink-0 text-muted">{gov}</span>
                 <div className="h-2 flex-1 rounded-full bg-surface-2">
                   <div
-                    className="h-2 rounded-full bg-green"
+                    className="h-2 rounded-full bg-brand"
                     style={{ width: `${(n / Math.max(...topGovs.map((g) => g[1]))) * 100}%` }}
                   />
                 </div>
@@ -163,7 +163,7 @@ export default async function AdminPage({
                   <span className="w-28 shrink-0 truncate text-muted">{name}</span>
                   <div className="h-2 flex-1 rounded-full bg-surface-2">
                     <div
-                      className="h-2 rounded-full bg-bronze-light"
+                      className="h-2 rounded-full bg-gold-light"
                       style={{
                         width: `${(n / Math.max(...topDelegations.map((d) => d[1]))) * 100}%`,
                       }}
@@ -182,7 +182,7 @@ export default async function AdminPage({
             <ul className="mt-4 space-y-2 text-sm">
               {(dueActions ?? []).map((a) => (
                 <li key={a.id} className="flex items-baseline justify-between gap-3">
-                  <Link href={`/admin/${a.id}`} className="truncate text-green hover:underline">
+                  <Link href={`/admin/${a.id}`} className="truncate text-brand hover:underline">
                     {a.full_name}: {a.next_action}
                   </Link>
                   <span className="num shrink-0 text-xs text-faint">
@@ -241,7 +241,7 @@ export default async function AdminPage({
               return (
                 <tr key={r.id} className="border-t border-line align-middle">
                   <td className="num px-4 py-3" dir="ltr">
-                    <Link href={`/admin/${r.id}`} className="text-green hover:underline">
+                    <Link href={`/admin/${r.id}`} className="text-brand hover:underline">
                       {r.ref_code}
                     </Link>
                   </td>
@@ -286,7 +286,7 @@ export default async function AdminPage({
                             </option>
                           ))}
                         </select>
-                        <button className="rounded border border-line px-2 py-1 text-xs hover:border-green hover:text-green">
+                        <button className="rounded border border-line px-2 py-1 text-xs hover:border-brand hover:text-brand">
                           حفظ
                         </button>
                       </form>
@@ -309,9 +309,9 @@ export default async function AdminPage({
 
 function bandCls(band: string) {
   return {
-    A: 'bg-green-soft text-green',
-    B: 'bg-[#e6f0e9] text-green',
-    C: 'bg-bronze-soft text-bronze',
+    A: 'bg-brand-soft text-brand',
+    B: 'bg-[#e6f0e9] text-brand',
+    C: 'bg-gold-soft text-gold',
     D: 'bg-surface-2 text-muted',
   }[band] ?? 'bg-surface-2 text-muted'
 }
@@ -336,7 +336,7 @@ function Filter({ active, href, label }: { active: boolean; href: string; label:
     <Link
       href={href}
       className={`rounded border px-3 py-1.5 transition ${
-        active ? 'border-green bg-green text-white' : 'border-line bg-surface hover:border-line-strong'
+        active ? 'border-brand bg-brand text-white' : 'border-line bg-surface hover:border-line-strong'
       }`}
     >
       {label}

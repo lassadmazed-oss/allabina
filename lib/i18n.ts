@@ -20,6 +20,7 @@ const ar = {
     nav: {
         brand: 'اللَّبنة',
         brandSub: 'للبناء والإعمار',
+        slogan: 'معاً… نبني حلول السكن',
         simulator: 'محاكي التمويل',
         track: 'تتبّع مطلبي',
         cta: 'سجّل مطلبك'
@@ -30,7 +31,7 @@ const ar = {
         simulator: 'محاكي التمويل',
         track: 'تتبّع مطلب',
         privacy: 'حماية المعطيات',
-        legal: 'ALLABINA Construction & Développement — نسخة تجريبية'
+        legal: 'اللَّبنة للبناء والإعمار · AL-LUBNA — نسخة تجريبية'
     },
     home: {
         badge: 'منصة وطنية لطلبات السكن — المرحلة التجريبية: ولاية صفاقس',
@@ -550,8 +551,9 @@ const fr: Dictionary = {
     langName: 'Français',
     otherLangName: 'العربية',
     nav: {
-        brand: 'ALLABINA',
+        brand: 'AL-LUBNA',
         brandSub: 'Construction & Développement',
+        slogan: 'Ensemble, nous bâtissons des solutions de logement',
         simulator: 'Simulateur',
         track: 'Suivre ma demande',
         cta: 'Déposer ma demande'
@@ -562,11 +564,11 @@ const fr: Dictionary = {
         simulator: 'Simulateur de financement',
         track: 'Suivre une demande',
         privacy: 'Protection des données',
-        legal: 'ALLABINA Construction & Développement — version pilote'
+        legal: 'AL-LUBNA Construction & Développement — version pilote'
     },
     home: {
         badge: 'Plateforme nationale de la demande de logement — pilote : gouvernorat de Sfax',
-        title: 'ALLABINA — on bâtit à votre mesure',
+        title: 'AL-LUBNA — on bâtit à votre mesure',
         lede: "Déposez votre demande une seule fois : nous cherchons la solution qui correspond à votre budget et à la zone que vous visez — construire sur votre terrain, un terrain avec maison, ou un appartement — avec une lecture claire de votre capacité de financement.",
         cta1: 'Déposer ma demande — gratuit',
         cta2: 'Calculer mon budget',
@@ -580,7 +582,7 @@ const fr: Dictionary = {
             apartment: 'Nous rapprochons votre demande des projets légaux, livrés ou en cours.',
             rent_to_own: "Peu d'apport ? Nous enregistrons votre demande et étudions votre capacité en location-vente."
         } as Record<string, string>,
-        howTitle: 'Comment fonctionne ALLABINA',
+        howTitle: 'Comment fonctionne AL-LUBNA',
         steps: [
             {
                 t: 'Déposez votre demande',
@@ -702,7 +704,7 @@ const fr: Dictionary = {
         phone: 'Téléphone',
         phoneHint: 'Ex. : 20123456 ou +33…',
         email: 'E-mail',
-        consent: "J'accepte qu'ALLABINA collecte mes données et les utilise pour étudier ma demande, et puisse les transmettre à une entreprise de construction, un promoteur ou une banque dans ce cadre. Je peux demander leur accès ou leur suppression à tout moment.",
+        consent: "J'accepte qu'AL-LUBNA collecte mes données et les utilise pour étudier ma demande, et puisse les transmettre à une entreprise de construction, un promoteur ou une banque dans ce cadre. Je peux demander leur accès ou leur suppression à tout moment.",
         errors: {
             banner: "Des champs sont manquants ou invalides. Nous vous avons ramené à l'étape concernée.",
             rateLimited: 'Trop de tentatives. Réessayez dans quelques instants.',
@@ -733,9 +735,9 @@ const fr: Dictionary = {
     },
     proprietaire: {
         navCta: 'Un bien à vendre ?',
-        pageTitle: 'Un bien à vendre ? Enregistrez-le avec ALLABINA',
-        title: 'Un bien à vendre ? Enregistrez-le avec ALLABINA',
-        lede: "Enregistrez votre bien chez nous. Il n'est pas publié : il parvient à l'équipe ALLABINA, nous l'examinons, et si la demande d'un client correspond à votre bien, nous vous contactons.",
+        pageTitle: 'Un bien à vendre ? Enregistrez-le avec AL-LUBNA',
+        title: 'Un bien à vendre ? Enregistrez-le avec AL-LUBNA',
+        lede: "Enregistrez votre bien chez nous. Il n'est pas publié : il parvient à l'équipe AL-LUBNA, nous l'examinons, et si la demande d'un client correspond à votre bien, nous vous contactons.",
         howTitle: 'Comment ça marche',
         how: [
             'Vous renseignez les informations du bien — moins de deux minutes.',
@@ -782,7 +784,7 @@ const fr: Dictionary = {
         ownerEmail: 'E-mail',
         ownerNote: 'Vos remarques',
         mediaNote: "Photos, vidéos et documents : l'équipe vous les demandera lors de l'appel. Le dépôt de fichiers en ligne arrivera dans une prochaine étape.",
-        consent: "J'accepte qu'ALLABINA enregistre les informations de mon bien, me contacte, et puisse présenter ce bien à des clients dont la demande y correspond.",
+        consent: "J'accepte qu'AL-LUBNA enregistre les informations de mon bien, me contacte, et puisse présenter ce bien à des clients dont la demande y correspond.",
         submit: 'Enregistrer mon bien',
         submitting: 'Enregistrement…',
         thanksTitle: 'Nous avons bien reçu votre offre 🎉',
@@ -806,9 +808,9 @@ const fr: Dictionary = {
     },
     cases: {
         navLink: 'Réalisations',
-        pageTitle: 'Cas traités — ALLABINA',
+        pageTitle: 'Cas traités — AL-LUBNA',
         title: 'Cas traités',
-        lede: "Des dossiers qu'ALLABINA a contribué à résoudre. Chaque cas est publié avec l'accord de son titulaire, sans noms.",
+        lede: "Des dossiers qu'AL-LUBNA a contribué à résoudre. Chaque cas est publié avec l'accord de son titulaire, sans noms.",
         empty: "Aucun cas publié pour le moment. Les premières réalisations apparaîtront ici.",
         mapTitle: 'Sfax par délégation',
         mapLede: "Des nombres uniquement : cas réalisés, dossiers en cours et biens disponibles. Aucune donnée personnelle.",
@@ -840,9 +842,9 @@ const fr: Dictionary = {
     },
     soutien: {
         navLink: 'Cas à soutenir',
-        pageTitle: 'Cas à soutenir — ALLABINA',
+        pageTitle: 'Cas à soutenir — AL-LUBNA',
         title: 'Cas à soutenir',
-        lede: "Des dossiers étudiés par l'équipe ALLABINA pour lesquels le parcours commercial seul n'a pas suffi. Nous présentons le besoin, pas la personne.",
+        lede: "Des dossiers étudiés par l'équipe AL-LUBNA pour lesquels le parcours commercial seul n'a pas suffi. Nous présentons le besoin, pas la personne.",
         principles: [
             "Chaque cas est publié avec l'accord de son titulaire, et anonymisé.",
             "La plateforme ne collecte pas d'argent et n'affiche aucun compte bancaire. Le soutien est en nature : matériaux, main-d'œuvre, études, transport.",
@@ -887,20 +889,20 @@ const fr: Dictionary = {
         pledgeLabel: 'Que pouvez-vous apporter exactement ?',
         pledgeLabelHint: "Ex. : 50 sacs de ciment · deux jours de maçonnerie · un plan d'architecte",
         pledgeNote: 'Remarques',
-        pledgeConsent: "J'accepte qu'ALLABINA enregistre mes coordonnées et me contacte au sujet de cette contribution.",
+        pledgeConsent: "J'accepte qu'AL-LUBNA enregistre mes coordonnées et me contacte au sujet de cette contribution.",
         pledgeSubmit: 'Enregistrer ma contribution',
         pledgeSubmitting: 'Enregistrement…',
         pledgeThanks: "Nous avons bien reçu votre proposition. L'équipe vous contactera.",
         pledgeError: 'Renseignez nom, téléphone, type et description de la contribution, et donnez votre accord.',
         pledgeRateLimited: 'Trop de tentatives. Réessayez dans quelques instants.',
         pledgeServerError: 'Une erreur technique est survenue. Merci de réessayer.',
-        noMoneyNote: "ALLABINA ne collecte pas d'argent via le site. Toute contribution financière relève d'un cadre juridique distinct, qui n'est pas encore activé."
+        noMoneyNote: "AL-LUBNA ne collecte pas d'argent via le site. Toute contribution financière relève d'un cadre juridique distinct, qui n'est pas encore activé."
     },
     sim: {
         title: 'Simulateur de financement',
         lede: 'Saisissez vos revenus et votre apport : vous voyez immédiatement le budget atteignable et la mensualité correspondante.',
         scenarioWarn: 'Ceci est un scénario, pas une offre de financement.',
-        scenarioBody: "ALLABINA ne fixe ni taux, ni plafond d'endettement, ni frais : modifiez les hypothèses ci-dessous et observez le résultat. Les conditions réelles sont fixées par la banque.",
+        scenarioBody: "AL-LUBNA ne fixe ni taux, ni plafond d'endettement, ni frais : modifiez les hypothèses ci-dessous et observez le résultat. Les conditions réelles sont fixées par la banque.",
         yourData: 'Vos données',
         income: 'Revenu mensuel net',
         spouse: 'Revenu du conjoint',
@@ -953,9 +955,9 @@ const fr: Dictionary = {
         trySim: 'Essayer le simulateur'
     },
     suivi: {
-        pageTitle: 'Suivi des demandes — ALLABINA',
+        pageTitle: 'Suivi des demandes — AL-LUBNA',
         title: 'Suivi des demandes',
-        intro: "Chez ALLABINA, chaque demande est étudiée et suivie. Pour certains clients, nous avons pu trouver une solution ; d'autres dossiers sont encore en cours de traitement. Notre équipe poursuit le travail sur chaque cas selon sa spécificité.",
+        intro: "Chez AL-LUBNA, chaque demande est étudiée et suivie. Pour certains clients, nous avons pu trouver une solution ; d'autres dossiers sont encore en cours de traitement. Notre équipe poursuit le travail sur chaque cas selon sa spécificité.",
         disclaimer: 'Nous étudions chaque dossier et recherchons les solutions possibles en coordination avec les parties concernées.',
         statesTitle: 'États des dossiers',
         states: {
@@ -999,7 +1001,7 @@ const fr: Dictionary = {
     },
     privacy: {
         title: 'Protection des données personnelles',
-        lede: 'ALLABINA collecte des données personnelles et financières pour étudier votre demande. Cette page explique ce que nous collectons, pourquoi, et à qui ces données peuvent être transmises.',
+        lede: 'AL-LUBNA collecte des données personnelles et financières pour étudier votre demande. Cette page explique ce que nous collectons, pourquoi, et à qui ces données peuvent être transmises.',
         s1: 'Ce que nous collectons',
         s1items: [
             'Vos nom, téléphone et e-mail si vous le renseignez.',
@@ -1011,7 +1013,7 @@ const fr: Dictionary = {
         s2: 'Pourquoi',
         s2body: "Pour estimer votre capacité de financement, classer votre demande selon son degré de maturité, et vous proposer une offre adaptée. Le résultat est une estimation et ne constitue ni une offre de financement ni un engagement d'un établissement bancaire.",
         s3: 'Destinataires',
-        s3body: "Dans le seul cadre de votre demande : l'équipe ALLABINA, et une entreprise de construction, un promoteur ou un établissement de financement concerné. Vos données ne sont ni vendues ni utilisées à des fins publicitaires par des tiers.",
+        s3body: "Dans le seul cadre de votre demande : l'équipe AL-LUBNA, et une entreprise de construction, un promoteur ou un établissement de financement concerné. Vos données ne sont ni vendues ni utilisées à des fins publicitaires par des tiers.",
         s4: 'Durée de conservation',
         s4body: '24 mois à compter de la dernière mise à jour de votre demande. Au-delà, les données sont anonymisées et ne subsistent que sous forme de statistiques.',
         s5: 'Vos droits',

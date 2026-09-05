@@ -302,13 +302,13 @@ export default async function RequestDetail({ params }: { params: Promise<{ id: 
 
   return (
     <div className="mx-auto max-w-5xl px-5 py-10">
-      <Link href="/admin" className="text-sm text-muted hover:text-green">
+      <Link href="/admin" className="text-sm text-muted hover:text-brand">
         ← رجوع للقائمة
       </Link>
 
       <div className="mt-4 flex flex-wrap items-baseline justify-between gap-4">
         <div>
-          <div className="num text-2xl font-semibold text-green" dir="ltr">
+          <div className="num text-2xl font-semibold text-brand" dir="ltr">
             {r.ref_code}
           </div>
           <h1 className="display mt-1 text-xl font-semibold">{r.full_name}</h1>
@@ -319,7 +319,7 @@ export default async function RequestDetail({ params }: { params: Promise<{ id: 
         {score && (
           <div className="rounded border border-line bg-surface px-5 py-3 text-center">
             <div className="text-xs text-muted">التنقيط</div>
-            <div className="num text-2xl font-semibold text-green">
+            <div className="num text-2xl font-semibold text-brand">
               {score.band} · {score.total}
             </div>
           </div>
@@ -378,7 +378,7 @@ export default async function RequestDetail({ params }: { params: Promise<{ id: 
                   </div>
                   <div className="mt-1 h-1.5 rounded-full bg-surface-2">
                     <div
-                      className="h-1.5 rounded-full bg-green"
+                      className="h-1.5 rounded-full bg-brand"
                       style={{ width: `${(c.points / c.weight) * 100}%` }}
                     />
                   </div>
@@ -422,7 +422,7 @@ export default async function RequestDetail({ params }: { params: Promise<{ id: 
                 placeholder="مثال: تمّ الاتصال، موعد يوم الخميس"
               />
             </label>
-            <button className="rounded bg-green px-5 py-2 text-sm font-medium text-white hover:bg-green-deep">
+            <button className="rounded bg-brand px-5 py-2 text-sm font-medium text-white hover:bg-brand-deep">
               حفظ
             </button>
           </form>
@@ -511,26 +511,26 @@ export default async function RequestDetail({ params }: { params: Promise<{ id: 
           </label>
           <div className="flex items-end gap-3 text-xs">
             <label className="flex items-center gap-1.5">
-              <input type="checkbox" name="garage" defaultChecked={config?.garage} className="size-4 accent-[#0e5138]" />
+              <input type="checkbox" name="garage" defaultChecked={config?.garage} className="size-4 accent-[#1d3a5f]" />
               جراج
             </label>
             <label className="flex items-center gap-1.5">
-              <input type="checkbox" name="terrasse" defaultChecked={config?.terrasse} className="size-4 accent-[#0e5138]" />
+              <input type="checkbox" name="terrasse" defaultChecked={config?.terrasse} className="size-4 accent-[#1d3a5f]" />
               تراس
             </label>
             <label className="flex items-center gap-1.5">
-              <input type="checkbox" name="jardin" defaultChecked={config?.jardin} className="size-4 accent-[#0e5138]" />
+              <input type="checkbox" name="jardin" defaultChecked={config?.jardin} className="size-4 accent-[#1d3a5f]" />
               حديقة
             </label>
           </div>
-          <button className="justify-self-start rounded bg-green px-5 py-2 text-sm font-medium text-white hover:bg-green-deep">
+          <button className="justify-self-start rounded bg-brand px-5 py-2 text-sm font-medium text-white hover:bg-brand-deep">
             حفظ المواصفات
           </button>
         </form>
 
         <form action={generateDevisAction} className="mt-4 border-t border-line pt-4">
           <input type="hidden" name="id" value={r.id} />
-          <button className="rounded border border-green px-5 py-2 text-sm font-medium text-green hover:bg-green-soft">
+          <button className="rounded border border-brand px-5 py-2 text-sm font-medium text-brand hover:bg-brand-soft">
             ولّد عرضاً تقديرياً
           </button>
           <span className="mr-3 text-xs text-faint">
@@ -542,7 +542,7 @@ export default async function RequestDetail({ params }: { params: Promise<{ id: 
           <div className="mt-6 rounded border border-line bg-ground p-5">
             <div className="flex flex-wrap items-baseline justify-between gap-3">
               <div>
-                <span className="num text-sm text-green" dir="ltr">
+                <span className="num text-sm text-brand" dir="ltr">
                   {(latestDevis as { ref_code: string }).ref_code}
                 </span>
                 <span className="num mr-2 text-xs text-faint">
@@ -552,8 +552,8 @@ export default async function RequestDetail({ params }: { params: Promise<{ id: 
                   <span
                     className={`num mr-2 rounded px-2 py-0.5 text-xs font-medium ${
                       devisExpired
-                        ? 'bg-bronze-soft text-bronze'
-                        : 'bg-green-soft text-green'
+                        ? 'bg-gold-soft text-gold'
+                        : 'bg-brand-soft text-brand'
                     }`}
                   >
                     {devisExpired
@@ -562,7 +562,7 @@ export default async function RequestDetail({ params }: { params: Promise<{ id: 
                   </span>
                 )}
               </div>
-              <div className="num text-xl font-semibold text-green">{formatTND(devisTotal)}</div>
+              <div className="num text-xl font-semibold text-brand">{formatTND(devisTotal)}</div>
             </div>
 
             {devisSurface > 0 && devisTotal > 0 && (
@@ -587,7 +587,7 @@ export default async function RequestDetail({ params }: { params: Promise<{ id: 
             )}
 
             <details className="mt-4">
-              <summary className="cursor-pointer text-xs text-muted hover:text-green">
+              <summary className="cursor-pointer text-xs text-muted hover:text-brand">
                 تفصيل المقالات ({lineRows.length})
               </summary>
               <div className="mt-3 overflow-x-auto">
@@ -620,7 +620,7 @@ export default async function RequestDetail({ params }: { params: Promise<{ id: 
                 <> صالح {devisDaysLeft === 0 ? 'اليوم فقط' : `${devisDaysLeft} يوماً أخرى`}.</>
               )}
               {devisExpired && (
-                <> <b className="text-bronze">انتهت صلاحيته — ولّد نسخة جديدة بالأسعار الحالية.</b></>
+                <> <b className="text-gold">انتهت صلاحيته — ولّد نسخة جديدة بالأسعار الحالية.</b></>
               )}
             </p>
           </div>
@@ -666,7 +666,7 @@ export default async function RequestDetail({ params }: { params: Promise<{ id: 
               className="w-full rounded border border-line bg-surface px-3 py-2 text-sm"
             />
           </label>
-          <button className="rounded bg-green px-5 py-2 text-sm font-medium text-white hover:bg-green-deep">
+          <button className="rounded bg-brand px-5 py-2 text-sm font-medium text-white hover:bg-brand-deep">
             حفظ
           </button>
         </form>
@@ -677,7 +677,7 @@ export default async function RequestDetail({ params }: { params: Promise<{ id: 
         <div className="flex flex-wrap items-baseline justify-between gap-2">
           <h2 className="text-sm font-semibold">المسار الاجتماعي</h2>
           {social?.is_priority && (
-            <span className="rounded bg-bronze-soft px-2.5 py-1 text-xs font-medium text-bronze">
+            <span className="rounded bg-gold-soft px-2.5 py-1 text-xs font-medium text-gold">
               أولوية دراسة
             </span>
           )}
@@ -741,7 +741,7 @@ export default async function RequestDetail({ params }: { params: Promise<{ id: 
               type="checkbox"
               name="has_disability"
               defaultChecked={social?.has_disability ?? false}
-              className="size-4 accent-[#0e5138]"
+              className="size-4 accent-[#1d3a5f]"
             />
             إعاقة في العائلة
           </label>
@@ -750,7 +750,7 @@ export default async function RequestDetail({ params }: { params: Promise<{ id: 
               type="checkbox"
               name="is_priority"
               defaultChecked={social?.is_priority ?? false}
-              className="size-4 accent-[#0e5138]"
+              className="size-4 accent-[#1d3a5f]"
             />
             أولوية دراسة
           </label>
@@ -762,7 +762,7 @@ export default async function RequestDetail({ params }: { params: Promise<{ id: 
               className="w-full rounded border border-line bg-surface px-3 py-2 text-sm"
             />
           </label>
-          <button className="justify-self-start rounded bg-green px-5 py-2 text-sm font-medium text-white hover:bg-green-deep">
+          <button className="justify-self-start rounded bg-brand px-5 py-2 text-sm font-medium text-white hover:bg-brand-deep">
             حفظ
           </button>
         </form>
@@ -774,7 +774,7 @@ export default async function RequestDetail({ params }: { params: Promise<{ id: 
           <h2 className="text-sm font-semibold">المساندة ودفتر الشفافية</h2>
           <Link
             href={`/admin/support?request=${id}`}
-            className="text-xs text-green hover:underline"
+            className="text-xs text-brand hover:underline"
           >
             {supportCase ? 'افتح الدفتر ←' : 'افتح حالة مساندة ←'}
           </Link>
@@ -785,14 +785,14 @@ export default async function RequestDetail({ params }: { params: Promise<{ id: 
             <div className="mt-2 flex flex-wrap items-center gap-2 text-xs">
               <span
                 className={`rounded px-2 py-0.5 ${
-                  supportCase.consent_given ? 'bg-green-soft text-green' : 'bg-bronze-soft text-bronze'
+                  supportCase.consent_given ? 'bg-brand-soft text-brand' : 'bg-gold-soft text-gold'
                 }`}
               >
                 {supportCase.consent_given ? 'موافقة صاحب الحالة موجودة' : 'بلا موافقة'}
               </span>
               <span
                 className={`rounded px-2 py-0.5 ${
-                  supportCase.published ? 'bg-green-soft text-green' : 'text-faint'
+                  supportCase.published ? 'bg-brand-soft text-brand' : 'text-faint'
                 }`}
               >
                 {supportCase.published ? 'منشورة للعموم' : 'غير منشورة'}
@@ -876,7 +876,7 @@ export default async function RequestDetail({ params }: { params: Promise<{ id: 
               ))}
             </select>
           </label>
-          <button className="rounded border border-line px-4 py-2 text-sm hover:border-green hover:text-green">
+          <button className="rounded border border-line px-4 py-2 text-sm hover:border-brand hover:text-brand">
             زيد
           </button>
         </form>
@@ -891,7 +891,7 @@ export default async function RequestDetail({ params }: { params: Promise<{ id: 
               className="flex flex-wrap items-center justify-between gap-3 rounded border border-line px-3 py-2 text-sm"
             >
               <span>
-                <span className="text-xs text-bronze">{CONTRIBUTION_KINDS[c.kind] ?? c.kind}</span>{' '}
+                <span className="text-xs text-gold">{CONTRIBUTION_KINDS[c.kind] ?? c.kind}</span>{' '}
                 {c.label}
                 {c.value_tnd ? (
                   <span className="num mr-2 text-xs text-muted">
@@ -913,7 +913,7 @@ export default async function RequestDetail({ params }: { params: Promise<{ id: 
                     </option>
                   ))}
                 </select>
-                <button className="rounded border border-line px-2 py-1 text-xs hover:border-green hover:text-green">
+                <button className="rounded border border-line px-2 py-1 text-xs hover:border-brand hover:text-brand">
                   حفظ
                 </button>
               </form>
@@ -962,7 +962,7 @@ export default async function RequestDetail({ params }: { params: Promise<{ id: 
               className="num rounded border border-line bg-surface px-3 py-2 text-sm"
             />
           </label>
-          <button className="rounded border border-line px-4 py-2 text-sm hover:border-green hover:text-green">
+          <button className="rounded border border-line px-4 py-2 text-sm hover:border-brand hover:text-brand">
             زيد
           </button>
         </form>
@@ -992,7 +992,7 @@ export default async function RequestDetail({ params }: { params: Promise<{ id: 
                     </option>
                   ))}
                 </select>
-                <button className="rounded border border-line px-2 py-1 text-xs hover:border-green hover:text-green">
+                <button className="rounded border border-line px-2 py-1 text-xs hover:border-brand hover:text-brand">
                   حفظ
                 </button>
               </form>
@@ -1029,7 +1029,7 @@ export default async function RequestDetail({ params }: { params: Promise<{ id: 
               <li key={m.propertyId} className="rounded border border-line p-4">
                 <div className="flex flex-wrap items-baseline justify-between gap-3">
                   <div>
-                    <span className="num text-sm text-green" dir="ltr">
+                    <span className="num text-sm text-brand" dir="ltr">
                       {meta?.ref}
                     </span>
                     <div className="mt-0.5 text-sm text-muted">
@@ -1039,7 +1039,7 @@ export default async function RequestDetail({ params }: { params: Promise<{ id: 
                       {meta?.address ? ` · ${meta.address}` : ''}
                     </div>
                   </div>
-                  <span className="num rounded bg-green-soft px-3 py-1 text-sm font-semibold text-green">
+                  <span className="num rounded bg-brand-soft px-3 py-1 text-sm font-semibold text-brand">
                     {m.score}%
                   </span>
                 </div>
@@ -1064,7 +1064,7 @@ export default async function RequestDetail({ params }: { params: Promise<{ id: 
                     <input type="hidden" name="property_id" value={m.propertyId} />
                     <input type="hidden" name="score" value={m.score} />
                     <input type="hidden" name="reasons" value={JSON.stringify(m.reasons)} />
-                    <button className="rounded border border-line px-4 py-1.5 text-xs hover:border-green hover:text-green">
+                    <button className="rounded border border-line px-4 py-1.5 text-xs hover:border-brand hover:text-brand">
                       احفظ للمتابعة
                     </button>
                   </form>
@@ -1086,7 +1086,7 @@ export default async function RequestDetail({ params }: { params: Promise<{ id: 
                 note: string | null
               }[]).map((m) => (
                 <li key={m.id} className="flex flex-wrap items-center gap-3 text-sm">
-                  <span className="num text-green" dir="ltr">
+                  <span className="num text-brand" dir="ltr">
                     {propertyRefById.get(m.property_id)?.ref ?? m.property_id.slice(0, 8)}
                   </span>
                   <span className="num text-xs text-muted">{m.score}%</span>
@@ -1104,7 +1104,7 @@ export default async function RequestDetail({ params }: { params: Promise<{ id: 
                       <option value="accepted">قبله الحريف</option>
                       <option value="rejected">رفضه الحريف</option>
                     </select>
-                    <button className="rounded border border-line px-2 py-1 text-xs hover:border-green hover:text-green">
+                    <button className="rounded border border-line px-2 py-1 text-xs hover:border-brand hover:text-brand">
                       حفظ
                     </button>
                   </form>
@@ -1119,7 +1119,7 @@ export default async function RequestDetail({ params }: { params: Promise<{ id: 
       <div className="mt-6 rounded border border-line bg-surface p-6">
         <div className="flex flex-wrap items-baseline justify-between gap-3">
           <h2 className="text-sm font-semibold">ما يراه الحريف في صفحة المتابعة</h2>
-          <span className="rounded bg-green-soft px-2.5 py-1 text-xs font-medium text-green">
+          <span className="rounded bg-brand-soft px-2.5 py-1 text-xs font-medium text-brand">
             {PUBLIC_STATE_AR[publicStateOf(r.status)]}
           </span>
         </div>
@@ -1147,7 +1147,7 @@ export default async function RequestDetail({ params }: { params: Promise<{ id: 
             />
           </label>
           <div className="flex items-center gap-3">
-            <button className="rounded bg-green px-5 py-2 text-sm font-medium text-white hover:bg-green-deep">
+            <button className="rounded bg-brand px-5 py-2 text-sm font-medium text-white hover:bg-brand-deep">
               حفظ
             </button>
             {r.public_updated_at && (
@@ -1208,7 +1208,7 @@ export default async function RequestDetail({ params }: { params: Promise<{ id: 
               ))}
             </select>
           </label>
-          <button className="rounded bg-green px-5 py-2 text-sm font-medium text-white hover:bg-green-deep">
+          <button className="rounded bg-brand px-5 py-2 text-sm font-medium text-white hover:bg-brand-deep">
             حفظ
           </button>
         </form>
@@ -1253,7 +1253,7 @@ export default async function RequestDetail({ params }: { params: Promise<{ id: 
                 ))}
               </select>
             </label>
-            <button className="rounded bg-green px-5 py-2 text-sm font-medium text-white hover:bg-green-deep">
+            <button className="rounded bg-brand px-5 py-2 text-sm font-medium text-white hover:bg-brand-deep">
               حفظ
             </button>
           </form>
@@ -1290,7 +1290,7 @@ export default async function RequestDetail({ params }: { params: Promise<{ id: 
                 className="w-full rounded border border-line bg-surface px-3 py-2 text-sm"
               />
             </label>
-            <button className="rounded border border-line px-4 py-2 text-sm hover:border-green hover:text-green">
+            <button className="rounded border border-line px-4 py-2 text-sm hover:border-brand hover:text-brand">
               سجّل
             </button>
           </form>
@@ -1304,11 +1304,11 @@ export default async function RequestDetail({ params }: { params: Promise<{ id: 
             <li
               key={it.id}
               className={`rounded border p-4 ${
-                it.resolved ? 'border-line bg-surface-2' : 'border-bronze-light bg-bronze-soft'
+                it.resolved ? 'border-line bg-surface-2' : 'border-gold-light bg-gold-soft'
               }`}
             >
               <div className="flex flex-wrap items-baseline justify-between gap-2">
-                <span className="text-xs font-medium text-bronze">
+                <span className="text-xs font-medium text-gold">
                   {KIND_AR[it.kind] ?? it.kind}
                 </span>
                 <span className="num text-xs text-faint">
@@ -1330,7 +1330,7 @@ export default async function RequestDetail({ params }: { params: Promise<{ id: 
                     placeholder="الجواب أو الحلّ"
                     className="min-w-[200px] flex-1 rounded border border-line bg-surface px-3 py-1.5 text-sm"
                   />
-                  <button className="rounded bg-green px-4 py-1.5 text-xs font-medium text-white hover:bg-green-deep">
+                  <button className="rounded bg-brand px-4 py-1.5 text-xs font-medium text-white hover:bg-brand-deep">
                     سدّ
                   </button>
                 </form>
@@ -1360,9 +1360,9 @@ export default async function RequestDetail({ params }: { params: Promise<{ id: 
                     type="checkbox"
                     name="available"
                     defaultChecked={rec?.available ?? false}
-                    className="size-4 accent-[#0e5138]"
+                    className="size-4 accent-[#1d3a5f]"
                   />
-                  <button className="rounded border border-line px-2 py-1 text-xs hover:border-green hover:text-green">
+                  <button className="rounded border border-line px-2 py-1 text-xs hover:border-brand hover:text-brand">
                     حفظ
                   </button>
                 </span>

@@ -114,7 +114,7 @@ export default async function TeamPage() {
                         <select
                           name="role"
                           defaultValue={role}
-                          className="rounded border border-line px-2 py-1 text-xs outline-none focus:border-green"
+                          className="rounded border border-line px-2 py-1 text-xs outline-none focus:border-brand"
                         >
                           {[...new Set([...roles, role])].map((r) => (
                             <option key={r} value={r}>
@@ -127,7 +127,7 @@ export default async function TeamPage() {
                         </button>
                       </form>
                     ) : (
-                      <span className="rounded-full bg-green-soft px-2.5 py-0.5 text-xs text-green">
+                      <span className="rounded-full bg-brand-soft px-2.5 py-0.5 text-xs text-brand">
                         {ROLE_LABELS[role]}
                       </span>
                     )}
@@ -137,12 +137,12 @@ export default async function TeamPage() {
 
                   <td className="px-4 py-3">
                     {m.active ? (
-                      <span className="text-green">نشط</span>
+                      <span className="text-brand">نشط</span>
                     ) : (
                       <span className="text-faint">معطّل</span>
                     )}
                     {m.must_change_password && (
-                      <div className="text-xs text-bronze">كلمة سرّ مؤقّتة</div>
+                      <div className="text-xs text-gold">كلمة سرّ مؤقّتة</div>
                     )}
                   </td>
 

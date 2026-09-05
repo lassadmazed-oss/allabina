@@ -18,7 +18,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
   return (
     <>
       {/* الواجهة — Hero */}
-      <section className="relative overflow-hidden bg-green-deep text-white">
+      <section className="relative overflow-hidden bg-brand-deep text-white">
         <div className="brick-pattern absolute inset-0" aria-hidden="true" />
         <div className="relative mx-auto max-w-6xl px-5 py-20 sm:py-28">
           <div className="mb-6 flex items-center gap-3 text-sm text-[#BFD3C6]">
@@ -32,7 +32,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
           <div className="mt-10 flex flex-wrap gap-3">
             <Link
               href={p('/demande')}
-              className="rounded bg-bronze-light px-7 py-3.5 font-medium text-green-deep transition hover:bg-[#c08c46]"
+              className="rounded bg-gold-light px-7 py-3.5 font-medium text-brand-deep transition hover:bg-[#c08c46]"
             >
               {t.home.cta1}
             </Link>
@@ -56,14 +56,14 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
             <Link
               key={key}
               href={p(`/demande?type=${key}`)}
-              className="group flex flex-col rounded border border-line bg-surface p-6 transition hover:border-green hover:shadow-sm"
+              className="group flex flex-col rounded border border-line bg-surface p-6 transition hover:border-brand hover:shadow-sm"
             >
               <span className="brick mb-4" aria-hidden="true" />
-              <h3 className="text-lg font-semibold group-hover:text-green">
+              <h3 className="text-lg font-semibold group-hover:text-brand">
                 {t.labels.requestType[key]}
               </h3>
               <p className="mt-2 flex-1 text-sm leading-7 text-muted">{t.home.paths[key]}</p>
-              <span className="mt-4 text-sm font-medium text-green">{t.home.pathStart}</span>
+              <span className="mt-4 text-sm font-medium text-brand">{t.home.pathStart}</span>
             </Link>
           ))}
         </div>
@@ -76,7 +76,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
           <div className="mt-8 grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
             {t.home.steps.map((s, i) => (
               <div key={i}>
-                <div className="num mb-3 text-sm font-medium text-bronze">
+                <div className="num mb-3 text-sm font-medium text-gold">
                   {String(i + 1).padStart(2, '0')}
                 </div>
                 <h3 className="text-lg font-semibold">{s.t}</h3>
@@ -98,7 +98,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
             <div key={tier.tier} className="rounded border border-line bg-surface p-6">
               <span className="brick mb-4 block" aria-hidden="true" />
               <h3 className="text-lg font-semibold">{t.labels.standing[tier.tier]}</h3>
-              <div className="num mt-2 text-xl font-semibold text-green">
+              <div className="num mt-2 text-xl font-semibold text-brand">
                 <bdi dir="ltr">{formatRange(tier.min, tier.max)}</bdi>
                 <span className="text-sm font-normal text-muted"> {perM2}</span>
               </div>
@@ -132,14 +132,14 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
 
       {/* دعوة أخيرة — Appel final */}
       <section className="mx-auto max-w-6xl px-5 pb-20">
-        <div className="flex flex-wrap items-center justify-between gap-6 rounded border border-line bg-bronze-soft p-8">
+        <div className="flex flex-wrap items-center justify-between gap-6 rounded border border-line bg-gold-soft p-8">
           <div>
             <h2 className="text-xl font-semibold sm:text-2xl">{t.home.ctaTitle}</h2>
             <p className="mt-2 max-w-xl text-sm leading-7 text-ink-soft">{t.home.ctaBody}</p>
           </div>
           <Link
             href={p('/demande')}
-            className="rounded bg-green px-7 py-3.5 font-medium text-white transition hover:bg-green-deep"
+            className="rounded bg-brand px-7 py-3.5 font-medium text-white transition hover:bg-brand-deep"
           >
             {t.nav.cta}
           </Link>

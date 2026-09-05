@@ -30,12 +30,12 @@ export default function FormulaTester() {
         />
         <button
           disabled={pending}
-          className="rounded border border-line px-4 py-2 text-sm hover:border-green hover:text-green disabled:opacity-60"
+          className="rounded border border-line px-4 py-2 text-sm hover:border-brand hover:text-brand disabled:opacity-60"
         >
           {pending ? '…' : 'جرّب'}
         </button>
       </form>
-      {state.result && <p className="mt-2 text-sm text-green">{state.result}</p>}
+      {state.result && <p className="mt-2 text-sm text-brand">{state.result}</p>}
       {state.error && <p className="mt-2 text-sm text-[#8c2f22]">{state.error}</p>}
     </div>
   )

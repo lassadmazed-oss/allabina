@@ -70,7 +70,7 @@ export default function Simulator({
   return (
     <div className="grid gap-8 lg:grid-cols-[1fr_360px]">
       <div className="flex flex-col gap-6">
-        <div className="rounded border border-line bg-bronze-soft p-5 text-sm leading-7">
+        <div className="rounded border border-line bg-gold-soft p-5 text-sm leading-7">
           <strong>{t.scenarioWarn}</strong> {t.scenarioBody}
         </div>
 
@@ -123,7 +123,7 @@ export default function Simulator({
             <div className="mt-5 grid gap-3 sm:grid-cols-2">
               {products.map((p) => (
                 <div key={p.id} className="rounded border border-line p-4">
-                  <div className="text-xs text-bronze">{p.bank}</div>
+                  <div className="text-xs text-gold">{p.bank}</div>
                   <div className="mt-0.5 font-semibold">{p.name}</div>
                   <div className="mt-1 text-xs text-muted">
                     {p.target === 'individual' ? t.forIndividuals : t.forProfessionals}
@@ -131,12 +131,12 @@ export default function Simulator({
                   <div className="num mt-3 flex flex-wrap gap-x-4 gap-y-1 text-sm">
                     {p.max_share_pct != null && (
                       <span>
-                        {t.upTo} <b className="text-green">{p.max_share_pct}%</b> {t.ofCost}
+                        {t.upTo} <b className="text-brand">{p.max_share_pct}%</b> {t.ofCost}
                       </span>
                     )}
                     {p.max_years != null && (
                       <span>
-                        {t.upTo} <b className="text-green">{p.max_years}</b> {t.yearsWord}
+                        {t.upTo} <b className="text-brand">{p.max_years}</b> {t.yearsWord}
                       </span>
                     )}
                   </div>
@@ -161,7 +161,7 @@ export default function Simulator({
                   <div className="num mt-1 text-xs text-muted">
                     <bdi dir="ltr">{formatRange(tier.min, tier.max)}</bdi> {perM2}
                   </div>
-                  <div className="num mt-3 text-2xl font-semibold text-green">
+                  <div className="num mt-3 text-2xl font-semibold text-brand">
                     <bdi>{formatNumber(Math.round(area))}</bdi> {m2}
                   </div>
                   <div className="num mt-1 text-xs text-faint">
@@ -186,7 +186,7 @@ export default function Simulator({
       </div>
 
       <aside className="lg:sticky lg:top-6 lg:self-start">
-        <div className="rounded border border-line bg-green-deep p-6 text-white">
+        <div className="rounded border border-line bg-brand-deep p-6 text-white">
           <div className="text-sm text-[#9FBBAB]">{t.resultTitle}</div>
           <div className="num mt-1 text-3xl font-semibold">
             <bdi>{formatTND(capacity.maxBudget, locale)}</bdi>
@@ -201,7 +201,7 @@ export default function Simulator({
 
           <Link
             href={path(locale, '/demande')}
-            className="mt-6 block rounded bg-bronze-light px-5 py-3 text-center font-medium text-green-deep transition hover:bg-[#c08c46]"
+            className="mt-6 block rounded bg-gold-light px-5 py-3 text-center font-medium text-brand-deep transition hover:bg-[#c08c46]"
           >
             {t.resultCta}
           </Link>
@@ -241,7 +241,7 @@ function Num({
         min={0}
         value={value}
         onChange={(e) => onChange(Math.max(0, Number(e.target.value)))}
-        className="num w-full rounded border border-line bg-surface px-3.5 py-2.5 outline-none transition focus:border-green"
+        className="num w-full rounded border border-line bg-surface px-3.5 py-2.5 outline-none transition focus:border-brand"
       />
     </label>
   )
@@ -268,7 +268,7 @@ function Slider({
     <label className="block">
       <span className="mb-2 flex items-center justify-between text-sm font-medium">
         {label}
-        <span className="num text-green">{display}</span>
+        <span className="num text-brand">{display}</span>
       </span>
       <input
         type="range"
@@ -277,7 +277,7 @@ function Slider({
         step={step}
         value={value}
         onChange={(e) => onChange(Number(e.target.value))}
-        className="w-full accent-[#0e5138]"
+        className="w-full accent-[#1d3a5f]"
       />
     </label>
   )

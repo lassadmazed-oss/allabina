@@ -60,7 +60,7 @@ export default function PropertyForm({
                 key={k}
                 className={`cursor-pointer rounded border px-5 py-2.5 text-sm transition ${
                   kind === k
-                    ? 'border-green bg-green text-white'
+                    ? 'border-brand bg-brand text-white'
                     : 'border-line bg-surface hover:border-line-strong'
                 }`}
               >
@@ -167,7 +167,7 @@ export default function PropertyForm({
         </div>
 
         <label className="mt-5 flex cursor-pointer items-center gap-3 rounded border border-line p-4">
-          <input type="checkbox" name="negotiable" defaultChecked className="size-4 accent-[#0e5138]" />
+          <input type="checkbox" name="negotiable" defaultChecked className="size-4 accent-[#1d3a5f]" />
           <span className="text-sm">{t.negotiable}</span>
         </label>
 
@@ -216,7 +216,7 @@ export default function PropertyForm({
         </div>
 
         <label className="mt-5 flex cursor-pointer items-start gap-3 rounded border border-line p-4">
-          <input type="checkbox" name="consent" className="mt-1 size-4 accent-[#0e5138]" />
+          <input type="checkbox" name="consent" className="mt-1 size-4 accent-[#1d3a5f]" />
           <span className="text-sm leading-7">{t.consent}</span>
         </label>
         {err('consent') && <p className="mt-2 text-sm text-[#8c2f22]">{err('consent')}</p>}
@@ -235,7 +235,7 @@ export default function PropertyForm({
       <button
         type="submit"
         disabled={pending}
-        className="self-start rounded bg-green px-8 py-3 font-medium text-white transition hover:bg-green-deep disabled:opacity-60"
+        className="self-start rounded bg-brand px-8 py-3 font-medium text-white transition hover:bg-brand-deep disabled:opacity-60"
       >
         {pending ? t.submitting : t.submit}
       </button>
@@ -244,7 +244,7 @@ export default function PropertyForm({
 }
 
 const inputCls =
-  'w-full rounded border border-line bg-surface px-3.5 py-2.5 text-[15px] outline-none transition focus:border-green'
+  'w-full rounded border border-line bg-surface px-3.5 py-2.5 text-[15px] outline-none transition focus:border-brand'
 
 function Field({
   label,

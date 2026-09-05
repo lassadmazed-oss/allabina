@@ -118,7 +118,7 @@ export default async function SupportAdminPage({
 
   return (
     <div className="mx-auto max-w-6xl px-5 py-10">
-      <Link href="/admin" className="text-sm text-muted hover:text-green">
+      <Link href="/admin" className="text-sm text-muted hover:text-brand">
         ← لوحة القيادة
       </Link>
       <h1 className="display mt-2 text-2xl font-semibold">المساندة ودفتر الشفافية</h1>
@@ -134,7 +134,7 @@ export default async function SupportAdminPage({
           <h2 className="text-sm font-semibold">
             تعهّدات واردة من العموم
             {newPledges.length > 0 && (
-              <span className="num ms-2 rounded-full bg-bronze-soft px-2 py-0.5 text-xs text-bronze">
+              <span className="num ms-2 rounded-full bg-gold-soft px-2 py-0.5 text-xs text-gold">
                 {newPledges.length} جديد
               </span>
             )}
@@ -251,9 +251,9 @@ export default async function SupportAdminPage({
           </label>
           <input type="hidden" name="gov_code" value="SFX" />
 
-          <div className="rounded border border-bronze-light bg-bronze-soft p-4 text-sm sm:col-span-2">
+          <div className="rounded border border-gold-light bg-gold-soft p-4 text-sm sm:col-span-2">
             <label className="flex items-start gap-3">
-              <input type="checkbox" name="consent_given" className="mt-1 size-4 accent-[#0e5138]" />
+              <input type="checkbox" name="consent_given" className="mt-1 size-4 accent-[#1d3a5f]" />
               <span className="leading-7">
                 <b>صاحب الحالة وافق على عرضها.</b> بلا هالموافقة ما تتنشرش، حتّى لو اخترت النشر —
                 القيد في القاعدة.
@@ -264,17 +264,17 @@ export default async function SupportAdminPage({
                 type="checkbox"
                 name="anonymised"
                 defaultChecked
-                className="size-4 accent-[#0e5138]"
+                className="size-4 accent-[#1d3a5f]"
               />
               <span>مجهّلة الهوية</span>
             </label>
             <label className="mt-3 flex items-center gap-3">
-              <input type="checkbox" name="published" className="size-4 accent-[#0e5138]" />
+              <input type="checkbox" name="published" className="size-4 accent-[#1d3a5f]" />
               <span>انشرها في صفحة «حالات تحتاج مساندة»</span>
             </label>
           </div>
 
-          <button className="justify-self-start rounded bg-green px-6 py-2.5 text-sm font-medium text-white hover:bg-green-deep">
+          <button className="justify-self-start rounded bg-brand px-6 py-2.5 text-sm font-medium text-white hover:bg-brand-deep">
             حفظ الحالة
           </button>
         </form>
@@ -312,22 +312,22 @@ export default async function SupportAdminPage({
                   <span
                     className={`rounded px-2 py-0.5 ${
                       c.consent_given
-                        ? 'bg-green-soft text-green'
-                        : 'bg-bronze-soft text-bronze'
+                        ? 'bg-brand-soft text-brand'
+                        : 'bg-gold-soft text-gold'
                     }`}
                   >
                     {c.consent_given ? 'موافق' : 'بلا موافقة'}
                   </span>
                   <span
                     className={`rounded px-2 py-0.5 ${
-                      c.published ? 'bg-green-soft text-green' : 'text-faint'
+                      c.published ? 'bg-brand-soft text-brand' : 'text-faint'
                     }`}
                   >
                     {c.published ? 'منشورة' : 'غير منشورة'}
                   </span>
                   <Link
                     href={`/admin/${c.request_id}`}
-                    className="text-green hover:underline"
+                    className="text-brand hover:underline"
                   >
                     المطلب ←
                   </Link>
@@ -434,7 +434,7 @@ export default async function SupportAdminPage({
                   <input name="note" className={inputCls} />
                 </label>
 
-                <button className="justify-self-start rounded bg-green px-5 py-2 text-sm font-medium text-white hover:bg-green-deep sm:col-span-6">
+                <button className="justify-self-start rounded bg-brand px-5 py-2 text-sm font-medium text-white hover:bg-brand-deep sm:col-span-6">
                   زيد قيد في الدفتر
                 </button>
               </form>
@@ -474,7 +474,7 @@ export default async function SupportAdminPage({
 }
 
 const inputCls =
-  'w-full rounded border border-line bg-surface px-3 py-2 text-sm outline-none focus:border-green'
+  'w-full rounded border border-line bg-surface px-3 py-2 text-sm outline-none focus:border-brand'
 
 function Th({ children }: { children: React.ReactNode }) {
   return <th className="px-4 py-3 text-right text-xs font-semibold text-muted">{children}</th>
