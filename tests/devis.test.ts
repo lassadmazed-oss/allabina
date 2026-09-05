@@ -150,3 +150,35 @@ describe('كلفة المتر المربّع', () => {
     expect(costPerM2(r, 0)).toBeNull()
   })
 })
+
+import { DEFAULT_VALIDITY_DAYS, daysLeft, devisValidUntil, isDevisExpired } from '@/lib/devis'
+
+describe('صلاحية العرض', () => {
+  const base = new Date('2026-09-05T10:00:00Z')
+
+  it('المدّة الافتراضية 30 يوماً', () => {
+    expect(DEFAULT_VALIDITY_DAYS).toBe(30)
+    expect(devisValidUntil(base)).toBe('2026-10-05')
+  })
+
+  it('تقبل مدّة أخرى تضبطها الإدارة', () => {
+    expect(devisValidUntil(base, 15)).toBe('2026-09-20')
+    expect(devisValidUntil(base, 60)).toBe('2026-11-04')
+  })
+
+  it('يوم الانتهاء نفسه ما زال صالحاً', () => {
+    expect(isDevisExpired('2026-10-05', new Date('2026-10-05T23:00:00Z'))).toBe(false)
+    expect(isDevisExpired('2026-10-05', new Date('2026-10-06T00:30:00Z'))).toBe(true)
+  })
+
+  it('عرض بلا تاريخ صلاحية لا يُعتبر منتهياً', () => {
+    expect(isDevisExpired(null)).toBe(false)
+  })
+
+  it('يحسب الأيّام الباقية، وسالباً بعد الانتهاء', () => {
+    expect(daysLeft('2026-10-05', base)).toBe(30)
+    expect(daysLeft('2026-09-05', base)).toBe(0)
+    expect(daysLeft('2026-09-01', base)).toBe(-4)
+    expect(daysLeft(null)).toBeNull()
+  })
+})

@@ -3,7 +3,14 @@
 import { revalidatePath } from 'next/cache'
 import { staffWithPermission } from '@/lib/auth'
 import { db } from '@/lib/supabase/server'
-import { evaluateFormula, generateDevis, type ArticleInput, type ProjectConfig } from '@/lib/devis'
+import {
+  DEFAULT_VALIDITY_DAYS,
+  devisValidUntil,
+  evaluateFormula,
+  generateDevis,
+  type ArticleInput,
+  type ProjectConfig,
+} from '@/lib/devis'
 
 /** إضافة أو تعديل مقال في البوردرو */
 export async function upsertArticleAction(formData: FormData) {
@@ -163,6 +170,15 @@ export async function generateDevisAction(formData: FormData) {
     .limit(1)
     .maybeSingle()
 
+  // مدّة الصلاحية إعداد إداري
+  const { data: validitySetting } = await db
+    .from('app_settings')
+    .select('value')
+    .eq('key', 'devis.validity_days')
+    .maybeSingle()
+  const validityDays =
+    typeof validitySetting?.value === 'number' ? validitySetting.value : DEFAULT_VALIDITY_DAYS
+
   const version = (last?.version ?? 0) + 1
   await db.from('devis').update({ status: 'obsolete' }).eq('request_id', requestId).neq('status', 'accepted')
 
@@ -176,6 +192,7 @@ export async function generateDevisAction(formData: FormData) {
       surface_m2: surface,
       total_ht: result.totalHt,
       status: 'draft',
+      valid_until: devisValidUntil(new Date(), validityDays),
       generated_by: actor.userId,
       note: result.errors.length ? `مقالات تعذّر حسابها: ${result.errors.map((e) => e.code).join('، ')}` : null,
     })

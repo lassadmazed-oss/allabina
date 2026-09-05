@@ -10,6 +10,7 @@ import { publicStateOf } from '@/lib/public-state'
 import { rankProperties, type MatchProperty } from '@/lib/matching'
 import { formatNumber } from '@/lib/format'
 import { generateDevisAction, updateProjectConfigAction } from '@/lib/actions/devis'
+import { daysLeft, isDevisExpired } from '@/lib/devis'
 import { saveMatchAction, updateMatchAction } from '@/lib/actions/property-admin'
 import {
   addContributionAction,
@@ -273,6 +274,9 @@ export default async function RequestDetail({ params }: { params: Promise<{ id: 
     cur.total += Number(l.total_ht)
     devisLots.set(l.lot_code, cur)
   }
+  const devisValidUntil = (latestDevis as { valid_until?: string | null } | null)?.valid_until ?? null
+  const devisExpired = isDevisExpired(devisValidUntil)
+  const devisDaysLeft = daysLeft(devisValidUntil)
   const devisSurface = Number((latestDevis as { surface_m2?: number } | null)?.surface_m2 ?? 0)
   const devisTotal = Number((latestDevis as { total_ht?: number } | null)?.total_ht ?? 0)
 
@@ -526,6 +530,19 @@ export default async function RequestDetail({ params }: { params: Promise<{ id: 
                 <span className="num mr-2 text-xs text-faint">
                   نسخة {(latestDevis as { version: number }).version}
                 </span>
+                {devisValidUntil && (
+                  <span
+                    className={`num mr-2 rounded px-2 py-0.5 text-xs font-medium ${
+                      devisExpired
+                        ? 'bg-bronze-soft text-bronze'
+                        : 'bg-green-soft text-green'
+                    }`}
+                  >
+                    {devisExpired
+                      ? `انتهت صلاحيته في ${devisValidUntil}`
+                      : `صالح إلى ${devisValidUntil}`}
+                  </span>
+                )}
               </div>
               <div className="num text-xl font-semibold text-green">{formatTND(devisTotal)}</div>
             </div>
@@ -581,6 +598,12 @@ export default async function RequestDetail({ params }: { params: Promise<{ id: 
 
             <p className="mt-4 border-t border-line pt-3 text-xs leading-6 text-faint">
               عرض تقديري أوّلي دون احتساب الأداءات (HT)، غير ملزم. الأسعار مجمّدة وقت التوليد.
+              {devisValidUntil && !devisExpired && devisDaysLeft !== null && (
+                <> صالح {devisDaysLeft === 0 ? 'اليوم فقط' : `${devisDaysLeft} يوماً أخرى`}.</>
+              )}
+              {devisExpired && (
+                <> <b className="text-bronze">انتهت صلاحيته — ولّد نسخة جديدة بالأسعار الحالية.</b></>
+              )}
             </p>
           </div>
         )}

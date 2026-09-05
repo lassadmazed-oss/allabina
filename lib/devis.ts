@@ -242,3 +242,31 @@ export function costPerM2(result: DevisResult, surface: number): number | null {
   if (!surface || surface <= 0 || result.totalHt <= 0) return null
   return round2(result.totalHt / surface)
 }
+
+/**
+ * صلاحية العرض.
+ * العرض التقديري لا يبقى صالحاً إلى الأبد: الأسعار تتحرّك، والرقم القديم
+ * يصير وعداً لا يُوفى. المدّة إعداد إداري (devis.validity_days) لا رقم هنا.
+ */
+export const DEFAULT_VALIDITY_DAYS = 30
+
+/** آخر يوم صلاحية، بصيغة YYYY-MM-DD */
+export function devisValidUntil(from: Date, days = DEFAULT_VALIDITY_DAYS): string {
+  const d = new Date(from.getTime())
+  d.setDate(d.getDate() + Math.max(0, Math.round(days)))
+  return d.toISOString().slice(0, 10)
+}
+
+/** هل انتهت صلاحية العرض؟ يوم الانتهاء نفسه ما زال صالحاً. */
+export function isDevisExpired(validUntil: string | null, now = new Date()): boolean {
+  if (!validUntil) return false
+  return validUntil < now.toISOString().slice(0, 10)
+}
+
+/** كم يوماً بقي — سالب إن انتهت */
+export function daysLeft(validUntil: string | null, now = new Date()): number | null {
+  if (!validUntil) return null
+  const end = new Date(`${validUntil}T00:00:00Z`).getTime()
+  const today = new Date(`${now.toISOString().slice(0, 10)}T00:00:00Z`).getTime()
+  return Math.round((end - today) / 86_400_000)
+}
