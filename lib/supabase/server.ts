@@ -148,19 +148,55 @@ export async function getZones(govCode = 'SFX'): Promise<Zone[]> {
  * أسعار البناء حسب مستوى التشطيب (HT) من قاعدة البيانات.
  * عند غياب السطور نرجع للقيم الافتراضية في lib/pricing.ts.
  */
-export async function getBuildTiers(govCode = 'SFX'): Promise<{
+export type StandingLevel = {
+  code: string
+  nameAr: string
+  nameFr: string | null
+  descriptionAr: string | null
+  descriptionFr: string | null
+  price: number
+  min: number
+  max: number
+  sortOrder: number
+}
+
+/** مستويات التشطيب كما تضبطها الإدارة — المرجع الوحيد */
+export async function getStandingLevels(): Promise<StandingLevel[]> {
+  const { data } = await db
+    .from('standing_levels')
+    .select('code, name_ar, name_fr, description_ar, description_fr, price_ht_m2, price_min_ht, price_max_ht, sort_order')
+    .eq('is_active', true)
+    .order('sort_order')
+
+  return (data ?? []).map((r) => ({
+    code: r.code as string,
+    nameAr: r.name_ar as string,
+    nameFr: (r.name_fr as string) ?? null,
+    descriptionAr: (r.description_ar as string) ?? null,
+    descriptionFr: (r.description_fr as string) ?? null,
+    price: Number(r.price_ht_m2),
+    min: Number(r.price_min_ht ?? r.price_ht_m2),
+    max: Number(r.price_max_ht ?? r.price_ht_m2),
+    sortOrder: Number(r.sort_order),
+  }))
+}
+
+/**
+ * الشبكة السعرية للواجهة. المصدر standing_levels — أي مستوى تزيده
+ * الإدارة يظهر للمواطن مباشرةً بلا تدخّل مطوّر. عند فراغ الجدول نرجع
+ * للشبكة الاحتياطية في lib/pricing.ts.
+ */
+export async function getBuildTiers(
+  _govCode = 'SFX',
+  locale: 'ar' | 'fr' = 'ar'
+): Promise<{
   tiers: TierPrice[]
   referencePrice: number
   sensitivity: { min: number; max: number }
   isHt: boolean
 }> {
-  const [{ data: rows }, { data: settings }] = await Promise.all([
-    db
-      .from('price_references')
-      .select('tier, price_per_m2_tnd, price_min_tnd, price_max_tnd, is_ht')
-      .eq('gov_code', govCode)
-      .eq('product', 'construction')
-      .not('tier', 'is', null),
+  const [levels, { data: settings }] = await Promise.all([
+    getStandingLevels(),
     db.from('app_settings').select('key, value'),
   ])
 
@@ -170,16 +206,18 @@ export async function getBuildTiers(govCode = 'SFX'): Promise<{
     return typeof v === 'number' ? v : fallback
   }
 
-  const tiers = DEFAULT_TIERS.map((d) => {
-    const row = (rows ?? []).find((r) => r.tier === d.tier)
-    if (!row) return d
-    return {
-      ...d,
-      price: Number(row.price_per_m2_tnd ?? d.price),
-      min: Number(row.price_min_tnd ?? d.min),
-      max: Number(row.price_max_tnd ?? d.max),
-    }
-  })
+  const tiers: TierPrice[] =
+    levels.length > 0
+      ? levels.map((l) => ({
+          tier: l.code,
+          label: (locale === 'fr' ? l.nameFr : l.nameAr) || l.nameAr,
+          description:
+            (locale === 'fr' ? l.descriptionFr : l.descriptionAr) || l.descriptionAr || '',
+          price: l.price,
+          min: l.min,
+          max: l.max,
+        }))
+      : DEFAULT_TIERS
 
   return {
     tiers,

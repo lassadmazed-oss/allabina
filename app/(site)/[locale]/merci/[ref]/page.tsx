@@ -35,7 +35,7 @@ export default async function MerciPage({
     .maybeSingle()
 
   const maxPayment = (score?.breakdown as { maxPayment?: number } | null)?.maxPayment ?? 0
-  const { tiers } = await getBuildTiers(request.gov_code)
+  const { tiers } = await getBuildTiers(request.gov_code, locale)
   const tier = tierByKey(tiers, request.standing)
   const costRange =
     tier && request.desired_area_m2 ? buildCostRange(request.desired_area_m2, tier) : null
@@ -79,7 +79,7 @@ export default async function MerciPage({
         {costRange && tier && (
           <div className="mt-6 rounded border border-line bg-gold-soft p-5">
             <div className="text-sm font-medium">
-              {t.merci.buildCost} {t.labels.standing[tier.tier]}
+              {t.merci.buildCost} {tier.label}
             </div>
             <div className="num mt-1 text-xl font-semibold text-brand">
               <bdi dir="ltr">{formatRange(costRange.min, costRange.max)}</bdi>{' '}
@@ -110,7 +110,7 @@ export default async function MerciPage({
             />
             <Row
               k={t.merci.standing}
-              v={tier ? t.labels.standing[tier.tier] : t.merci.undefined}
+              v={tier ? tier.label : t.merci.undefined}
             />
             <Row k={t.merci.status} v={t.labels.status[request.status] ?? request.status} />
           </dl>

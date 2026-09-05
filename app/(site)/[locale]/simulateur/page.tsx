@@ -15,7 +15,7 @@ export default async function SimulateurPage({
 
   const [finance, build, products] = await Promise.all([
     getFinanceContext(),
-    getBuildTiers('SFX'),
+    getBuildTiers('SFX', locale),
     getFinancingProducts(),
   ])
 

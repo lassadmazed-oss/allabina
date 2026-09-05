@@ -28,7 +28,7 @@ export default async function DemandePage({
     getImadas('SFX'),
     getZones('SFX'),
     getFinanceContext(),
-    getBuildTiers('SFX'),
+    getBuildTiers('SFX', locale),
   ])
 
   return (

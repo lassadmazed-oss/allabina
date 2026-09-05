@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { requirePermission } from '@/lib/auth'
-import { db } from '@/lib/supabase/server'
+import { db, getStandingLevels } from '@/lib/supabase/server'
 import { formatNumber } from '@/lib/format'
 import { upsertArticleAction } from '@/lib/actions/devis'
 import FormulaTester from '@/components/FormulaTester'
@@ -15,12 +15,6 @@ const UNITS: Record<string, string> = {
   kg: 'كغ',
   u: 'وحدة',
   forfait: 'جزافي',
-}
-
-const STANDINGS: Record<string, string> = {
-  standard: 'عادي',
-  mid: 'متوسّط',
-  premium: 'Haut Standing',
 }
 
 type Lot = { id: number; code: number; name_ar: string; name_fr: string }
@@ -46,11 +40,13 @@ export default async function BordereauPage({
   await requirePermission('reference.manage')
   const sp = await searchParams
 
-  const [{ data: lotsRaw }, { data: articlesRaw }] = await Promise.all([
+  const [{ data: lotsRaw }, { data: articlesRaw }, standingLevels] = await Promise.all([
     db.from('lots').select('*').order('code'),
     db.from('articles').select('*').order('code'),
+    getStandingLevels(),
   ])
 
+  const standingName = new Map(standingLevels.map((lv) => [lv.code, `${lv.code} · ${lv.nameAr}`]))
   const lots = (lotsRaw ?? []) as Lot[]
   const articles = (articlesRaw ?? []) as Article[]
   const selectedLot = sp.lot ? Number(sp.lot) : null
@@ -138,9 +134,9 @@ export default async function BordereauPage({
             <span className="mb-1.5 block text-xs text-muted">مستوى التشطيب</span>
             <select name="standing" className={inputCls} defaultValue="">
               <option value="">كلّ المستويات</option>
-              {Object.entries(STANDINGS).map(([k, v]) => (
-                <option key={k} value={k}>
-                  {v}
+              {standingLevels.map((lv) => (
+                <option key={lv.code} value={lv.code}>
+                  {lv.code} · {lv.nameAr}
                 </option>
               ))}
             </select>
@@ -203,7 +199,7 @@ export default async function BordereauPage({
                   {a.qty_formula}
                 </td>
                 <td className="px-3 py-2 text-xs">
-                  {a.standing ? STANDINGS[a.standing] : 'الكلّ'}
+                  {a.standing ? standingName.get(a.standing) ?? a.standing : 'الكلّ'}
                 </td>
                 <td className="num px-3 py-2">{formatNumber(Number(a.pu_fourniture_ht), 3)}</td>
                 <td className="num px-3 py-2">{formatNumber(Number(a.pu_main_oeuvre_ht), 3)}</td>

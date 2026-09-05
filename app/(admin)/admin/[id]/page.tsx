@@ -2,7 +2,7 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { requireStaff } from '@/lib/auth'
 import { can } from '@/lib/permissions'
-import { db, getFinancingProducts } from '@/lib/supabase/server'
+import { db, getFinancingProducts, getStandingLevels } from '@/lib/supabase/server'
 import { LABELS } from '@/lib/schema'
 import { formatTND } from '@/lib/finance'
 import { labelEmployment, seniorityYearsLabel } from '@/lib/scoring'
@@ -156,6 +156,7 @@ export default async function RequestDetail({ params }: { params: Promise<{ id: 
     { data: config },
     { data: latestDevis },
     { data: contributions },
+    standingLevels,
     { data: supportCase },
     { data: supportLedger },
     { data: tasks },
@@ -196,6 +197,7 @@ export default async function RequestDetail({ params }: { params: Promise<{ id: 
       .limit(1)
       .maybeSingle(),
     db.from('contributions').select('*').eq('request_id', id).order('created_at'),
+    getStandingLevels(),
     db.from('support_cases').select('id, published, consent_given').eq('request_id', id).maybeSingle(),
     db
       .from('support_ledger')
@@ -504,9 +506,11 @@ export default async function RequestDetail({ params }: { params: Promise<{ id: 
               className="w-full rounded border border-line bg-surface px-3 py-2 text-sm"
             >
               <option value="">—</option>
-              <option value="standard">عادي</option>
-              <option value="mid">متوسّط</option>
-              <option value="premium">Haut Standing</option>
+              {standingLevels.map((lv) => (
+                <option key={lv.code} value={lv.code}>
+                  {lv.code} · {lv.nameAr}
+                </option>
+              ))}
             </select>
           </label>
           <div className="flex items-end gap-3 text-xs">

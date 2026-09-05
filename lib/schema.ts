@@ -20,7 +20,12 @@ export const EMPLOYMENT_TYPES = [
 
 export const HORIZONS = ['now', '6m', '12m', '24m'] as const
 export const TITLE_STATUSES = ['titled', 'in_progress', 'undivided', 'other'] as const
-export const STANDINGS = ['standard', 'mid', 'premium'] as const
+/**
+ * رمز مستوى التشطيب. لا قائمة مغلقة هنا: المستويات سطور في
+ * standing_levels تزيدها الإدارة، والمفتاح الخارجي في القاعدة هو
+ * الذي يرفض رمزاً غير موجود. هنا نتحقّق من الشكل فقط.
+ */
+export const STANDING_CODE = /^[A-Za-z0-9_-]{1,20}$/
 
 const num = (min: number, max: number) => z.coerce.number().min(min).max(max)
 
@@ -60,7 +65,11 @@ export const requestSchema = z.object({
   desiredAreaM2: nullableNum(40, 400),
   bedrooms: nullableNum(1, 6),
   horizon: z.enum(HORIZONS),
-  standing: nullableEnum(STANDINGS),
+  // ملاحظة Zod v4: المفتاح الغائب يحتاج optional() — union مع undefined لا يكفي
+  standing: z
+    .union([z.string().regex(STANDING_CODE), z.literal(''), z.null()])
+    .optional()
+    .transform((v) => (v ? v : null)),
   imadaId: nullableNum(1, 1000000),
   landLocation: z.string().max(200).optional().transform((v) => v ?? ''),
 

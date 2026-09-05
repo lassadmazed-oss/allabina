@@ -55,7 +55,7 @@ describe('مسار البناء', () => {
     const r = requestSchema.parse({
       ...apartmentForm,
       requestType: 'build_on_land',
-      standing: 'mid',
+      standing: 'B03',
       landAreaM2: '300',
       titleStatus: 'titled',
       hasWater: true,
@@ -63,7 +63,7 @@ describe('مسار البناء', () => {
       imadaId: '12',
       landLocation: 'حيّ النور',
     })
-    expect(r.standing).toBe('mid')
+    expect(r.standing).toBe('B03')
     expect(r.landAreaM2).toBe(300)
     expect(r.hasWater).toBe(true)
     expect(r.hasPower).toBe(true)

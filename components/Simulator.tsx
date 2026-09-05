@@ -157,7 +157,7 @@ export default function Simulator({
               const areaMax = buildableArea(capacity.maxBudget, tier.min)
               return (
                 <div key={tier.tier} className="rounded border border-line p-4">
-                  <div className="font-semibold">{labels.standing[tier.tier]}</div>
+                  <div className="font-semibold">{tier.label}</div>
                   <div className="num mt-1 text-xs text-muted">
                     <bdi dir="ltr">{formatRange(tier.min, tier.max)}</bdi> {perM2}
                   </div>

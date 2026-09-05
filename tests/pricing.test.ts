@@ -10,11 +10,13 @@ import {
 } from '@/lib/pricing'
 
 describe('فئات البناء', () => {
-  it('ثلاث فئات مرتّبة تصاعدياً بلا تداخل', () => {
-    expect(DEFAULT_TIERS).toHaveLength(3)
-    const [a, b, c] = DEFAULT_TIERS
-    expect(a.max).toBeLessThanOrEqual(b.min)
-    expect(b.max).toBeLessThanOrEqual(c.min)
+  it('الفئات مرتّبة تصاعدياً بلا تداخل', () => {
+    // الشبكة الاحتياطية صورة من بذرة standing_levels: B01…B05
+    expect(DEFAULT_TIERS.length).toBeGreaterThanOrEqual(3)
+    for (let i = 1; i < DEFAULT_TIERS.length; i++) {
+      expect(DEFAULT_TIERS[i - 1].max).toBeLessThanOrEqual(DEFAULT_TIERS[i].min)
+      expect(DEFAULT_TIERS[i - 1].price).toBeLessThan(DEFAULT_TIERS[i].price)
+    }
   })
 
   it('السعر المرجعي داخل مجال دراسة الحساسية', () => {
@@ -36,7 +38,7 @@ describe('حساب الكلفة', () => {
   })
 
   it('نطاق الكلفة يتبع نطاق الفئة', () => {
-    const mid = tierByKey(DEFAULT_TIERS, 'mid')!
+    const mid = tierByKey(DEFAULT_TIERS, 'B03')!
     expect(buildCostRange(100, mid)).toEqual({ min: mid.min * 100, max: mid.max * 100 })
   })
 

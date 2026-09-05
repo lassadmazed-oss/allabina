@@ -420,7 +420,7 @@ export default function RequestForm({
           <div className="mt-8">
             <span className="mb-1 block text-sm font-medium">{t.standingTitle}</span>
             <p className="mb-3 text-sm text-muted">{t.standingLede}</p>
-            <div className="grid gap-3 sm:grid-cols-3">
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
               {tiers.map((tier) => (
                 <label
                   key={tier.tier}
@@ -438,12 +438,12 @@ export default function RequestForm({
                     onChange={(e) => set('standing', e.target.value)}
                     className="sr-only"
                   />
-                  <span className="block font-semibold">{labels.standing[tier.tier]}</span>
+                  <span className="block font-semibold">{tier.label}</span>
                   <span className="num mt-1 block text-sm text-brand">
                     <bdi dir="ltr">{formatRange(tier.min, tier.max)}</bdi> {perM2}
                   </span>
                   <span className="mt-2 block text-xs leading-6 text-muted">
-                    {labels.standingDesc[tier.tier]}
+                    {tier.description}
                   </span>
                 </label>
               ))}
@@ -451,7 +451,7 @@ export default function RequestForm({
 
             {costRange && selectedTier && (
               <div className="mt-4 rounded border border-line bg-surface-2 p-4 text-sm">
-                {fmt(t.costFor, { area: areaForCost, tier: labels.standing[selectedTier.tier] })}{' '}
+                {fmt(t.costFor, { area: areaForCost, tier: selectedTier.label })}{' '}
                 <span className="num font-semibold text-brand">
                   <bdi dir="ltr">{formatRange(costRange.min, costRange.max)}</bdi>{' '}
                   {currencyLabel(locale)}

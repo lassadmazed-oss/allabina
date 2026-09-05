@@ -4,8 +4,11 @@
  * لكل مسكن حسب المواصفات الفنية والمعمارية.
  */
 
-export const STANDING_TIERS = ['standard', 'mid', 'premium'] as const
-export type StandingTier = (typeof STANDING_TIERS)[number]
+/**
+ * رمز مستوى التشطيب — نصّ لا نوع مُعدّد: المستويات سطور في standing_levels
+ * تزيدها الإدارة من الـBack-office، فلا يجوز تثبيتها في الكود.
+ */
+export type StandingTier = string
 
 export type TierPrice = {
   tier: StandingTier
@@ -17,32 +20,16 @@ export type TierPrice = {
   max: number
 }
 
-/** القيم الافتراضية — تُقرأ من قاعدة البيانات وتُستعمل هذي عند غيابها */
+/**
+ * شبكة احتياطية تُستعمل فقط إذا كان جدول standing_levels فارغاً —
+ * صورة طبق الأصل من بذرته. المرجع الحقيقي هو القاعدة.
+ */
 export const DEFAULT_TIERS: TierPrice[] = [
-  {
-    tier: 'standard',
-    label: 'عادي',
-    description: 'بناء ومواد بمواصفات عادية، تشطيب بسيط.',
-    price: 1200,
-    min: 1200,
-    max: 1350,
-  },
-  {
-    tier: 'mid',
-    label: 'متوسّط ومحسّن',
-    description: 'مواد وتجهيزات أرقى، تشطيب محسّن.',
-    price: 1500,
-    min: 1400,
-    max: 1600,
-  },
-  {
-    tier: 'premium',
-    label: 'Haut Standing',
-    description: 'مواد وتجهيزات فاخرة، تشطيب عالي.',
-    price: 1850,
-    min: 1700,
-    max: 2000,
-  },
+  { tier: 'B01', label: 'اقتصادي', description: 'بناء سليم بمواد عادية وتشطيب بسيط.', price: 1200, min: 1150, max: 1300 },
+  { tier: 'B02', label: 'عادي', description: 'نفس الهيكل مع تشطيب أحسن.', price: 1400, min: 1350, max: 1500 },
+  { tier: 'B03', label: 'محسّن', description: 'مستوى مرجعي: مطبخ مركّب وسقف مستعار.', price: 1600, min: 1550, max: 1700 },
+  { tier: 'B04', label: 'راقٍ', description: 'مواد وتجهيزات أرقى وواجهة مدروسة.', price: 1800, min: 1750, max: 1900 },
+  { tier: 'B05', label: 'Haut Standing', description: 'أعلى مستوى: تجهيزات فاخرة وتهيئة متكاملة.', price: 2000, min: 1950, max: 2200 },
 ]
 
 /** الفرضية المرجعية لدراسة الجدوى والملفّ البنكي */

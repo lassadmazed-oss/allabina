@@ -12,7 +12,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
   const locale: Locale = isLocale(raw) ? raw : 'ar'
   const t = getDictionary(locale)
   const p = (s = '') => path(locale, s)
-  const { tiers, referencePrice } = await getBuildTiers('SFX')
+  const { tiers, referencePrice } = await getBuildTiers('SFX', locale)
   const perM2 = `${perM2Label(locale)} HT`
 
   return (
@@ -97,12 +97,12 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
           {tiers.map((tier) => (
             <div key={tier.tier} className="rounded border border-line bg-surface p-6">
               <span className="brick mb-4 block" aria-hidden="true" />
-              <h3 className="text-lg font-semibold">{t.labels.standing[tier.tier]}</h3>
+              <h3 className="text-lg font-semibold">{tier.label}</h3>
               <div className="num mt-2 text-xl font-semibold text-brand">
                 <bdi dir="ltr">{formatRange(tier.min, tier.max)}</bdi>
                 <span className="text-sm font-normal text-muted"> {perM2}</span>
               </div>
-              <p className="mt-3 text-sm leading-7 text-muted">{t.labels.standingDesc[tier.tier]}</p>
+              <p className="mt-3 text-sm leading-7 text-muted">{tier.description}</p>
             </div>
           ))}
         </div>
