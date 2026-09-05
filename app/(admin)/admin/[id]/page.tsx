@@ -9,6 +9,7 @@ import { labelEmployment, seniorityYearsLabel } from '@/lib/scoring'
 import { publicStateOf } from '@/lib/public-state'
 import { rankProperties, type MatchProperty } from '@/lib/matching'
 import { formatNumber } from '@/lib/format'
+import { generateDevisAction, updateProjectConfigAction } from '@/lib/actions/devis'
 import { saveMatchAction, updateMatchAction } from '@/lib/actions/property-admin'
 import {
   addContributionAction,
@@ -143,6 +144,8 @@ export default async function RequestDetail({ params }: { params: Promise<{ id: 
     { data: interactions },
     { data: docs },
     { data: social },
+    { data: config },
+    { data: latestDevis },
     { data: contributions },
     { data: tasks },
     { data: partners },
@@ -173,6 +176,14 @@ export default async function RequestDetail({ params }: { params: Promise<{ id: 
       .order('created_at', { ascending: false }),
     db.from('request_documents').select('*').eq('request_id', id),
     db.from('social_assessments').select('*').eq('request_id', id).maybeSingle(),
+    db.from('project_configs').select('*').eq('request_id', id).maybeSingle(),
+    db
+      .from('devis')
+      .select('*')
+      .eq('request_id', id)
+      .order('version', { ascending: false })
+      .limit(1)
+      .maybeSingle(),
     db.from('contributions').select('*').eq('request_id', id).order('created_at'),
     db.from('tasks').select('*').eq('request_id', id).order('created_at'),
     db.from('partners').select('id, name, kind').eq('is_active', true).order('name'),
@@ -233,6 +244,37 @@ export default async function RequestDetail({ params }: { params: Promise<{ id: 
     ])
   )
   const savedIds = new Set(((savedMatches ?? []) as { property_id: string }[]).map((m) => m.property_id))
+
+  const { data: devisLines } = latestDevis
+    ? await db
+        .from('devis_lines')
+        .select('*')
+        .eq('devis_id', (latestDevis as { id: string }).id)
+        .order('lot_code')
+        .order('sort_order')
+    : { data: null }
+
+  type DevisLine = {
+    id: number
+    lot_code: number
+    lot_name_ar: string
+    article_code: string
+    designation_ar: string
+    unit: string
+    quantity: number
+    pu_total_ht: number
+    total_ht: number
+  }
+
+  const lineRows = (devisLines ?? []) as DevisLine[]
+  const devisLots = new Map<number, { name: string; total: number }>()
+  for (const l of lineRows) {
+    const cur = devisLots.get(l.lot_code) ?? { name: l.lot_name_ar, total: 0 }
+    cur.total += Number(l.total_ht)
+    devisLots.set(l.lot_code, cur)
+  }
+  const devisSurface = Number((latestDevis as { surface_m2?: number } | null)?.surface_m2 ?? 0)
+  const devisTotal = Number((latestDevis as { total_ht?: number } | null)?.total_ht ?? 0)
 
   const criteria = ((score?.breakdown as { criteria?: Criterion[] } | null)?.criteria ?? []) as Criterion[]
 
@@ -362,6 +404,192 @@ export default async function RequestDetail({ params }: { params: Promise<{ id: 
               حفظ
             </button>
           </form>
+        )}
+      </div>
+
+      {/* مواصفات المشروع والعرض التقديري — Module 11 */}
+      <div className="mt-6 rounded border border-line bg-surface p-6">
+        <h2 className="text-sm font-semibold">مواصفات المشروع والعرض التقديري</h2>
+        <p className="mt-1 text-xs leading-6 text-muted">
+          المواصفات هي مدخل حساب العرض. العرض يتولّد من البوردرو وأسعاره وقت التوليد، ويبقى
+          محفوظاً بها حتى لو تبدّلت الأسعار بعد.
+        </p>
+
+        <form action={updateProjectConfigAction} className="mt-4 grid gap-3 sm:grid-cols-4">
+          <input type="hidden" name="id" value={r.id} />
+          <label className="block">
+            <span className="mb-1.5 block text-xs text-muted">المساحة المبنية (م²)</span>
+            <input
+              name="surface_m2"
+              type="number"
+              defaultValue={config?.surface_m2 ?? r.desired_area_m2 ?? ''}
+              className="w-full rounded border border-line bg-surface px-3 py-2 text-sm"
+            />
+          </label>
+          <label className="block">
+            <span className="mb-1.5 block text-xs text-muted">المستويات</span>
+            <select
+              name="levels"
+              defaultValue={config?.levels ?? 1}
+              className="w-full rounded border border-line bg-surface px-3 py-2 text-sm"
+            >
+              <option value="1">RDC</option>
+              <option value="2">R+1</option>
+              <option value="3">R+2</option>
+            </select>
+          </label>
+          <label className="block">
+            <span className="mb-1.5 block text-xs text-muted">الغرف</span>
+            <input
+              name="bedrooms"
+              type="number"
+              defaultValue={config?.bedrooms ?? r.bedrooms ?? ''}
+              className="w-full rounded border border-line bg-surface px-3 py-2 text-sm"
+            />
+          </label>
+          <label className="block">
+            <span className="mb-1.5 block text-xs text-muted">الحمّامات</span>
+            <input
+              name="bathrooms"
+              type="number"
+              defaultValue={config?.bathrooms ?? ''}
+              className="w-full rounded border border-line bg-surface px-3 py-2 text-sm"
+            />
+          </label>
+          <label className="block">
+            <span className="mb-1.5 block text-xs text-muted">الصالون</span>
+            <input
+              name="living_rooms"
+              type="number"
+              defaultValue={config?.living_rooms ?? 1}
+              className="w-full rounded border border-line bg-surface px-3 py-2 text-sm"
+            />
+          </label>
+          <label className="block">
+            <span className="mb-1.5 block text-xs text-muted">المطبخ</span>
+            <input
+              name="kitchens"
+              type="number"
+              defaultValue={config?.kitchens ?? 1}
+              className="w-full rounded border border-line bg-surface px-3 py-2 text-sm"
+            />
+          </label>
+          <label className="block">
+            <span className="mb-1.5 block text-xs text-muted">مستوى التشطيب</span>
+            <select
+              name="standing"
+              defaultValue={config?.standing ?? r.standing ?? ''}
+              className="w-full rounded border border-line bg-surface px-3 py-2 text-sm"
+            >
+              <option value="">—</option>
+              <option value="standard">عادي</option>
+              <option value="mid">متوسّط</option>
+              <option value="premium">Haut Standing</option>
+            </select>
+          </label>
+          <div className="flex items-end gap-3 text-xs">
+            <label className="flex items-center gap-1.5">
+              <input type="checkbox" name="garage" defaultChecked={config?.garage} className="size-4 accent-[#0e5138]" />
+              جراج
+            </label>
+            <label className="flex items-center gap-1.5">
+              <input type="checkbox" name="terrasse" defaultChecked={config?.terrasse} className="size-4 accent-[#0e5138]" />
+              تراس
+            </label>
+            <label className="flex items-center gap-1.5">
+              <input type="checkbox" name="jardin" defaultChecked={config?.jardin} className="size-4 accent-[#0e5138]" />
+              حديقة
+            </label>
+          </div>
+          <button className="justify-self-start rounded bg-green px-5 py-2 text-sm font-medium text-white hover:bg-green-deep">
+            حفظ المواصفات
+          </button>
+        </form>
+
+        <form action={generateDevisAction} className="mt-4 border-t border-line pt-4">
+          <input type="hidden" name="id" value={r.id} />
+          <button className="rounded border border-green px-5 py-2 text-sm font-medium text-green hover:bg-green-soft">
+            ولّد عرضاً تقديرياً
+          </button>
+          <span className="mr-3 text-xs text-faint">
+            من البوردرو الحالي. النسخة السابقة تبقى محفوظة.
+          </span>
+        </form>
+
+        {latestDevis && (
+          <div className="mt-6 rounded border border-line bg-ground p-5">
+            <div className="flex flex-wrap items-baseline justify-between gap-3">
+              <div>
+                <span className="num text-sm text-green" dir="ltr">
+                  {(latestDevis as { ref_code: string }).ref_code}
+                </span>
+                <span className="num mr-2 text-xs text-faint">
+                  نسخة {(latestDevis as { version: number }).version}
+                </span>
+              </div>
+              <div className="num text-xl font-semibold text-green">{formatTND(devisTotal)}</div>
+            </div>
+
+            {devisSurface > 0 && devisTotal > 0 && (
+              <div className="num mt-1 text-xs text-muted">
+                {formatNumber(Math.round(devisTotal / devisSurface))} د/م² على {devisSurface} م²
+              </div>
+            )}
+
+            {devisLots.size > 0 && (
+              <ul className="mt-4 space-y-1.5 text-sm">
+                {[...devisLots.entries()]
+                  .sort((a, b) => a[0] - b[0])
+                  .map(([code, lot]) => (
+                    <li key={code} className="flex items-baseline justify-between gap-3">
+                      <span>
+                        <span className="num text-xs text-faint">{code}</span> {lot.name}
+                      </span>
+                      <span className="num text-muted">{formatTND(lot.total)}</span>
+                    </li>
+                  ))}
+              </ul>
+            )}
+
+            <details className="mt-4">
+              <summary className="cursor-pointer text-xs text-muted hover:text-green">
+                تفصيل المقالات ({lineRows.length})
+              </summary>
+              <div className="mt-3 overflow-x-auto">
+                <table className="w-full min-w-[560px] text-xs">
+                  <thead>
+                    <tr className="bg-surface-2">
+                      <th className="px-2 py-2 text-right font-semibold text-muted">المقال</th>
+                      <th className="px-2 py-2 text-right font-semibold text-muted">الكمّية</th>
+                      <th className="px-2 py-2 text-right font-semibold text-muted">سعر الوحدة</th>
+                      <th className="px-2 py-2 text-right font-semibold text-muted">المجموع</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {lineRows.map((l) => (
+                      <tr key={l.id} className="border-t border-line">
+                        <td className="px-2 py-1.5">{l.designation_ar}</td>
+                        <td className="num px-2 py-1.5">{formatNumber(Number(l.quantity), 2)}</td>
+                        <td className="num px-2 py-1.5">{formatNumber(Number(l.pu_total_ht), 3)}</td>
+                        <td className="num px-2 py-1.5">{formatTND(Number(l.total_ht))}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </details>
+
+            <p className="mt-4 border-t border-line pt-3 text-xs leading-6 text-faint">
+              عرض تقديري أوّلي دون احتساب الأداءات (HT)، غير ملزم. الأسعار مجمّدة وقت التوليد.
+            </p>
+          </div>
+        )}
+
+        {!latestDevis && (
+          <p className="mt-4 text-xs text-faint">
+            ما فمّاش عرض بعد. عمّر المواصفات ثمّ ولّد — وإذا ما تولّد شي، معناها البوردرو مازال
+            فارغ من المقالات.
+          </p>
         )}
       </div>
 
