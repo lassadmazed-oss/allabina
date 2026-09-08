@@ -7,6 +7,7 @@ import {
   requestConfirmationText,
   segmentCount,
   statusUpdateText,
+  supportAcceptedText,
   type SmsTemplate,
 } from '@/lib/sms'
 import type { Locale } from '@/lib/i18n'
@@ -139,6 +140,15 @@ export async function sendStatusUpdate(requestId: string, refCode: string, phone
   if (!text) return
   try {
     await sendAndLog({ requestId }, `status_${status}`, phone, text)
+  } catch (e) {
+    console.warn('sms unexpected:', e instanceof Error ? e.message : e)
+  }
+}
+
+/** قبول طلب المساندة — مرّة واحدة لكلّ مطلب بحكم القالب الثابت */
+export async function sendSupportAccepted(requestId: string, refCode: string, phone: string, locale: Locale) {
+  try {
+    await sendAndLog({ requestId }, 'support_accepted', phone, supportAcceptedText(refCode, locale))
   } catch (e) {
     console.warn('sms unexpected:', e instanceof Error ? e.message : e)
   }

@@ -68,6 +68,7 @@ export type SmsTemplate =
   | 'request_confirmation'
   | 'request_confirmation_resend'
   | 'property_confirmation'
+  | 'support_accepted'
   | `status_${string}`
 
 /**
@@ -89,6 +90,17 @@ const STATUS_SMS_FR: Record<string, string> = {
   appointment: 'rendez-vous fixe, on vous confirme',
   contract: 'votre dossier est au stade du contrat',
   on_hold: 'dossier en attente, on revient vers vous',
+}
+
+/**
+ * قبول في مسار المساندة. الرفض والتحويل لا يُرسلان أبداً — يُقالان في مكالمة.
+ * لا وعد بحلّ: «دخل المسار» و«الفريق يتّصل بيك» فقط.
+ */
+export function supportAcceptedText(refCode: string, locale: Locale): string {
+  if (locale === 'fr') {
+    return `AL-LUBNA ${refCode}: votre demande d'aide est prise en charge, l'equipe vous appelle.`
+  }
+  return `اللبنة ${refCode}: طلب مساندتك دخل الدراسة، الفريق يتّصل بيك.`
 }
 
 export const isNotifiableStatus = (s: string) =>

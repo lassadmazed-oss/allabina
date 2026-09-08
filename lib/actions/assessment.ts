@@ -1,6 +1,8 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
+import { after } from 'next/server'
+import { sendSupportAccepted } from '@/lib/sms/winsms'
 import { staffWithPermission } from '@/lib/auth'
 import { db } from '@/lib/supabase/server'
 import {
@@ -118,7 +120,7 @@ export async function saveSupportAssessmentAction(
   if (decision === 'accept_support') {
     const { data: r } = await db
       .from('housing_requests')
-      .select('gov_code, delegation_id, problem_note')
+      .select('gov_code, delegation_id, problem_note, ref_code, phone, lang')
       .eq('id', requestId)
       .maybeSingle()
     if (r) {
@@ -136,6 +138,10 @@ export async function saveSupportAssessmentAction(
         },
         { onConflict: 'request_id', ignoreDuplicates: true }
       )
+      // خبر القبول فقط يُرسل آلياً؛ الرفض والتحويل يُقالان في مكالمة
+      if (before?.decision !== 'accept_support') {
+        after(() => sendSupportAccepted(requestId, String(r.ref_code), String(r.phone), r.lang === 'fr' ? 'fr' : 'ar'))
+      }
     }
   }
 

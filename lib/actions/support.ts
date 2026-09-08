@@ -5,6 +5,9 @@ import { headers } from 'next/headers'
 import { staffWithPermission } from '@/lib/auth'
 import { db } from '@/lib/supabase/server'
 import { isPublicPledgeKind } from '@/lib/support'
+import { after } from 'next/server'
+import { sendRequestConfirmation } from '@/lib/sms/winsms'
+import { isLocale } from '@/lib/i18n'
 import { supportRequestSchema } from '@/lib/support-schema'
 
 /** إنشاء أو تحيين حالة تحتاج مساندة — النشر ممنوع بلا موافقة */
@@ -225,6 +228,7 @@ export async function submitSupportRequest(
       status: 'new',
       consent_at: new Date().toISOString(),
       source: 'support_form',
+      lang: isLocale(String(formData.get('locale') ?? '')) ? String(formData.get('locale')) : 'ar',
     })
     .select('id, ref_code')
     .single()
@@ -247,5 +251,9 @@ export async function submitSupportRequest(
   if (socialErr) console.error('insert social_assessment', socialErr)
 
   revalidatePath('/admin')
+  // الرمز على الهاتف كما في بقيّة الاستمارات — بعد الردّ، ولا يمسّ الطلب إن فشل
+  const supportLocale = isLocale(String(formData.get('locale') ?? '')) ? (String(formData.get('locale')) as 'ar' | 'fr') : 'ar'
+  after(() => sendRequestConfirmation(String(inserted.id), String(inserted.ref_code), d.phone, supportLocale))
+
   return { ok: true, ref: inserted.ref_code as string }
 }

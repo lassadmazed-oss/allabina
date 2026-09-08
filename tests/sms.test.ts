@@ -8,6 +8,7 @@ import {
   normalizeTnPhone,
   parseWinSmsReply,
   statusUpdateText,
+  supportAcceptedText,
   propertyConfirmationText,
   requestConfirmationText,
   segmentCount,
@@ -114,5 +115,17 @@ describe('إشعار تغيّر الحالة', () => {
       expect(isNotifiableStatus(st)).toBe(false)
       expect(statusUpdateText('LB-1', st, 'ar')).toBeNull()
     }
+  })
+})
+
+describe('رسالة قبول طلب المساندة', () => {
+  it('جزء واحد باللغتين، تحمل الرمز، ولا تعد بحلّ', () => {
+    const ar = supportAcceptedText('LB-2026-000078', 'ar')
+    expect(segmentCount(ar)).toBe(1)
+    expect(ar).toContain('LB-2026-000078')
+    expect(ar).not.toMatch(/حلّ|نضمن|وعد/)
+    const fr = supportAcceptedText('LB-2026-000078', 'fr')
+    expect(isPlain(fr)).toBe(true)
+    expect(segmentCount(fr)).toBe(1)
   })
 })
