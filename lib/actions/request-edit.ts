@@ -104,7 +104,7 @@ const REQUEST_COLUMNS =
   'id, ref_code, full_name, phone, email, gov_code, delegation_id, imada_id, land_location, ' +
   'request_type, desired_area_m2, bedrooms, horizon, standing, urgency, urgency_note, ' +
   'flexibility, problem_note, foprolos_interest, is_first_home, has_social_housing, ' +
-  'cnss_affiliated, cnss_number_years, problem_type, financing_state, ' +
+  'cnss_affiliated, cnss_number_years, problem_type, financing_state, cash_ready, ' +
   'lang, status, owner_updated_at'
 
 export type OwnRequest = {
@@ -146,7 +146,10 @@ export async function loadOwnRequest(): Promise<OwnRequest | null> {
       .maybeSingle(),
     db
       .from('social_assessments')
-      .select('household_size, dependents, has_disability, housing_condition, income_stability')
+      .select(
+        'household_size, dependents, has_disability, housing_condition, income_stability, ' +
+          'is_renting, rent_tnd'
+      )
       .eq('request_id', id)
       .maybeSingle(),
     db
@@ -261,7 +264,8 @@ export async function updateOwnRequest(_prev: unknown, formData: FormData): Prom
       cnss_affiliated: d.cnssAffiliated,
       cnss_number_years: d.cnssYears,
       problem_type: d.problemType,
-      financing_state: d.financingState ?? 'not_started',
+      financing_state: d.cashReady ? 'self_funded' : d.financingState ?? 'not_started',
+      cash_ready: d.cashReady,
       owns_land: d.requestType === 'build_on_land',
       owner_updated_at: now,
       updated_at: now,

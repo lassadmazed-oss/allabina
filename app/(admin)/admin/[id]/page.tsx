@@ -125,6 +125,15 @@ const PUBLIC_STATE_AR: Record<string, string> = {
 /** مصدر واحد مع الاستمارة العمومية — lib/documents.ts */
 const DOC_TYPES = DOC_TYPE_LABELS
 
+const FINANCING_STATE_LABELS: Record<string, string> = {
+  not_started: 'ما بداش',
+  studying: 'يقلّب ويقارن',
+  bank_submitted: 'الملفّ عند البنك',
+  approved: 'تحصّل على موافقة',
+  refused: 'رفض بنكي',
+  self_funded: 'تمويل ذاتي',
+}
+
 const URGENCY_LABELS: Record<string, string> = {
   planning: 'يخطّط بلا أجل',
   within_year: 'خلال سنة',
@@ -384,6 +393,26 @@ export default async function RequestDetail({ params }: { params: Promise<{ id: 
               r.urgency
                 ? `${URGENCY_LABELS[r.urgency] ?? r.urgency}${r.urgency_note ? ` — ${r.urgency_note}` : ''}`
                 : '—'
+            }
+          />
+          <Row
+            k="التمويل"
+            v={
+              r.cash_ready
+                ? 'فلوسو حاضرة — مسار بلا بنك'
+                : FINANCING_STATE_LABELS[r.financing_state as string] ?? '—'
+            }
+          />
+          <Row
+            k="الكراء الحالي"
+            v={
+              social?.is_renting
+                ? social.rent_tnd
+                  ? `كاري — ${formatNumber(Number(social.rent_tnd))} د.ت/شهر`
+                  : 'كاري — المبلغ غير مصرَّح به'
+                : social
+                  ? 'ما هوش كاري'
+                  : '—'
             }
           />
           <Row

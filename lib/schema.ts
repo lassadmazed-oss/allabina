@@ -169,11 +169,23 @@ export const requestSchema = z.object({
   hasDisability: optionalFlag,
   housingCondition: nullableEnum(HOUSING_CONDITIONS),
   incomeStability: nullableEnum(INCOME_STABILITY),
+  /**
+   * الكراء الحالي: أوضح دليل على ما يقدر يدفعه شهرياً — هو يدفعه فعلاً.
+   * وهو عبء يزول يوم يملك، فلا يُخصم من القدرة كما تُخصم الأقساط.
+   */
+  isRenting: optionalFlag,
+  rentTnd: nullableNum(0, 20000),
   problemType: nullableEnum(PROBLEM_KINDS),
   financingState: nullableEnum(FINANCING_STATES),
 
   /** الوثائق التي يقول صاحب المطلب إنّها عنده — تصريح لا تثبّت */
   documents: multiEnum(CLIENT_DOC_CODES as unknown as readonly [string, ...string[]]),
+
+  /**
+   * «فلوسي حاضرة»: مسار بلا بنك. من صرّح بها لا يُسأل عن القسط ولا عن
+   * وضعه مع البنك، ويُسأل عن الميزانية المتوفّرة بدلاً من الدخل.
+   */
+  cashReady: optionalFlag,
 
   // 5 — الاتصال والموافقة
   fullName: z.string().trim().min(3, 'الاسم الكامل مطلوب').max(120),

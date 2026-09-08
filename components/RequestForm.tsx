@@ -246,7 +246,11 @@ export default function RequestForm({
   const canNext = () => {
     if (step === 1) return Boolean(values.requestType)
     if (step === 2) return Boolean(values.govCode && values.horizon)
-    if (step === 5) return num('monthlyIncome') > 0 && Boolean(values.employment)
+    // من صرّح أنّ فلوسه حاضرة يُسأل عن الميزانية المتوفّرة لا عن الدخل
+    if (step === 5)
+      return values.cashReady
+        ? num('downPayment') > 0 && Boolean(values.employment)
+        : num('monthlyIncome') > 0 && Boolean(values.employment)
     return true
   }
 
@@ -362,7 +366,9 @@ export default function RequestForm({
                 name="requestType"
                 value={rt}
                 checked={values.requestType === rt}
-                onChange={(e) => set('requestType', e.target.value)}
+                onChange={(e) =>
+                  setValues((v) => ({ ...v, requestType: e.target.value, cashReady: false }))
+                }
                 className="sr-only"
               />
               <span className="brick mb-3 block" aria-hidden="true" />
@@ -370,6 +376,43 @@ export default function RequestForm({
             </label>
           ))}
         </div>
+
+        {/* مسار بلا بنك: من عنده التمويل حاضر لا يحتاج دراسة قدرة على
+            الاقتراض، يحتاج مقاولاً وعرضاً. اختياره يضبط نوع المطلب
+            «بناء فوق أرض» ويرفع الأسئلة البنكية من طريقه. */}
+        <label
+          className={`mt-3 flex cursor-pointer items-start gap-3 rounded border p-5 transition ${
+            values.cashReady
+              ? 'border-gold bg-gold-soft'
+              : 'border-line bg-surface hover:border-line-strong'
+          }`}
+        >
+          <input
+            type="checkbox"
+            name="cashReady"
+            checked={Boolean(values.cashReady)}
+            onChange={(e) =>
+              setValues((v) => ({
+                ...v,
+                cashReady: e.target.checked,
+                ...(e.target.checked
+                  ? { requestType: 'build_on_land', financingState: 'self_funded' }
+                  : { financingState: '' }),
+              }))
+            }
+            className="mt-1 size-4 accent-[#a8781f]"
+          />
+          <span className="min-w-0">
+            <span className="flex flex-wrap items-center gap-2">
+              <span className="font-semibold">{t.cashReadyTitle}</span>
+              <span className="rounded bg-gold px-2 py-0.5 text-xs font-medium text-white">
+                {t.cashReadyBadge}
+              </span>
+            </span>
+            <span className="mt-1 block text-sm leading-7 text-muted">{t.cashReadyBody}</span>
+          </span>
+        </label>
+
         {err('requestType') && (
           <p className="mt-3 text-sm text-[#8c2f22]">{err('requestType')}</p>
         )}
@@ -876,6 +919,7 @@ export default function RequestForm({
               ))}
             </select>
           </Field>
+          {!values.cashReady && (
           <Field label={t.financingState} hint={t.optional} error={err('financingState')}>
             <select
               name="financingState"
@@ -891,9 +935,42 @@ export default function RequestForm({
               ))}
             </select>
           </Field>
+          )}
         </div>
 
-        <label className="mt-6 flex cursor-pointer items-start gap-3 rounded border border-line bg-surface p-4">
+        {/* الكراء: أوضح دليل على القدرة الشهرية — يدفعه فعلاً كلّ شهر */}
+        <div className="mt-6 rounded border border-line bg-surface p-4 sm:p-5">
+          <label className="flex cursor-pointer items-start gap-3">
+            <input
+              type="checkbox"
+              name="isRenting"
+              checked={Boolean(values.isRenting)}
+              onChange={(e) => set('isRenting', e.target.checked)}
+              className="mt-1 size-4 accent-[#1d3a5f]"
+            />
+            <span className="text-sm leading-7 font-medium">{t.isRenting}</span>
+          </label>
+
+          {values.isRenting && (
+            <div className="mt-4">
+              <Field label={t.rentTnd} hint={t.rentHint} error={err('rentTnd')}>
+                <input
+                  type="number"
+                  inputMode="numeric"
+                  name="rentTnd"
+                  min={0}
+                  max={20000}
+                  value={String(values.rentTnd ?? '')}
+                  onChange={(e) => set('rentTnd', e.target.value)}
+                  className={inputCls}
+                />
+              </Field>
+              <p className="mt-2 text-xs leading-6 text-faint">{t.rentWhy}</p>
+            </div>
+          )}
+        </div>
+
+        <label className="mt-4 flex cursor-pointer items-start gap-3 rounded border border-line bg-surface p-4">
           <input
             type="checkbox"
             name="hasDisability"
@@ -909,6 +986,11 @@ export default function RequestForm({
       <fieldset className={step === 5 ? 'block' : 'hidden'}>
         <legend className="display mb-2 text-2xl font-semibold">{t.s4Title}</legend>
         <p className="mb-6 text-muted">{t.s4Lede}</p>
+        {values.cashReady && (
+          <p className="mb-6 rounded border border-gold/40 bg-gold-soft px-4 py-3 text-sm leading-7 text-gold">
+            {t.cashReadyNote}
+          </p>
+        )}
 
         <div className="grid gap-5 sm:grid-cols-2">
           <Field label={t.income} error={err('monthlyIncome')}>
@@ -951,7 +1033,7 @@ export default function RequestForm({
               className={inputCls}
             />
           </Field>
-          <Field label={t.downPayment}>
+          <Field label={values.cashReady ? t.budgetReady : t.downPayment}>
             <input
               type="number"
               inputMode="numeric"
@@ -961,6 +1043,7 @@ export default function RequestForm({
               className={inputCls}
             />
           </Field>
+          {!values.cashReady && (
           <Field label={t.maxMonthly} hint={t.optional}>
             <input
               type="number"
@@ -971,6 +1054,7 @@ export default function RequestForm({
               className={inputCls}
             />
           </Field>
+          )}
           <Field label={t.employment} error={err('employment')}>
             <select
               name="employment"

@@ -36,6 +36,7 @@ const request: RequestRow = {
   cnss_number_years: 8,
   problem_type: 'financing',
   financing_state: 'not_started',
+  cash_ready: false,
 }
 
 const finance: FinanceRow = {
@@ -51,6 +52,16 @@ const finance: FinanceRow = {
   expat_country: null,
 }
 
+const social = {
+  household_size: 5,
+  dependents: 3,
+  has_disability: false,
+  housing_condition: 'rented_unstable',
+  income_stability: 'low_stable',
+  is_renting: true,
+  rent_tnd: 620,
+}
+
 const land: LandRow = {
   area_m2: 300,
   title_status: 'titled',
@@ -61,7 +72,7 @@ const land: LandRow = {
 }
 
 describe('toFormValues', () => {
-  const v = toFormValues(request, finance, land)
+  const v = toFormValues(request, finance, land, null, social)
 
   it('يعطي كلّ حقل قابل للتعديل قيمة', () => {
     for (const f of OWNER_FIELDS) expect(v, f).toHaveProperty(f)
@@ -93,11 +104,24 @@ describe('toFormValues', () => {
     expect(v.consent).toBe(true)
   })
 
+  it('الكراء يعبر كما هو — دليل القدرة الشهرية', () => {
+    expect(v.isRenting).toBe(true)
+    expect(v.rentTnd).toBe('620')
+  })
+
+  it('«فلوسي حاضرة» تُقرأ من المطلب لا من وضع التمويل', () => {
+    expect(v.cashReady).toBe(false)
+    const ready = toFormValues({ ...request, cash_ready: true }, finance, land)
+    expect(ready.cashReady).toBe(true)
+  })
+
   it('يشتغل بلا معطى مالي ولا أرض', () => {
     const bare = toFormValues(request, null, null)
     expect(bare.monthlyIncome).toBe('')
     expect(bare.landAreaM2).toBe('')
     expect(bare.hasWater).toBe(false)
+    expect(bare.isRenting).toBe(false)
+    expect(bare.rentTnd).toBe('')
   })
 })
 
@@ -114,7 +138,7 @@ describe('monthsToYears', () => {
 })
 
 describe('diffValues', () => {
-  const before = toFormValues(request, finance, land)
+  const before = toFormValues(request, finance, land, null, social)
 
   it('لا يرى تبديلاً حين لا شيء تبدّل', () => {
     // ما يرجع من الاستمارة أرقام لا نصوص — ولازم يُعتبر نفس القيمة

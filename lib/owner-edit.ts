@@ -29,6 +29,7 @@ export type RequestRow = {
   cnss_number_years: number | null
   problem_type: string | null
   financing_state: string | null
+  cash_ready: boolean | null
 }
 
 export type FinanceRow = {
@@ -60,6 +61,8 @@ export type SocialRow = {
   has_disability: boolean | null
   housing_condition: string | null
   income_stability: string | null
+  is_renting: boolean | null
+  rent_tnd: number | null
 }
 
 export type LandRow = {
@@ -130,8 +133,11 @@ export function toFormValues(
     hasDisability: b(social?.has_disability),
     housingCondition: social?.housing_condition ?? '',
     incomeStability: social?.income_stability ?? '',
+    isRenting: b(social?.is_renting),
+    rentTnd: s(social?.rent_tnd ?? null),
     problemType: r.problem_type ?? '',
     financingState: r.financing_state ?? '',
+    cashReady: b(r.cash_ready),
 
     // نفس شكل المرونة: نصّ بفواصل تفهمه الاستمارة
     documents: [...declaredDocs].sort().join(','),
@@ -243,8 +249,11 @@ export const OWNER_FIELDS = [
   'hasDisability',
   'housingCondition',
   'incomeStability',
+  'isRenting',
+  'rentTnd',
   'problemType',
   'financingState',
+  'cashReady',
   'documents',
   'landAreaM2',
   'titleStatus',
@@ -331,8 +340,11 @@ export const FIELD_LABELS_AR: Record<string, string> = {
   hasDisability: 'إعاقة أو مرض مزمن',
   housingCondition: 'وضعية السكن الحالية',
   incomeStability: 'استقرار الدخل',
+  isRenting: 'كاري',
+  rentTnd: 'الكراء الشهري',
   problemType: 'أكبر عائق',
   financingState: 'وضع التمويل',
+  cashReady: 'التمويل حاضر',
   documents: 'الوثائق المصرَّح بها',
   landAreaM2: 'مساحة الأرض',
   titleStatus: 'وضعية الرسم',

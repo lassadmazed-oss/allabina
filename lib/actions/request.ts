@@ -148,7 +148,9 @@ export async function submitRequest(
       flexibility: d.flexibility.length ? d.flexibility : null,
       problem_note: d.problemNote || null,
       problem_type: d.problemType,
-      financing_state: d.financingState ?? 'not_started',
+      // «فلوسي حاضرة» تحسم وضع التمويل: لا بنك ولا دراسة اقتراض
+      financing_state: d.cashReady ? 'self_funded' : d.financingState ?? 'not_started',
+      cash_ready: d.cashReady,
       foprolos_interest: d.foprolosInterest,
       is_first_home: d.isFirstHome,
       has_social_housing: d.hasSocialHousing,

@@ -55,7 +55,8 @@ export async function writeClientAnswers(requestId: string, d: RequestData): Pro
     d.dependents !== null ||
     d.hasDisability ||
     d.housingCondition !== null ||
-    d.incomeStability !== null
+    d.incomeStability !== null ||
+    d.isRenting
 
   if (hasSocial) {
     const { error } = await db.from('social_assessments').upsert(
@@ -66,6 +67,9 @@ export async function writeClientAnswers(requestId: string, d: RequestData): Pro
         has_disability: d.hasDisability,
         housing_condition: d.housingCondition,
         income_stability: d.incomeStability,
+        is_renting: d.isRenting,
+        // الكراء بلا «كاري» لا معنى له: من رفع التأشيرة يُمحى مبلغه
+        rent_tnd: d.isRenting ? d.rentTnd : null,
         updated_at: new Date().toISOString(),
       },
       { onConflict: 'request_id' }
