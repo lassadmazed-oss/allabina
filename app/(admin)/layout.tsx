@@ -1,10 +1,12 @@
-import type { Metadata } from 'next'
+import type { Metadata, Viewport } from 'next'
 import '../globals.css'
 
 export const metadata: Metadata = {
   title: 'لوحة القيادة — اللَّبنة',
   robots: { index: false, follow: false },
 }
+
+export const viewport: Viewport = { themeColor: '#ffffff', colorScheme: 'light' }
 
 /** الـBack-office بالعربية فقط — فضاء داخلي لفريق اللَّبنة. */
 export default function AdminRootLayout({ children }: { children: React.ReactNode }) {

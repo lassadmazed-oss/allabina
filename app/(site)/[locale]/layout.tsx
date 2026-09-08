@@ -1,5 +1,5 @@
 import { Suspense } from 'react'
-import type { Metadata } from 'next'
+import type { Metadata, Viewport } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import '../../globals.css'
@@ -7,6 +7,19 @@ import LangSwitch from '@/components/LangSwitch'
 import MobileNav from '@/components/MobileNav'
 import { LOCALES, dirOf, getDictionary, isLocale, otherLocale, path, type Locale } from '@/lib/i18n'
 import { canonicalUrl, languageAlternates, siteUrl } from '@/lib/site'
+
+/**
+ * لون شريط المتصفّح على التليفون: بلا هذا يبقى أبيض النظام فوق ترويسة
+ * بيضاء، فيبدو الموقع كصفحة داخل متصفّح لا كتطبيق. maximum-scale لا
+ * نضعه: منع التكبير يمنع من يحتاجه.
+ */
+export const viewport: Viewport = {
+  themeColor: [
+    { media: '(prefers-color-scheme: light)', color: '#ffffff' },
+    { media: '(prefers-color-scheme: dark)', color: '#12243c' },
+  ],
+  colorScheme: 'light',
+}
 
 export function generateStaticParams() {
   return LOCALES.map((locale) => ({ locale }))
