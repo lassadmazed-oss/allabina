@@ -172,6 +172,7 @@ export default async function RequestDetail({ params }: { params: Promise<{ id: 
     { data: interactions },
     { data: docs },
     { data: requestFiles },
+    { data: smsRows },
     { data: social },
     { data: config },
     { data: latestDevis },
@@ -208,6 +209,7 @@ export default async function RequestDetail({ params }: { params: Promise<{ id: 
       .order('created_at', { ascending: false }),
     db.from('request_documents').select('*').eq('request_id', id),
     db.from('request_files').select('*').eq('request_id', id).order('created_at'),
+    db.from('sms_log').select('template, status, to_number, error, sent_at, created_at').eq('request_id', id).order('created_at', { ascending: false }),
     db.from('social_assessments').select('*').eq('request_id', id).maybeSingle(),
     db.from('project_configs').select('*').eq('request_id', id).maybeSingle(),
     db
@@ -362,6 +364,17 @@ export default async function RequestDetail({ params }: { params: Promise<{ id: 
           <Row k="الأفق الزمني" v={LABELS.horizon[r.horizon] ?? '—'} />
           <Row k="الحالة" v={LABELS.status[r.status] ?? r.status} />
           <Row k="تاريخ التسجيل" v={new Date(r.created_at).toLocaleString('fr-TN')} />
+          <Row
+            k="رسالة التأكيد (SMS)"
+            v={(() => {
+              const sms = (smsRows ?? []).find((x) => x.template === 'request_confirmation')
+              if (!sms) return 'لم تُرسل — المطلب سُجّل قبل تفعيل الرسائل أو من البذرة'
+              if (sms.status === 'sent') return `وصلت إلى ${sms.to_number} · ${new Date(sms.sent_at ?? sms.created_at).toLocaleString('fr-TN')}`
+              if (sms.status === 'failed') return `فشلت — ${sms.error ?? 'بلا تفصيل'}`
+              if (sms.status === 'skipped') return `لم تُرسل — ${sms.error ?? ''}`
+              return 'في الانتظار'
+            })()}
+          />
           <Row
             k="درجة الاستعجال"
             v={

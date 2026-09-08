@@ -1,6 +1,8 @@
 'use server'
 
 import { redirect } from 'next/navigation'
+import { after } from 'next/server'
+import { sendPropertyConfirmation } from '@/lib/sms/winsms'
 import { headers } from 'next/headers'
 import { db } from '@/lib/supabase/server'
 import { propertySchema } from '@/lib/property-schema'
@@ -96,7 +98,7 @@ export async function submitProperty(
       consent_at: new Date().toISOString(),
       status: 'pending',
     })
-    .select('ref_code')
+    .select('id, ref_code')
     .single()
 
   if (error || !inserted) {
@@ -106,5 +108,9 @@ export async function submitProperty(
 
   const locale = String(formData.get('locale') ?? '')
   const l = isLocale(locale) ? locale : DEFAULT_LOCALE
-  redirect(`/${l}/proprietaire/merci?ref=${inserted.ref_code}`)
+
+  const refCode = String(inserted.ref_code)
+  after(() => sendPropertyConfirmation(String(inserted.id), refCode, d.ownerPhone, l))
+
+  redirect(`/${l}/proprietaire/merci?ref=${refCode}`)
 }

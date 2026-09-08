@@ -1,6 +1,8 @@
 'use server'
 
 import { redirect } from 'next/navigation'
+import { after } from 'next/server'
+import { sendRequestConfirmation } from '@/lib/sms/winsms'
 import { headers } from 'next/headers'
 import { db, getBuildTiers, getFinanceContext } from '@/lib/supabase/server'
 import { buildCost, tierByKey } from '@/lib/pricing'
@@ -191,5 +193,11 @@ export async function submitRequest(
 
   const locale = String(formData.get('locale') ?? '')
   const l = isLocale(locale) ? locale : DEFAULT_LOCALE
-  redirect(`/${l}/merci/${inserted.ref_code}`)
+
+  // الرمز يوصل على الهاتف بعد الردّ لا قبله: المزوّد البطيء ما يعطّلش المواطن،
+  // والفشل يُسجَّل في sms_log ولا يمسّ المطلب.
+  const refCode = String(inserted.ref_code)
+  after(() => sendRequestConfirmation(requestId, refCode, d.phone, l))
+
+  redirect(`/${l}/merci/${refCode}`)
 }
