@@ -731,12 +731,12 @@ footer{margin-top:60px;padding-top:22px;border-top:1px solid var(--line);color:v
     <table>
       <thead><tr><th>الجدول</th><th>الدور</th><th>الحالة</th></tr></thead>
       <tbody>
-        <tr><td><code>intervenant_categories</code></td><td>العائلات والاختصاصات — يحلّ محلّ <code>enum partner_kind</code></td><td><span class="st todo">ينقص</span></td></tr>
-        <tr><td><code>skills</code> · <code>intervenant_skills</code></td><td>الـSavoir-faire متعدّد الاختيار</td><td><span class="st todo">ينقص</span></td></tr>
-        <tr><td><code>intervenants</code></td><td>الملفّ المهني 360° وحالته في مسار الاعتماد</td><td><span class="st partial">يوسّع <code>partners</code></span></td></tr>
-        <tr><td><code>intervenant_zones</code></td><td>نطاق التدخّل فوق الجغرافيا القائمة</td><td><span class="st todo">ينقص</span></td></tr>
-        <tr><td><code>category_documents</code> · <code>intervenant_documents</code></td><td>الوثائق المطلوبة حسب الصنف وما سُلّم منها</td><td><span class="st todo">ينقص</span></td></tr>
-        <tr><td><code>portfolio_items</code></td><td>الأعمال السابقة بصورها</td><td><span class="st todo">ينقص</span></td></tr>
+        <tr><td><code>intervenant_families</code> · <code>intervenant_categories</code></td><td>العائلات والاختصاصات — بديل <code>enum partner_kind</code></td><td><span class="st done">منفَّذ</span></td></tr>
+        <tr><td><code>skills</code> · <code>intervenant_skills</code></td><td>الـSavoir-faire متعدّد الاختيار</td><td><span class="st done">منفَّذ</span></td></tr>
+        <tr><td><code>intervenants</code></td><td>الملفّ المهني 360° وحالته في مسار الاعتماد</td><td><span class="st done">منفَّذ</span></td></tr>
+        <tr><td><code>intervenant_zones</code></td><td>نطاق التدخّل فوق الجغرافيا القائمة</td><td><span class="st done">منفَّذ</span></td></tr>
+        <tr><td><code>category_documents</code> · <code>intervenant_documents</code></td><td>الوثائق المطلوبة حسب الصنف وما سُلّم منها</td><td><span class="st partial">الجداول جاهزة · ينتظر التخزين</span></td></tr>
+        <tr><td><code>portfolio_items</code> · <code>portfolio_media</code></td><td>الأعمال السابقة بصورها</td><td><span class="st partial">الجداول جاهزة · ينتظر التخزين</span></td></tr>
         <tr><td><code>assignments</code></td><td>متدخّل ← مشروع ← Lot ← Articles · الأسعار الثلاثة</td><td><span class="st todo">ينقص</span></td></tr>
         <tr><td><code>evaluations</code></td><td>التقييم بعد كلّ مهمّة وملفّ الأداء</td><td><span class="st todo">ينقص</span></td></tr>
         <tr><td><code>supplier_catalog</code> · <code>rfq</code> · <code>rfq_offers</code></td><td>كتالوج المزوّد وطلبات الأسعار</td><td><span class="st todo">مرحلة لاحقة · البنية تسمح</span></td></tr>
@@ -746,8 +746,8 @@ footer{margin-top:60px;padding-top:22px;border-top:1px solid var(--line);color:v
     </table>
   </div>
 
-  <div class="built"><b>منفَّذ اليوم:</b> جدول <code>partners</code> بثمانية أنواع وشاشة «الشركاء» في الـBack-office · <code>tasks</code> يسنِد مهمّة إلى شريك داخل ملفّ حريف · <code>contributions</code> يسجّل مساهمة شريك في حلّ · البوردرو كاملاً (<code>lots</code> · <code>articles</code> · <code>devis</code>) · الجغرافيا المتسلسلة · نظام الأدوار وسجلّ التدقيق.</div>
-  <div class="gap"><b>ينقص:</b> الملفّ المهني 360° والـsavoir-faire والـportfolio · الوثائق حسب الصنف · نطاق التدخّل والتوفّر · مسار الاعتماد بحالاته الثمانية · المطابقة مع الـchantier · الإسناد على مستوى الـLot والـArticle بأسعاره الثلاثة · التقييم وملفّ الأداء · كتالوج المزوّدين والـRFQ · حساب المتدخّل ولوحته. وقبل هذا كلّه: <b>تفعيل Supabase Storage</b> — بلا تخزين آمن للملفّات لا وثائق ولا portfolio.</div>
+  <div class="built"><b>منفَّذ اليوم:</b> التصنيفات في جداول لا في enum — <code>intervenant_families</code> (4) و<code>intervenant_categories</code> (43) و<code>skills</code> (32) و<code>document_types</code> (9) و<code>category_documents</code> (112 قاعدة إلزام) · الملفّ المهني <code>intervenants</code> بحالاته الثماني ووضعيّته القانونية وتوفّره ونطاق تنقّله · <code>intervenant_skills</code> و<code>intervenant_extra_categories</code> و<code>intervenant_zones</code> · <code>intervenant_documents</code> و<code>portfolio_items</code> و<code>portfolio_media</code> (الجداول جاهزة، تنتظر التخزين) · <code>intervenant_events</code> يسجّل من غيّر الحالة ومتى ولماذا · استمارة انضمام عمومية على <code>/[locale]/reseau</code> بالعربية والفرنسية · شاشة <code>/admin/reseau</code> بمؤشّرات وفلاتر وتغيير حالة محكوم بمسار الاعتماد · صلاحيتان جديدتان <code>network.read</code> و<code>network.manage</code>. وقبلها: البوردرو (<code>lots</code> · <code>articles</code> · <code>devis</code>) والجغرافيا المتسلسلة ونظام الأدوار.</div>
+  <div class="gap"><b>ينقص:</b> رفع الوثائق والـportfolio فعلياً — الجداول موجودة لكن <b>Supabase Storage غير مفعَّل</b>، وهو الحاجز الأوّل · شاشة ملفّ المتدخّل المفرد بملاحظاتها الداخلية وطلب الوثائق · الإسناد على مستوى الـLot والـArticle بأسعاره الثلاثة · التقييم وملفّ الأداء · المطابقة مع الـchantier · كتالوج المزوّدين والـRFQ · حساب المتدخّل ولوحته وسياسات RLS التي تحصر ما يراه.</div>
   <div class="note"><b>ترتيب مقترح للتنفيذ:</b> (1) تحويل التصنيفات إلى جداول قابلة للتوسيع وتوسيع <code>partners</code> إلى ملفّ 360° · (2) الوثائق والتخزين ومسار الاعتماد · (3) الجغرافيا والتوفّر · (4) الإسناد على البوردرو بالأسعار الثلاثة — وهنا تبدأ قاعدة الأسعار الحقيقية في التكوّن · (5) التقييم وملفّ الأداء · (6) المطابقة التي تستهلك كلّ ما سبق · (7) المزوّدون والكتالوج والـRFQ. المطابقة آخر ما يُبنى لا أوّله: محرّك بلا معطيات يرتّبها لا قيمة له.</div>
 </section>
 
