@@ -9,7 +9,7 @@ import { formatTND } from '@/lib/finance'
 import { labelEmployment, seniorityYearsLabel } from '@/lib/scoring'
 import { publicStateOf } from '@/lib/public-state'
 import { rankProperties, type MatchProperty } from '@/lib/matching'
-import { formatNumber } from '@/lib/format'
+import { formatNumber, formatPercent } from '@/lib/format'
 import { generateDevisAction, updateProjectConfigAction } from '@/lib/actions/devis'
 import { daysLeft, isDevisExpired } from '@/lib/devis'
 import { saveMatchAction, updateMatchAction } from '@/lib/actions/property-admin'
@@ -1196,7 +1196,7 @@ export default async function RequestDetail({ params }: { params: Promise<{ id: 
                     </div>
                   </div>
                   <span className="num rounded bg-brand-soft px-3 py-1 text-sm font-semibold text-brand">
-                    {m.score}%
+                    {formatPercent(Number(m.score))}
                   </span>
                 </div>
 
@@ -1245,7 +1245,7 @@ export default async function RequestDetail({ params }: { params: Promise<{ id: 
                   <span className="num text-brand" dir="ltr">
                     {propertyRefById.get(m.property_id)?.ref ?? m.property_id.slice(0, 8)}
                   </span>
-                  <span className="num text-xs text-muted">{m.score}%</span>
+                  <span className="num text-xs text-muted">{formatPercent(Number(m.score))}</span>
                   <form action={updateMatchAction} className="flex items-center gap-2">
                     <input type="hidden" name="match_id" value={m.id} />
                     <input type="hidden" name="request_id" value={r.id} />

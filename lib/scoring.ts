@@ -4,6 +4,7 @@
  * للحريف وللبنك. الحساب في الخادم فقط.
  */
 import { computeCapacity, monthlyPayment, type FinanceSettings } from './finance'
+import { formatPercent } from '@/lib/format'
 
 export const ALGO_VERSION = 'v1'
 
@@ -105,7 +106,7 @@ export function computeScore(input: ScoreInput): ScoreResult {
     points: round(downPoints),
     reason:
       (input.downPayment || 0) > 0
-        ? `تسبقة تمثّل ${Math.round(downRatio * 100)}% من الميزانية`
+        ? `تسبقة تمثّل ${formatPercent(Math.round(downRatio * 100))} من الميزانية`
         : 'بلا تسبقة مصرّح بها',
   })
 

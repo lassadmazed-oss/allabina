@@ -1,3 +1,5 @@
+import { Suspense } from 'react'
+import { formatPercent } from '@/lib/format'
 import { checkSmsBalance } from '@/lib/sms/winsms'
 import Link from 'next/link'
 import { requireStaff } from '@/lib/auth'
@@ -117,7 +119,7 @@ export default async function AdminPage({
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-5 sm:py-10">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h1 className="display text-2xl font-semibold">لوحة القيادة</h1>
+          <h1 className="display text-lg font-semibold">لوحة القيادة</h1>
           <p className="mt-1 text-sm text-muted">
             {requests.length} مطلب · {countToday} اليوم
           </p>
@@ -125,9 +127,9 @@ export default async function AdminPage({
       </div>
 
       {/* المؤشرات */}
-      <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <Kpi label="مجموع المطالب" value={String(requests.length)} />
-        <Kpi label="نسبة الأصناف A و B" value={`${qualityPct}%`} />
+        <Kpi label="نسبة الأصناف A و B" value={formatPercent(qualityPct)} />
         <Kpi
           label="معدّل الميزانية التقديرية"
           value={budgetCount ? formatTND(budgetSum / budgetCount) : '—'}
@@ -135,10 +137,19 @@ export default async function AdminPage({
         <Kpi label="استفسارات مفتوحة" value={String((openItems ?? []).length)} />
       </div>
 
-      <SmsBalance promise={smsBalancePromise} />
+      {/* رصيد الرسائل نداء خارجي بمهلة 6 ثوانٍ: يُبثّ ولا يحبس اللوحة */}
+      <Suspense
+        fallback={
+          <p className="mt-3 rounded border border-line bg-surface px-3 py-2 text-xs text-faint">
+            رصيد الرسائل القصيرة…
+          </p>
+        }
+      >
+        <SmsBalance promise={smsBalancePromise} />
+      </Suspense>
 
       {topGovs.length > 0 && (
-        <div className="mt-4 rounded border border-line bg-surface p-5">
+        <div className="mt-4 rounded border border-line bg-surface p-4">
           <div className="text-sm font-medium">الطلب حسب الولاية</div>
           <div className="mt-4 space-y-2">
             {topGovs.map(([gov, n]) => (
@@ -159,7 +170,7 @@ export default async function AdminPage({
 
       <div className="mt-4 grid gap-4 lg:grid-cols-2">
         {topDelegations.length > 0 && (
-          <div className="rounded border border-line bg-surface p-5">
+          <div className="rounded border border-line bg-surface p-4">
             <div className="text-sm font-medium">الطلب حسب معتمديات صفاقس</div>
             <div className="mt-4 space-y-2">
               {topDelegations.map(([name, n]) => (
@@ -181,7 +192,7 @@ export default async function AdminPage({
         )}
 
         {(dueActions ?? []).length > 0 && (
-          <div className="rounded border border-line bg-surface p-5">
+          <div className="rounded border border-line bg-surface p-4">
             <div className="text-sm font-medium">إجراءات في انتظار التنفيذ</div>
             <ul className="mt-4 space-y-2 text-sm">
               {(dueActions ?? []).map((a) => (
@@ -200,7 +211,7 @@ export default async function AdminPage({
       </div>
 
       {/* الفلاتر */}
-      <div className="mt-8 flex flex-wrap gap-2 text-sm">
+      <div className="mt-4 flex flex-wrap gap-2 text-sm">
         <Filter active={!sp.status && !sp.band} href="/admin" label="الكلّ" />
         {['A', 'B', 'C', 'D'].map((b) => (
           <Filter key={b} active={sp.band === b} href={`/admin?band=${b}`} label={`الصنف ${b}`} />
@@ -249,19 +260,19 @@ export default async function AdminPage({
                       {r.ref_code}
                     </Link>
                   </td>
-                  <td className="px-4 py-3">
+                  <td className="px-3 py-2">
                     <div className="font-medium">{r.full_name}</div>
                     <div className="num text-xs text-faint" dir="ltr">
                       {r.phone}
                     </div>
                   </td>
-                  <td className="px-4 py-3">{r.gov_code === 'SFX' ? 'صفاقس' : r.gov_code}</td>
+                  <td className="px-3 py-2">{r.gov_code === 'SFX' ? 'صفاقس' : r.gov_code}</td>
                   <td className="px-4 py-3 text-xs text-muted">
                     {r.delegation_id ? delegName.get(r.delegation_id) ?? '—' : '—'}
                   </td>
-                  <td className="px-4 py-3">{LABELS.requestType[r.request_type] ?? r.request_type}</td>
+                  <td className="px-3 py-2">{LABELS.requestType[r.request_type] ?? r.request_type}</td>
                   <td className="num px-4 py-3">{r.desired_area_m2 ?? '—'}</td>
-                  <td className="px-4 py-3">
+                  <td className="px-3 py-2">
                     {s ? (
                       <span
                         className={`num rounded px-2 py-0.5 text-xs font-medium ${bandCls(s.band)}`}
@@ -275,7 +286,7 @@ export default async function AdminPage({
                   <td className="num px-4 py-3">
                     {s?.max_budget_tnd ? formatTND(s.max_budget_tnd) : '—'}
                   </td>
-                  <td className="px-4 py-3">
+                  <td className="px-3 py-2">
                     {canEdit ? (
                       <form action={updateStatusAction} className="flex items-center gap-2">
                         <input type="hidden" name="id" value={r.id} />
@@ -298,7 +309,7 @@ export default async function AdminPage({
                       <span className="text-xs text-faint">{LABELS.status[r.status]}</span>
                     )}
                   </td>
-                  <td className="num px-4 py-3 text-xs text-faint">
+                  <td className="num px-3 py-2 text-xs text-faint">
                     {new Date(r.created_at).toLocaleDateString('fr-TN')}
                   </td>
                 </tr>
@@ -322,7 +333,7 @@ function bandCls(band: string) {
 
 function Kpi({ label, value, small }: { label: string; value: string; small?: boolean }) {
   return (
-    <div className="rounded border border-line bg-surface p-5">
+    <div className="rounded border border-line bg-surface p-4">
       <div className="text-xs text-muted">{label}</div>
       <div className={`num mt-1 font-semibold text-ink ${small ? 'text-sm' : 'text-2xl'}`}>
         {value}

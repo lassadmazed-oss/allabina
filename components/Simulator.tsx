@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { computeCapacity, formatTND, monthlyPayment, type FinanceSettings } from '@/lib/finance'
 import { buildableArea, type TierPrice } from '@/lib/pricing'
 import { fmt, path, type Dictionary, type Locale } from '@/lib/i18n'
-import { areaLabel, formatNumber, formatRange, perM2Label } from '@/lib/format'
+import { areaLabel, formatNumber, formatPercent, formatRange, perM2Label } from '@/lib/format'
 
 type Product = {
   id: number
@@ -102,7 +102,7 @@ export default function Simulator({
               max={16}
               step={0.25}
               onChange={setRate}
-              display={`${rate.toFixed(2)}%`}
+              display={formatPercent(rate, 2)}
             />
             <Slider
               label={t.dti}
@@ -111,7 +111,7 @@ export default function Simulator({
               max={60}
               step={1}
               onChange={setDti}
-              display={`${dti}%`}
+              display={formatPercent(dti)}
             />
           </div>
         </div>
@@ -131,7 +131,7 @@ export default function Simulator({
                   <div className="num mt-3 flex flex-wrap gap-x-4 gap-y-1 text-sm">
                     {p.max_share_pct != null && (
                       <span>
-                        {t.upTo} <b className="text-brand">{p.max_share_pct}%</b> {t.ofCost}
+                        {t.upTo} <b className="text-brand">{formatPercent(Number(p.max_share_pct))}</b> {t.ofCost}
                       </span>
                     )}
                     {p.max_years != null && (

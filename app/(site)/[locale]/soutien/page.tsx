@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { formatPercent } from '@/lib/format'
 import PledgeForm from '@/components/PledgeForm'
 import { db } from '@/lib/supabase/server'
 import { fmt, getDictionary, isLocale, path, type Locale } from '@/lib/i18n'
@@ -168,7 +169,7 @@ export default async function SoutienPage({ params }: { params: Promise<{ locale
                         <span>
                           {fmt(t.progressLabel, { done: progress.done, total: progress.total })}
                         </span>
-                        <span className="num text-faint">{progress.percent}%</span>
+                        <span className="num text-faint">{formatPercent(progress.percent)}</span>
                       </div>
                       <div className="mt-2 h-1.5 rounded-full bg-surface-2" aria-hidden="true">
                         <div

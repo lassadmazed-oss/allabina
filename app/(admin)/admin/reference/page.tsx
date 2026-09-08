@@ -2,7 +2,7 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { requirePermission } from '@/lib/auth'
 import { db, getBuildTiers, getFinanceContext, getFinancingProducts } from '@/lib/supabase/server'
-import { formatNumber, formatRange } from '@/lib/format'
+import { formatNumber, formatPercent, formatRange } from '@/lib/format'
 import ImadaImport from '@/components/ImadaImport'
 import AssessmentConfigForm from '@/components/AssessmentConfigForm'
 import { loadAssessmentConfig } from '@/lib/actions/assessment'
@@ -43,7 +43,7 @@ export default async function ReferencePage() {
       <Link href="/admin" className="text-sm text-muted hover:text-brand">
         ← رجوع للوحة القيادة
       </Link>
-      <h1 className="display mt-3 text-2xl font-semibold">المعطيات المرجعية للمشروع</h1>
+      <h1 className="display mt-1 text-lg font-semibold">المعطيات المرجعية للمشروع</h1>
       <p className="mt-2 max-w-2xl text-muted">
         الفرضيات والأسعار اللي تشتغل بيها المنصة. كل شي مخزّن في قاعدة البيانات ويتبدّل بلا ما
         يتعاود نشر الكود.
@@ -59,10 +59,10 @@ export default async function ReferencePage() {
           والتنقيط يستعمل فرضيات داخلية موحّدة <b>غرضها الوحيد ترتيب المطالب فيما بينها</b>:
         </p>
         <div className="mt-4 grid gap-3 sm:grid-cols-4">
-          <Kv k="نسبة سنوية" v={`${finance.assumptions.annualRatePct}%`} />
-          <Kv k="سقف الاستدانة" v={`${finance.assumptions.maxDtiPct}%`} />
+          <Kv k="نسبة سنوية" v={formatPercent(finance.assumptions.annualRatePct, 2)} />
+          <Kv k="سقف الاستدانة" v={formatPercent(finance.assumptions.maxDtiPct)} />
           <Kv k="المدّة" v={`${finance.assumptions.maxYears} سنة`} />
-          <Kv k="مصاريف إضافية" v={`${finance.assumptions.registrationFeesPct}%`} />
+          <Kv k="مصاريف إضافية" v={formatPercent(finance.assumptions.registrationFeesPct, 1)} />
         </div>
         <p className="mt-3 text-xs text-faint">
           تتبدّل من جدول <code className="text-xs">app_settings</code> (المفاتيح{' '}
@@ -87,21 +87,21 @@ export default async function ReferencePage() {
             <tbody>
               {products.map((p) => (
                 <tr key={p.id} className="border-t border-line">
-                  <td className="px-4 py-3">{p.bank}</td>
-                  <td className="px-4 py-3">
+                  <td className="px-3 py-2">{p.bank}</td>
+                  <td className="px-3 py-2">
                     <div className="font-medium">{p.name}</div>
                     {p.purpose && <div className="text-xs text-muted">{p.purpose}</div>}
                   </td>
-                  <td className="px-4 py-3">
+                  <td className="px-3 py-2">
                     {p.target === 'individual' ? 'الأفراد' : 'المهنيين'}
                   </td>
                   <td className="num px-4 py-3">
-                    {p.max_share_pct != null ? `${p.max_share_pct}%` : '—'}
+                    {p.max_share_pct != null ? formatPercent(Number(p.max_share_pct)) : '—'}
                   </td>
                   <td className="num px-4 py-3">
                     {p.max_years != null ? `${p.max_years} سنة` : '—'}
                   </td>
-                  <td className="px-4 py-3">
+                  <td className="px-3 py-2">
                     {p.verified_at ? (
                       <span className="num text-xs text-brand">{p.verified_at}</span>
                     ) : (
@@ -121,7 +121,7 @@ export default async function ReferencePage() {
       <Section title="أسعار البناء (HT)">
         <div className="grid gap-3 sm:grid-cols-3">
           {build.tiers.map((t) => (
-            <div key={t.tier} className="rounded border border-line bg-surface p-5">
+            <div key={t.tier} className="rounded border border-line bg-surface p-4">
               <div className="font-semibold">{t.label}</div>
               <div className="num mt-1 text-lg text-brand">
                 <bdi dir="ltr">{formatRange(t.min, t.max)}</bdi> د/م²
@@ -201,7 +201,7 @@ export default async function ReferencePage() {
       </Section>
 
       {/* دراسة طلب المساندة — الأوزان والحدود */}
-      <section className="mt-10 rounded border border-line bg-surface p-4 sm:p-6">
+      <section className="mt-10 rounded border border-line bg-surface p-4">
         <h2 className="text-sm font-semibold">دراسة طلب المساندة: الأوزان وحدود الفئات</h2>
         <p className="mt-1 max-w-3xl text-xs leading-6 text-muted">
           ستّة معايير يقيّمها المستشار 0→3 بوصف مكتوب. الوزن يقول قدّاش يحسب كلّ معيار في
@@ -212,7 +212,7 @@ export default async function ReferencePage() {
       </section>
 
       {/* قنوات الاتّصال العمومية */}
-      <section className="mt-10 rounded border border-line bg-surface p-4 sm:p-6">
+      <section className="mt-10 rounded border border-line bg-surface p-4">
         <h2 className="text-sm font-semibold">قنوات الاتّصال العمومية</h2>
         <p className="mt-1 max-w-3xl text-xs leading-6 text-muted">
           تظهر في صفحات الشكر («كيفاش توصلنا؟»). الخانة الفارغة لا تُعرض. رقم الواتساب بالصيغة
@@ -259,7 +259,7 @@ const TIER_AR: Record<string, string> = {
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <section className="mt-10">
+    <section className="mt-5">
       <h2 className="mb-4 border-b border-line pb-2 text-lg font-semibold">{title}</h2>
       {children}
     </section>

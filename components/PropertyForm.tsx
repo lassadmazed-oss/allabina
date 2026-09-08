@@ -388,7 +388,7 @@ export default function PropertyForm({
                 name="priceTnd"
                 value={v.priceTnd}
                 onChange={(e) => set('priceTnd', e.target.value)}
-                placeholder="150 000"
+                placeholder="150 000"
                 aria-invalid={invalid('priceTnd') || undefined}
                 className={`${inputCls} num${invalidCls('priceTnd')}`}
               />

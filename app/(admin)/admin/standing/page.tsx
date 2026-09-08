@@ -7,7 +7,7 @@ import {
   upsertStandingLevelAction,
 } from '@/lib/actions/standing'
 import { lotBreakdown, sharesBalanced, shareTotal, type LotShare } from '@/lib/standing'
-import { formatNumber } from '@/lib/format'
+import { formatNumber, formatPercent } from '@/lib/format'
 
 export const metadata = { title: 'مستويات التشطيب — اللَّبنة' }
 export const dynamic = 'force-dynamic'
@@ -65,7 +65,7 @@ export default async function StandingAdminPage({
       <Link href="/admin" className="text-sm text-muted hover:text-brand">
         ← لوحة القيادة
       </Link>
-      <h1 className="display mt-2 text-2xl font-semibold">مستويات التشطيب</h1>
+      <h1 className="display mt-1 text-lg font-semibold">مستويات التشطيب</h1>
       <p className="mt-1 max-w-3xl text-sm leading-7 text-muted">
         سعر المتر المربّع لكلّ مستوى، وتوزيعه على العشرين Lot.{' '}
         <b>تزيد مستوى جديد من هنا بلا مطوّر</b> — يظهر في استمارة المواطن مباشرةً. الأرقام تحت
@@ -73,7 +73,7 @@ export default async function StandingAdminPage({
       </p>
 
       {/* شريط المستويات */}
-      <div className="mt-8 overflow-x-auto">
+      <div className="mt-4 overflow-x-auto">
         <table className="w-full min-w-[760px] text-sm">
           <thead>
             <tr className="bg-surface-2">
@@ -98,10 +98,10 @@ export default async function StandingAdminPage({
                     selected?.code === lv.code ? 'bg-brand-soft' : ''
                   }`}
                 >
-                  <td className="num px-4 py-3 font-medium">{lv.code}</td>
-                  <td className="px-4 py-3">{lv.nameAr}</td>
+                  <td className="num px-3 py-2 font-medium">{lv.code}</td>
+                  <td className="px-3 py-2">{lv.nameAr}</td>
                   <td className="num px-4 py-3">{formatNumber(lv.price)}</td>
-                  <td className="num px-4 py-3 text-xs text-faint">
+                  <td className="num px-3 py-2 text-xs text-faint">
                     {formatNumber(lv.min)} – {formatNumber(lv.max)}
                   </td>
                   <td className="num px-4 py-3">
@@ -110,7 +110,7 @@ export default async function StandingAdminPage({
                         ok ? 'bg-brand-soft text-brand' : 'bg-gold-soft text-gold'
                       }`}
                     >
-                      {t}%
+                      {formatPercent(Number(t), 2)}
                     </span>
                   </td>
                   <td className="num px-4 py-3 text-xs text-muted">
@@ -119,7 +119,7 @@ export default async function StandingAdminPage({
                   <td className="num px-4 py-3">
                     {formatNumber(lv.price * REFERENCE_SURFACE)} د.ت
                   </td>
-                  <td className="px-4 py-3">
+                  <td className="px-3 py-2">
                     <Link
                       href={`/admin/standing?level=${lv.code}`}
                       className="text-xs text-brand hover:underline"
@@ -136,7 +136,7 @@ export default async function StandingAdminPage({
 
       {/* تحرير المستوى المختار */}
       {selected && (
-        <section className="mt-10 rounded border border-line bg-surface p-4 sm:p-6">
+        <section className="mt-10 rounded border border-line bg-surface p-4">
           <h2 className="text-sm font-semibold">
             المستوى <span className="num">{selected.code}</span> — {selected.nameAr}
           </h2>
@@ -240,11 +240,11 @@ export default async function StandingAdminPage({
                   <tbody>
                     {breakdown.map((line) => (
                       <tr key={line.lotCode} className="border-t border-line">
-                        <td className="px-4 py-2">
+                        <td className="px-3 py-1.5">
                           <span className="num text-xs text-faint">{line.lotCode}</span>{' '}
                           {line.lotNameAr}
                         </td>
-                        <td className="px-4 py-2">
+                        <td className="px-3 py-1.5">
                           <input
                             name={`share_${line.lotCode}`}
                             type="number"
@@ -281,7 +281,7 @@ export default async function StandingAdminPage({
       )}
 
       {/* مستوى جديد */}
-      <section className="mt-10 rounded border border-line bg-surface p-4 sm:p-6">
+      <section className="mt-10 rounded border border-line bg-surface p-4">
         <h2 className="text-sm font-semibold">مستوى جديد</h2>
         <p className="mt-1 text-xs leading-6 text-muted">
           الرمز حروف وأرقام فقط (B06 مثلاً). التوزيع يُنسخ تلقائياً من أقرب مستوى بالسعر، وتنجّم
@@ -327,7 +327,7 @@ export default async function StandingAdminPage({
         </form>
       </section>
 
-      <p className="mt-6 rounded border border-line bg-gold-soft p-4 text-xs leading-6">
+      <p className="mt-4 rounded border border-line bg-gold-soft p-4 text-xs leading-6">
         بعد أيّ تعديل، شغّل <code className="num">npm run check:bordereau</code> — يقولّك إذا بعد
         مجموع العرض التفصيلي على سعر المتر المربّع المعلن.
       </p>

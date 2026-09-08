@@ -33,17 +33,46 @@ export const perM2Label = (locale: Locale = 'ar') => (locale === 'fr' ? 'DT/m²'
 /** وحدة المساحة حسب اللغة */
 export const areaLabel = (locale: Locale = 'ar') => (locale === 'fr' ? 'm²' : 'م²')
 
-/** مجال «من – إلى» — يُلفّ في <bdi dir="ltr"> عند العرض حتى لا ينقلب */
-export function formatRange(min: number, max: number): string {
-  return `${formatNumber(min)} – ${formatNumber(max)}`
-}
-
 /**
  * جزيرة اتّجاه يسار→يمين بمحارف يونيكود: LRI … PDI.
  * تُستعمل حيث لا نملك عنصر HTML (داخل قوالب الترجمة مثلاً).
  */
 export const LRI = '⁦'
 export const PDI = '⁩'
+
+/** يعزل ما بداخله في جزيرة LTR مهما كان اتّجاه ما حوله */
+export const ltr = (text: string) => `${LRI}${text}${PDI}`
+
+/**
+ * مجال «من – إلى».
+ *
+ * الشرطة بين رقمين محايدة في خوارزمية الاتجاه، والأرقام تؤثّر فيها
+ * كأنّها يمين→يسار — فتنقلب الكتلة كلّها داخل نصّ عربي ويُقرأ المجال
+ * «2 000 – 1 200»: الحدّ الأعلى يظهر أدنى. الخطأ لا يُرى في الكود ولا
+ * في القاعدة، والرقمان صحيحان — المقلوب هو المعنى.
+ *
+ * العزل هنا لا عند نقطة الاستعمال: من ينسى <bdi> مرّة يشحن مجالاً
+ * مقلوباً، والدالّة لا تُنسى.
+ */
+export function formatRange(min: number, max: number): string {
+  return ltr(`${formatNumber(min)} – ${formatNumber(max)}`)
+}
+
+/**
+ * نسبة مئوية: «92%».
+ *
+ * علامة % محايدة الاتجاه، وداخل فقرة عربية تنزل يسار الرقم فتُقرأ
+ * «%92». قِسنا ذلك فعلاً على شاشة اللوحة: الرقم عند 273 والعلامة عند
+ * 262. العزل يثبّتها على يمين الرقم في كلّ سياق، فلا تتبدّل النسبة
+ * حسب ما قبلها وما بعدها.
+ *
+ * تُستعمل للعرض وحده — لا في `style={{ width: '50%' }}`، فتلك CSS
+ * لا نصّ، ومحارف العزل تفسدها.
+ */
+export function formatPercent(value: number, decimals = 0): string {
+  if (!Number.isFinite(value)) return '—'
+  return ltr(`${formatNumber(value, decimals)}%`)
+}
 
 /**
  * مبلغ بإشارة: «−12 000 د.ت» / «+3 900 د.ت».
