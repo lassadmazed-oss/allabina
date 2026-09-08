@@ -24,6 +24,13 @@ const STATUS_AR: Record<string, string> = {
   sold: 'خرج من السوق',
 }
 
+const CONDITION_AR: Record<string, string> = {
+  new: 'جديد',
+  good: 'جيّد',
+  to_refresh: 'يحتاج تحسيناً',
+  to_renovate: 'يحتاج ترميماً',
+}
+
 const LEGAL_AR: Record<string, string> = {
   titled: 'رسم عقاري',
   in_progress: 'في طور التسوية',
@@ -50,6 +57,23 @@ type Property = {
   area_m2: number | null
   built_area_m2: number | null
   rooms: number | null
+  bedrooms: number | null
+  living_rooms: number | null
+  bathrooms: number | null
+  floors: number | null
+  floor_number: number | null
+  year_built: number | null
+  condition: string | null
+  garage: boolean | null
+  garden: boolean | null
+  terrace: boolean | null
+  elevator: boolean | null
+  furnished: boolean | null
+  water_connected: boolean | null
+  power_connected: boolean | null
+  road_access: boolean | null
+  frontage_m: number | null
+  buildable: boolean | null
   price_tnd: number | null
   negotiable: boolean
   legal_status: string | null
@@ -159,6 +183,50 @@ export default async function PropertiesPage({
                 v={p.built_area_m2 ? `${formatNumber(Number(p.built_area_m2))} م²` : '—'}
               />
               <Row k="الغرف" v={p.rooms ? String(p.rooms) : '—'} />
+              <Row
+                k="التوزيع"
+                v={
+                  [
+                    p.bedrooms != null && `${p.bedrooms} غرف نوم`,
+                    p.living_rooms != null && `${p.living_rooms} صالون`,
+                    p.bathrooms != null && `${p.bathrooms} حمّام`,
+                    p.floors != null && `${p.floors} طوابق`,
+                    p.floor_number != null && `الطابق ${p.floor_number}`,
+                  ]
+                    .filter(Boolean)
+                    .join(' · ') || '—'
+                }
+              />
+              <Row
+                k="الحالة والسنة"
+                v={
+                  [p.condition && (CONDITION_AR[p.condition] ?? p.condition), p.year_built && `بُني ${p.year_built}`]
+                    .filter(Boolean)
+                    .join(' · ') || '—'
+                }
+              />
+              <Row
+                k="المرافق"
+                v={
+                  (
+                    [
+                      ['garage', 'جراج'],
+                      ['garden', 'حديقة'],
+                      ['terrace', 'شرفة/سطح'],
+                      ['elevator', 'مصعد'],
+                      ['furnished', 'مفروش'],
+                      ['water_connected', 'ماء'],
+                      ['power_connected', 'كهرباء'],
+                      ['road_access', 'طريق نفاذ'],
+                      ['buildable', 'قابلة للبناء'],
+                    ] as [keyof typeof p, string][]
+                  )
+                    .filter(([k]) => p[k] === true)
+                    .map(([, l]) => l)
+                    .join(' · ') || '—'
+                }
+              />
+              {p.frontage_m != null && <Row k="الواجهة" v={`${p.frontage_m} م`} />}
               <Row
                 k="الثمن"
                 v={

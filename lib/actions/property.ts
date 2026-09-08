@@ -62,10 +62,32 @@ export async function submitProperty(
       lng: d.lng,
       area_m2: d.areaM2,
       built_area_m2: d.builtAreaM2,
-      rooms: d.rooms,
+      // عدد الغرف الإجمالي يُشتقّ: غرف النوم + الصالونات. لم نعد نسأله مرّتين.
+      rooms:
+        d.rooms ??
+        (d.bedrooms != null || d.livingRooms != null
+          ? (d.bedrooms ?? 0) + (d.livingRooms ?? 0)
+          : null),
       price_tnd: d.priceTnd,
       negotiable: d.negotiable,
       legal_status: d.legalStatus,
+      bedrooms: d.bedrooms,
+      living_rooms: d.livingRooms,
+      bathrooms: d.bathrooms,
+      floors: d.floors,
+      floor_number: d.floorNumber,
+      year_built: d.yearBuilt,
+      condition: d.condition,
+      garage: d.garage,
+      garden: d.garden,
+      terrace: d.terrace,
+      elevator: d.elevator,
+      furnished: d.furnished,
+      water_connected: d.waterConnected,
+      power_connected: d.powerConnected,
+      road_access: d.roadAccess,
+      frontage_m: d.frontageM,
+      buildable: d.buildable,
       description: d.description || null,
       owner_name: d.ownerName,
       owner_phone: d.ownerPhone,

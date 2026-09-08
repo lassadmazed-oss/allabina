@@ -4,7 +4,7 @@ import { useActionState, useEffect, useRef, useState } from 'react'
 import CoordsField from '@/components/CoordsField'
 import ZoneInput, { type Zone } from '@/components/ZoneInput'
 import { submitProperty, type PropertyState } from '@/lib/actions/property'
-import { PROPERTY_KINDS, LEGAL_STATUSES, parseLooseInt } from '@/lib/property-schema'
+import { CONDITIONS, LEGAL_STATUSES, PROPERTY_KINDS, parseLooseInt } from '@/lib/property-schema'
 import { areaLabel, currencyLabel, formatNumber } from '@/lib/format'
 import type { Dictionary, Locale } from '@/lib/i18n'
 
@@ -27,6 +27,23 @@ type Values = {
   priceTnd: string
   legalStatus: string
   negotiable: boolean
+  bedrooms: string
+  livingRooms: string
+  bathrooms: string
+  floors: string
+  floorNumber: string
+  yearBuilt: string
+  condition: string
+  garage: boolean
+  garden: boolean
+  terrace: boolean
+  elevator: boolean
+  furnished: boolean
+  waterConnected: boolean
+  powerConnected: boolean
+  roadAccess: boolean
+  frontageM: string
+  buildable: boolean
   description: string
   ownerName: string
   ownerPhone: string
@@ -47,6 +64,23 @@ const EMPTY: Values = {
   priceTnd: '',
   legalStatus: '',
   negotiable: true,
+  bedrooms: '',
+  livingRooms: '',
+  bathrooms: '',
+  floors: '',
+  floorNumber: '',
+  yearBuilt: '',
+  condition: '',
+  garage: false,
+  garden: false,
+  terrace: false,
+  elevator: false,
+  furnished: false,
+  waterConnected: false,
+  powerConnected: false,
+  roadAccess: false,
+  frontageM: '',
+  buildable: false,
   description: '',
   ownerName: '',
   ownerPhone: '',
@@ -161,7 +195,6 @@ export default function PropertyForm({
       ? []
       : ([
           [t.builtAreaM2, shown(v.builtAreaM2, areaLabel(locale))],
-          [t.rooms, v.rooms],
         ] as [string, string][])),
     [
       t.price,
@@ -169,6 +202,25 @@ export default function PropertyForm({
         (shown(v.priceTnd, '') && v.negotiable ? ` — ${t.negotiable}` : ''),
     ],
     [t.legalStatus, v.legalStatus ? t.legalStatuses[v.legalStatus] : ''],
+    ...(isLand
+      ? ([[t.frontageM, v.frontageM ? `${v.frontageM} م` : '']] as [string, string][])
+      : ([
+          [t.bedrooms, v.bedrooms],
+          [t.livingRooms, v.livingRooms],
+          [t.bathrooms, v.bathrooms],
+          v.kind === 'apartment' ? [t.floorNumber, v.floorNumber] : [t.floors, v.floors],
+          [t.yearBuilt, v.yearBuilt],
+          [t.condition, v.condition ? t.conditions[v.condition] : ''],
+        ] as [string, string][])),
+    [
+      t.features,
+      (
+        ['garage', 'garden', 'terrace', 'elevator', 'furnished', 'waterConnected', 'powerConnected', 'roadAccess', 'buildable'] as (keyof Values)[]
+      )
+        .filter((k) => v[k] === true)
+        .map((k) => t[k as keyof typeof t] as string)
+        .join(' · '),
+    ],
     [t.description, v.description],
     [t.ownerName, v.ownerName],
     [t.ownerPhone, v.ownerPhone],
@@ -324,17 +376,6 @@ export default function PropertyForm({
                     className={`${inputCls} num${invalidCls('builtAreaM2')}`}
                   />
                 </Field>
-                <Field label={t.rooms}>
-                  <input
-                    type="text"
-                    inputMode="numeric"
-                    name="rooms"
-                    value={v.rooms}
-                    onChange={(e) => set('rooms', e.target.value)}
-                    aria-invalid={invalid('rooms') || undefined}
-                    className={`${inputCls} num${invalidCls('rooms')}`}
-                  />
-                </Field>
               </>
             )}
 
@@ -378,6 +419,85 @@ export default function PropertyForm({
             />
             <span className="text-sm">{t.negotiable}</span>
           </label>
+
+          {/* تفاصيل المسكن / الأرض */}
+          <div className="mt-6 rounded border border-line bg-surface-2 p-5">
+            <span className="block text-sm font-medium">{isLand ? t.detailsLand : t.detailsHouse}</span>
+            <p className="mt-1 text-xs leading-6 text-muted">
+              {isLand ? t.detailsLandHint : t.detailsHouseHint}
+            </p>
+
+            {!isLand && (
+              <div className="mt-4 grid gap-4 sm:grid-cols-3">
+                <NumField label={t.bedrooms} name="bedrooms" value={v.bedrooms} onChange={(x) => set('bedrooms', x)} invalid={invalid('bedrooms')} />
+                <NumField label={t.livingRooms} name="livingRooms" value={v.livingRooms} onChange={(x) => set('livingRooms', x)} invalid={invalid('livingRooms')} />
+                <NumField label={t.bathrooms} name="bathrooms" value={v.bathrooms} onChange={(x) => set('bathrooms', x)} invalid={invalid('bathrooms')} />
+                {v.kind === 'apartment' ? (
+                  <NumField label={t.floorNumber} name="floorNumber" value={v.floorNumber} onChange={(x) => set('floorNumber', x)} invalid={invalid('floorNumber')} />
+                ) : (
+                  <NumField label={t.floors} name="floors" value={v.floors} onChange={(x) => set('floors', x)} invalid={invalid('floors')} />
+                )}
+                <NumField label={t.yearBuilt} name="yearBuilt" value={v.yearBuilt} onChange={(x) => set('yearBuilt', x)} invalid={invalid('yearBuilt')} placeholder="2015" />
+                <Field label={t.condition}>
+                  <select
+                    name="condition"
+                    value={v.condition}
+                    onChange={(e) => set('condition', e.target.value)}
+                    className={inputCls}
+                  >
+                    <option value="">—</option>
+                    {CONDITIONS.map((c) => (
+                      <option key={c} value={c}>
+                        {t.conditions[c]}
+                      </option>
+                    ))}
+                  </select>
+                </Field>
+              </div>
+            )}
+
+            {isLand && (
+              <div className="mt-4 grid gap-4 sm:grid-cols-3">
+                <NumField label={t.frontageM} name="frontageM" value={v.frontageM} onChange={(x) => set('frontageM', x)} invalid={invalid('frontageM')} placeholder="12" />
+              </div>
+            )}
+
+            <span className="mt-5 block text-xs font-medium text-muted">{t.features}</span>
+            <div className="mt-2 flex flex-wrap gap-2">
+              {(
+                (isLand
+                  ? ['roadAccess', 'waterConnected', 'powerConnected', 'buildable']
+                  : [
+                      'garage',
+                      'garden',
+                      'terrace',
+                      ...(v.kind === 'house' ? [] : ['elevator']),
+                      'furnished',
+                      'waterConnected',
+                      'powerConnected',
+                    ]) as (keyof Values)[]
+              ).map((k) => {
+                const on = v[k] === true
+                return (
+                  <label
+                    key={k}
+                    className={`cursor-pointer rounded border px-4 py-2 text-sm transition ${
+                      on ? 'border-brand bg-brand-soft' : 'border-line bg-surface hover:border-line-strong'
+                    }`}
+                  >
+                    <input
+                      type="checkbox"
+                      name={k}
+                      checked={on}
+                      onChange={(e) => set(k, e.target.checked as Values[typeof k])}
+                      className="sr-only"
+                    />
+                    {t[k as keyof typeof t] as string}
+                  </label>
+                )
+              })}
+            </div>
+          </div>
 
           <div className="mt-6">
             <CoordsField t={t} inputCls={inputCls} invalid={invalid('lat')} />
@@ -564,6 +684,37 @@ export default function PropertyForm({
         </Modal>
       )}
     </>
+  )
+}
+
+function NumField({
+  label,
+  name,
+  value,
+  onChange,
+  invalid,
+  placeholder,
+}: {
+  label: string
+  name: string
+  value: string
+  onChange: (v: string) => void
+  invalid?: boolean
+  placeholder?: string
+}) {
+  return (
+    <Field label={label}>
+      <input
+        type="text"
+        inputMode="numeric"
+        name={name}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder}
+        aria-invalid={invalid || undefined}
+        className={`${inputCls} num${invalid ? ' border-[#c0392b] ring-2 ring-[#c0392b]/25' : ''}`}
+      />
+    </Field>
   )
 }
 

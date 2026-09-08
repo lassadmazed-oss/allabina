@@ -56,7 +56,7 @@ describe('استمارة العقار', () => {
     expect(r.success).toBe(true)
     if (r.success) {
       expect(r.data.priceTnd).toBeNull()
-      expect(r.data.rooms).toBeNull()
+      expect(r.data.rooms).toBeNull() // الإجمالي يُشتقّ في الخادم من غرف النوم + الصالونات
       expect(r.data.builtAreaM2).toBeNull()
     }
   })
@@ -94,5 +94,38 @@ describe('الإحداثيات عشرية لا أثمان', () => {
     const r = propertySchema.safeParse({ ...base, lat: '95', lng: '10' })
     expect(r.success).toBe(false)
     if (!r.success) expect(r.error.issues.map((i) => i.path[0])).toEqual(['lat'])
+  })
+})
+
+describe('تفاصيل المسكن', () => {
+  it('تُقبل كلّها، والخانة غير المُعلَّمة null لا false', () => {
+    const r = propertySchema.safeParse({
+      ...base, bedrooms: '3', livingRooms: '1', bathrooms: '2', floors: '2',
+      yearBuilt: '2015', condition: 'good', garage: 'on', waterConnected: 'on',
+    })
+    expect(r.success).toBe(true)
+    if (r.success) {
+      expect(r.data.bedrooms).toBe(3)
+      expect(r.data.condition).toBe('good')
+      expect(r.data.garage).toBe(true)
+      expect(r.data.garden).toBeNull() // «ما علّمش» ≠ «ما فيه»
+      expect(r.data.elevator).toBeNull()
+    }
+  })
+
+  it('سنة بناء خيالية تُرفض على حقلها', () => {
+    const r = propertySchema.safeParse({ ...base, yearBuilt: '1520' })
+    expect(r.success).toBe(false)
+    if (!r.success) expect(r.error.issues.map((i) => i.path[0])).toEqual(['yearBuilt'])
+  })
+
+  it('واجهة الأرض عشرية', () => {
+    const r = propertySchema.safeParse({ ...base, kind: 'land', frontageM: '12,5', roadAccess: 'on' })
+    expect(r.success).toBe(true)
+    if (r.success) {
+      expect(r.data.frontageM).toBe(12.5)
+      expect(r.data.roadAccess).toBe(true)
+      expect(r.data.buildable).toBeNull()
+    }
   })
 })

@@ -2,6 +2,7 @@ import { z } from 'zod'
 
 export const PROPERTY_KINDS = ['land', 'house', 'apartment', 'building', 'other'] as const
 export const LEGAL_STATUSES = ['titled', 'in_progress', 'undivided', 'unregistered', 'other'] as const
+export const CONDITIONS = ['new', 'good', 'to_refresh', 'to_renovate'] as const
 
 /**
  * «150 000» و«150.000» و«150,000» كلّها 150000. الناس يكتبون الثمن كما
@@ -62,6 +63,16 @@ const nullableDecimal = (min: number, max: number) =>
       return n
     })
 
+/**
+ * خانة اختيار ثلاثية الدلالة: مُعلَّمة → true، غير مُعلَّمة → null.
+ * «ما علّمش جراج» لا يعني «ما فيه جراج» — قد لا يكون انتبه. الجزم بـfalse
+ * يُضلّل المطابقة، وnull يقول الحقيقة: لم يُذكر.
+ */
+const optionalTri = z
+  .union([z.literal('on'), z.literal(''), z.boolean()])
+  .optional()
+  .transform((v) => (v === 'on' || v === true ? true : null))
+
 const nullableEnum = <T extends readonly [string, ...string[]]>(values: T) =>
   z
     .union([z.literal(''), z.enum(values)])
@@ -85,6 +96,27 @@ export const propertySchema = z.object({
     .optional()
     .transform((v) => v === true || v === 'on'),
   legalStatus: nullableEnum(LEGAL_STATUSES),
+
+  // تفاصيل المسكن — كلّها اختيارية
+  bedrooms: nullableNum(0, 30),
+  livingRooms: nullableNum(0, 10),
+  bathrooms: nullableNum(0, 20),
+  floors: nullableNum(1, 30),
+  floorNumber: nullableNum(0, 60),
+  yearBuilt: nullableNum(1800, 2100),
+  condition: nullableEnum(CONDITIONS),
+  garage: optionalTri,
+  garden: optionalTri,
+  terrace: optionalTri,
+  elevator: optionalTri,
+  furnished: optionalTri,
+  waterConnected: optionalTri,
+  powerConnected: optionalTri,
+
+  // تفاصيل الأرض
+  roadAccess: optionalTri,
+  frontageM: nullableDecimal(0.5, 1000),
+  buildable: optionalTri,
   description: z.string().max(2000).optional().transform((v) => v ?? ''),
 
   ownerName: z.string().trim().min(3).max(120),
