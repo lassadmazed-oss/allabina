@@ -20,11 +20,11 @@ export default async function AskHelpPage({ params }: { params: Promise<{ locale
   const delegations = await getDelegations('SFX')
 
   return (
-    <div className="mx-auto max-w-3xl px-5 py-12">
+    <div className="mx-auto max-w-3xl px-4 py-8 sm:px-5 sm:py-12">
       <h1 className="display text-3xl font-semibold">{a.title}</h1>
       <p className="mt-4 leading-8 text-muted">{a.lede}</p>
 
-      <section className="mt-8 rounded border border-line bg-gold-soft p-6">
+      <section className="mt-8 rounded border border-line bg-gold-soft p-4 sm:p-6">
         <h2 className="font-semibold">{a.honestTitle}</h2>
         <ul className="mt-3 space-y-2 text-sm leading-7">
           {a.honest.map((line, i) => (
@@ -45,7 +45,7 @@ export default async function AskHelpPage({ params }: { params: Promise<{ locale
 
       <Link
         href={path(locale, '/soutien')}
-        className="mt-8 inline-block text-sm text-muted hover:text-brand"
+        className="mt-8 inline-flex min-h-11 items-center text-sm text-muted transition hover:text-brand"
       >
         {a.backToCases}
       </Link>

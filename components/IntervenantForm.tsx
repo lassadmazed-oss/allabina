@@ -482,11 +482,11 @@ export default function IntervenantForm({
             </div>
           ))}
         </dl>
-        <div className="mt-5 flex flex-wrap justify-end gap-3">
+        <div className="mt-5 flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:justify-end sm:gap-3">
           <button
             type="button"
             onClick={() => setRecap(null)}
-            className="rounded border border-line px-5 py-2.5 text-sm hover:border-line-strong"
+            className="inline-flex min-h-11 items-center justify-center rounded border border-line px-5 text-sm transition hover:border-line-strong active:scale-[0.99]"
           >
             {t.recapEdit}
           </button>
@@ -499,7 +499,7 @@ export default function IntervenantForm({
                 formRef.current.querySelector<HTMLButtonElement>('button[data-confirm]') ?? undefined
               )
             }}
-            className="rounded bg-brand px-6 py-2.5 text-sm font-medium text-white hover:bg-brand-deep disabled:opacity-50"
+            className="inline-flex min-h-11 items-center justify-center rounded bg-brand px-6 text-sm font-medium text-white transition hover:bg-brand-deep active:scale-[0.99] disabled:opacity-50"
           >
             {pending ? t.submitting : t.recapConfirm}
           </button>

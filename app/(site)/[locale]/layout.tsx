@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import '../../globals.css'
 import LangSwitch from '@/components/LangSwitch'
+import MobileNav from '@/components/MobileNav'
 import { LOCALES, dirOf, getDictionary, isLocale, otherLocale, path, type Locale } from '@/lib/i18n'
 import { canonicalUrl, languageAlternates, siteUrl } from '@/lib/site'
 
@@ -68,6 +69,47 @@ export default async function SiteLayout({
   const other = otherLocale(locale)
   const p = (s = '') => path(locale, s)
 
+  /**
+   * مصدر واحد لروابط الموقع: الترويسة والقائمة والذيل. مجمّعة بمنطق رحلة
+   * المواطن — ابدا · اعرف · شارك — لا بترتيب ظهورها التاريخي.
+   */
+  const NAV_GROUPS = [
+    {
+      title: t.nav.groupStart,
+      links: [
+        { href: p('/demande'), label: t.footer.request },
+        { href: p('/simulateur'), label: t.nav.simulator },
+        { href: p('/suivi'), label: t.nav.track },
+      ],
+    },
+    {
+      title: t.nav.groupLearn,
+      links: [
+        { href: p('/standing'), label: t.standingPage.navLink },
+        { href: p('/realisations'), label: t.cases.navLink },
+      ],
+    },
+    {
+      title: t.nav.groupJoin,
+      links: [
+        { href: p('/proprietaire'), label: t.proprietaire.navCta },
+        { href: p('/reseau'), label: t.reseau.navCta },
+        { href: p('/soutien'), label: t.soutien.navLink },
+        { href: p('/soutien/demande'), label: t.soutien.askHelp.navCta },
+      ],
+    },
+  ]
+
+  const NAV_LINKS = [
+    { href: p('/simulateur'), label: t.nav.simulator },
+    { href: p('/suivi'), label: t.nav.track },
+    { href: p('/standing'), label: t.standingPage.navLink },
+    { href: p('/realisations'), label: t.cases.navLink },
+    { href: p('/soutien'), label: t.soutien.navLink },
+    { href: p('/proprietaire'), label: t.proprietaire.navCta },
+    { href: p('/reseau'), label: t.reseau.navCta },
+  ]
+
   return (
     <html lang={locale} dir={dirOf(locale)}>
       <head>
@@ -79,68 +121,73 @@ export default async function SiteLayout({
         />
       </head>
       <body>
-        <header className="border-b border-line bg-surface">
-          <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-5 py-4">
-            <Link href={p()} className="flex items-center gap-3">
-              <span className="brick" aria-hidden="true" />
-              <span className="display text-lg font-semibold text-brand-deep">{t.nav.brand}</span>
-              <span className="hidden text-xs text-faint sm:inline">{t.nav.brandSub}</span>
+        <header className="sticky top-0 z-40 border-b border-line bg-surface/95 backdrop-blur">
+          <div className="mx-auto flex max-w-6xl items-center gap-3 px-4 py-3 sm:px-5 sm:py-4">
+            {/* min-h-11: الشعار رابط للرئيسية، وارتفاع 23px لا يُصاب بالإبهام */}
+            <Link href={p()} className="flex min-h-11 min-w-0 items-center gap-2.5 sm:gap-3">
+              <span className="brick shrink-0" aria-hidden="true" />
+              <span className="display truncate text-base font-semibold text-brand-deep sm:text-lg">
+                {t.nav.brand}
+              </span>
+              <span className="hidden text-xs text-faint md:inline">{t.nav.brandSub}</span>
             </Link>
-            <nav className="flex items-center gap-1 text-sm sm:gap-3">
-              <Link href={p('/simulateur')} className="rounded px-2 py-1 text-muted hover:text-brand">
-                {t.nav.simulator}
-              </Link>
-              <Link href={p('/suivi')} className="rounded px-2 py-1 text-muted hover:text-brand">
-                {t.nav.track}
-              </Link>
-              <Link
-                href={p('/standing')}
-                className="hidden rounded px-2 py-1 text-muted hover:text-brand md:inline"
-              >
-                {t.standingPage.navLink}
-              </Link>
-              <Link
-                href={p('/realisations')}
-                className="hidden rounded px-2 py-1 text-muted hover:text-brand lg:inline"
-              >
-                {t.cases.navLink}
-              </Link>
-              <Link
-                href={p('/soutien')}
-                className="hidden rounded px-2 py-1 text-muted hover:text-brand lg:inline"
-              >
-                {t.soutien.navLink}
-              </Link>
-              <Link
-                href={p('/proprietaire')}
-                className="hidden rounded px-2 py-1 text-muted hover:text-brand md:inline"
-              >
-                {t.proprietaire.navCta}
-              </Link>
-              <Link
-                href={p('/reseau')}
-                className="hidden rounded px-2 py-1 text-muted hover:text-brand lg:inline"
-              >
-                {t.reseau.navCta}
-              </Link>
+
+            {/* قائمة الحاسوب — تظهر من lg فما فوق */}
+            <nav className="ms-auto hidden items-center gap-1 text-sm lg:flex">
+              {NAV_LINKS.map((l) => (
+                <Link
+                  key={l.href}
+                  href={l.href}
+                  className="rounded px-2 py-1.5 text-muted transition hover:text-brand"
+                >
+                  {l.label}
+                </Link>
+              ))}
               <Suspense fallback={null}>
                 <LangSwitch current={locale} other={other} label={t.otherLangName} />
               </Suspense>
               <Link
                 href={p('/demande')}
-                className="rounded bg-brand px-4 py-2 font-medium text-white transition hover:bg-brand-deep"
+                className="ms-1 rounded-lg bg-brand px-4 py-2 font-medium text-white transition hover:bg-brand-deep"
               >
                 {t.nav.cta}
               </Link>
             </nav>
+
+            {/* التليفون: فعل واحد ظاهر + قائمة كاملة */}
+            <div className="ms-auto flex items-center gap-2 lg:hidden">
+              <Link
+                href={p('/demande')}
+                className="flex min-h-11 items-center rounded-lg bg-brand px-3.5 text-sm font-medium text-white transition active:bg-brand-deep"
+              >
+                {t.nav.cta}
+              </Link>
+              <MobileNav
+                groups={NAV_GROUPS}
+                cta={{ href: p('/demande'), label: t.nav.cta }}
+                langSwitch={
+                  <Suspense fallback={null}>
+                    <LangSwitch current={locale} other={other} label={t.otherLangName} />
+                  </Suspense>
+                }
+                labels={{
+                  menuTitle: t.nav.menuTitle,
+                  menuOpen: t.nav.menuOpen,
+                  menuClose: t.nav.menuClose,
+                }}
+              />
+            </div>
           </div>
         </header>
 
         <main>{children}</main>
 
-        <footer className="mt-24 border-t border-line bg-surface">
-          <div className="mx-auto max-w-6xl px-5 py-10 text-sm text-muted">
-            <div className="flex flex-wrap items-start justify-between gap-6">
+        <footer className="mt-16 border-t border-line bg-surface sm:mt-24">
+          <div
+            className="mx-auto max-w-6xl px-4 py-10 text-sm text-muted sm:px-5"
+            style={{ paddingBottom: 'max(2.5rem, env(safe-area-inset-bottom))' }}
+          >
+            <div className="flex flex-col gap-8 sm:flex-row sm:flex-wrap sm:items-start sm:justify-between">
               <div className="max-w-md">
                 <div className="display text-base font-semibold text-ink">
                   {t.nav.brand} {locale === 'ar' ? t.nav.brandSub : ''}
@@ -148,38 +195,21 @@ export default async function SiteLayout({
                 <div className="mb-2 text-sm text-gold">{t.nav.slogan}</div>
                 <p className="leading-7">{t.footer.about}</p>
               </div>
-              <div className="flex flex-col gap-2">
-                <Link href={p('/demande')} className="hover:text-brand">
-                  {t.footer.request}
-                </Link>
-                <Link href={p('/simulateur')} className="hover:text-brand">
-                  {t.footer.simulator}
-                </Link>
-                <Link href={p('/standing')} className="hover:text-brand">
-                  {t.standingPage.navLink}
-                </Link>
-                <Link href={p('/suivi')} className="hover:text-brand">
-                  {t.footer.track}
-                </Link>
-                <Link href={p('/realisations')} className="hover:text-brand">
-                  {t.cases.navLink}
-                </Link>
-                <Link href={p('/soutien')} className="hover:text-brand">
-                  {t.soutien.navLink}
-                </Link>
-                <Link href={p('/soutien/demande')} className="hover:text-brand">
-                  {t.soutien.askHelp.navCta}
-                </Link>
-                <Link href={p('/proprietaire')} className="hover:text-brand">
-                  {t.proprietaire.navCta}
-                </Link>
-                <Link href={p('/reseau')} className="hover:text-brand">
-                  {t.reseau.navCta}
-                </Link>
-                <Link href={p('/confidentialite')} className="hover:text-brand">
-                  {t.footer.privacy}
-                </Link>
-              </div>
+
+              {/* عمودان على التليفون: عمود واحد بأحد عشر رابطاً يطوّل الصفحة بلا فائدة */}
+              <nav className="grid w-full grid-cols-2 gap-x-4 gap-y-1 sm:w-auto sm:grid-cols-1 sm:gap-y-2">
+                {[...NAV_GROUPS.flatMap((g) => g.links), { href: p('/confidentialite'), label: t.footer.privacy }].map(
+                  (l) => (
+                    <Link
+                      key={l.href}
+                      href={l.href}
+                      className="flex min-h-11 items-center transition hover:text-brand sm:min-h-0"
+                    >
+                      {l.label}
+                    </Link>
+                  )
+                )}
+              </nav>
             </div>
             <div className="mt-8 border-t border-line pt-5 text-xs text-faint">{t.footer.legal}</div>
           </div>

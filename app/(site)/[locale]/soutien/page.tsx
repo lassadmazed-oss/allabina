@@ -96,7 +96,7 @@ export default async function SoutienPage({ params }: { params: Promise<{ locale
   }
 
   return (
-    <div className="mx-auto max-w-5xl px-5 py-12">
+    <div className="mx-auto max-w-5xl px-4 py-8 sm:px-5 sm:py-12">
       <h1 className="display text-3xl font-semibold">{t.title}</h1>
       <p className="mt-4 max-w-3xl leading-8 text-muted">{t.lede}</p>
 
@@ -106,7 +106,7 @@ export default async function SoutienPage({ params }: { params: Promise<{ locale
         </p>
       )}
 
-      <ul className="mt-6 flex flex-col gap-2 rounded border border-line bg-surface p-6 text-sm leading-7 text-muted">
+      <ul className="mt-6 flex flex-col gap-2 rounded border border-line bg-surface p-4 sm:p-6 text-sm leading-7 text-muted">
         {t.principles.map((line) => (
           <li key={line} className="flex gap-2">
             <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-brand" aria-hidden="true" />
@@ -116,12 +116,12 @@ export default async function SoutienPage({ params }: { params: Promise<{ locale
       </ul>
 
       {/* مدخل صاحب الحاجة — الصفحة كانت تعرض الحالات وتفتح باباً للمساهم وحده */}
-      <section className="mt-6 rounded border border-brand/30 bg-brand-soft p-6">
+      <section className="mt-6 rounded border border-brand/30 bg-brand-soft p-4 sm:p-6">
         <h2 className="display text-lg font-semibold text-brand-deep">{t.askHelp.cardTitle}</h2>
         <p className="mt-2 max-w-3xl leading-8 text-ink-soft">{t.askHelp.cardBody}</p>
         <Link
           href={path(locale, '/soutien/demande')}
-          className="mt-4 inline-block rounded bg-brand px-6 py-3 font-medium text-white transition hover:bg-brand-deep"
+          className="mt-4 inline-flex min-h-12 items-center justify-center rounded bg-brand px-6 font-medium text-white transition hover:bg-brand-deep active:scale-[0.99]"
         >
           {t.askHelp.cardCta}
         </Link>
@@ -146,7 +146,7 @@ export default async function SoutienPage({ params }: { params: Promise<{ locale
               const summary = (isFr && c.summary_fr) || c.summary_ar
 
               return (
-                <article key={c.id} className="rounded border border-line bg-surface p-6 sm:p-8">
+                <article key={c.id} className="rounded border border-line bg-surface p-4 sm:p-8">
                   <div className="flex flex-wrap items-baseline justify-between gap-3">
                     <h2 className="display text-xl font-semibold">
                       {title}
@@ -199,8 +199,18 @@ export default async function SoutienPage({ params }: { params: Promise<{ locale
                   )}
 
                   {rows.length > 0 && (
-                    <details className="mt-6 border-t border-line pt-4">
-                      <summary className="cursor-pointer text-sm font-medium text-brand">
+                    <details className="group mt-6 border-t border-line pt-2">
+                      <summary className="flex min-h-11 cursor-pointer list-none items-center gap-2 text-sm font-medium text-brand [&::-webkit-details-marker]:hidden">
+                        <svg
+                          width="14"
+                          height="14"
+                          viewBox="0 0 14 14"
+                          fill="none"
+                          aria-hidden="true"
+                          className="shrink-0 transition-transform group-open:rotate-180"
+                        >
+                          <path d="M3 5l4 4 4-4" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
+                        </svg>
                         {t.caseLink}
                       </summary>
                       <p className="mt-2 text-xs leading-6 text-faint">{t.ledgerLede}</p>
@@ -241,7 +251,7 @@ export default async function SoutienPage({ params }: { params: Promise<{ locale
 
       <p className="mt-6 text-xs leading-6 text-faint">{t.countsOnlyNote}</p>
 
-      <section id="pledge" className="mt-12 rounded border border-line bg-surface p-6 sm:p-8">
+      <section id="pledge" className="mt-12 rounded border border-line bg-surface p-4 sm:p-8">
         <h2 className="display text-xl font-semibold">{t.pledgeTitle}</h2>
         <p className="mt-2 max-w-3xl leading-8 text-muted">{t.pledgeLede}</p>
         <div className="mt-6">
@@ -257,7 +267,10 @@ export default async function SoutienPage({ params }: { params: Promise<{ locale
       </p>
 
       <div className="mt-6 text-sm">
-        <Link href={path(locale, '/realisations')} className="text-brand hover:underline">
+        <Link
+          href={path(locale, '/realisations')}
+          className="inline-flex min-h-11 items-center text-brand hover:underline"
+        >
           {dict.cases.navLink} ←
         </Link>
       </div>

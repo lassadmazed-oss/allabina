@@ -230,7 +230,7 @@ export default function RequestForm({
     <form
       action={formAction}
       noValidate
-      className="mx-auto max-w-3xl px-5 py-10"
+      className="mx-auto max-w-3xl px-4 py-8 sm:px-5 sm:py-10"
     >
       <input type="hidden" name="locale" value={locale} />
 
@@ -866,12 +866,17 @@ export default function RequestForm({
         />
       </fieldset>
 
-      <div className="mt-10 flex items-center justify-between gap-4">
+      {/* على التليفون يلتصق شريط التنقّل بأسفل الشاشة: «التالي» تحت الإبهام
+          في كلّ الخطوات، بلا نزول إلى آخر استمارة طويلة */}
+      <div
+        style={{ paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom))' }}
+        className="sticky bottom-0 z-30 -mx-4 mt-8 flex items-center gap-3 border-t border-line bg-surface/95 px-4 pt-3 backdrop-blur sm:static sm:mx-0 sm:mt-10 sm:justify-between sm:border-0 sm:bg-transparent sm:px-0 sm:pt-0 sm:pb-0 sm:backdrop-blur-none"
+      >
         <button
           type="button"
           onClick={() => go(-1)}
           disabled={stepIndex === 0}
-          className="rounded border border-line px-5 py-3 text-sm transition hover:border-line-strong disabled:opacity-40"
+          className="min-h-12 shrink-0 rounded border border-line px-5 text-sm transition hover:border-line-strong disabled:opacity-40"
         >
           {t.back}
         </button>
@@ -881,7 +886,7 @@ export default function RequestForm({
             type="button"
             onClick={() => canNext() && go(1)}
             disabled={!canNext()}
-            className="rounded bg-brand px-8 py-3 font-medium text-white transition hover:bg-brand-deep disabled:opacity-40"
+            className="min-h-12 flex-1 rounded bg-brand px-8 font-medium text-white transition hover:bg-brand-deep active:scale-[0.99] disabled:opacity-40 sm:flex-none"
           >
             {t.next}
           </button>
@@ -889,7 +894,7 @@ export default function RequestForm({
           <button
             type="submit"
             disabled={pending}
-            className="rounded bg-brand px-8 py-3 font-medium text-white transition hover:bg-brand-deep disabled:opacity-60"
+            className="min-h-12 flex-1 rounded bg-brand px-8 font-medium text-white transition hover:bg-brand-deep active:scale-[0.99] disabled:opacity-60 sm:flex-none"
           >
             {pending ? t.submitting : t.submit}
           </button>

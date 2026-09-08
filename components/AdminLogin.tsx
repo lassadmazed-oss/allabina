@@ -8,7 +8,7 @@ export default function AdminLogin({ next }: { next?: string }) {
 
   return (
     <div className="mx-auto max-w-sm px-5 py-24">
-      <div className="rounded border border-line bg-surface p-8">
+      <div className="rounded border border-line bg-surface p-5 sm:p-8">
         <span className="brick mb-5 block" aria-hidden="true" />
         <h1 className="display text-xl font-semibold">لوحة القيادة</h1>
         <p className="mt-2 text-sm text-muted">فضاء فريق اللَّبنة.</p>

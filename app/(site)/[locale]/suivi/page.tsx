@@ -47,12 +47,12 @@ export default async function SuiviPage({
       : null
 
   return (
-    <div className="mx-auto max-w-4xl px-5 py-12">
+    <div className="mx-auto max-w-4xl px-4 py-8 sm:px-5 sm:py-12">
       <h1 className="display text-3xl font-semibold">{t.suivi.title}</h1>
       <p className="mt-4 max-w-3xl leading-8 text-muted">{t.suivi.intro}</p>
 
       {/* الاستعلام عن ملفّ — Consultation d'un dossier */}
-      <section className="mt-8 rounded border border-line bg-surface p-6 sm:p-8">
+      <section className="mt-8 rounded border border-line bg-surface p-4 sm:p-8">
         <h2 className="text-lg font-semibold">{t.suivi.lookupTitle}</h2>
         <p className="mt-1 text-sm text-muted">{t.suivi.lookupLede}</p>
 
@@ -82,7 +82,7 @@ export default async function SuiviPage({
           </label>
           <button
             type="submit"
-            className="self-end rounded bg-brand px-6 py-2.5 font-medium text-white transition hover:bg-brand-deep"
+            className="flex min-h-12 w-full items-center justify-center rounded bg-brand px-6 font-medium text-white transition hover:bg-brand-deep active:scale-[0.99] sm:w-auto sm:self-end"
           >
             {t.suivi.submit}
           </button>

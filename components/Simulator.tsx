@@ -74,7 +74,7 @@ export default function Simulator({
           <strong>{t.scenarioWarn}</strong> {t.scenarioBody}
         </div>
 
-        <div className="rounded border border-line bg-surface p-6 sm:p-8">
+        <div className="rounded border border-line bg-surface p-4 sm:p-8">
           <h2 className="text-lg font-semibold">{t.yourData}</h2>
           <div className="mt-6 grid gap-6 sm:grid-cols-2">
             <Num label={t.income} unit={t.tnd} value={income} onChange={setIncome} step={50} />
@@ -117,7 +117,7 @@ export default function Simulator({
         </div>
 
         {products.length > 0 && (
-          <div className="rounded border border-line bg-surface p-6 sm:p-8">
+          <div className="rounded border border-line bg-surface p-4 sm:p-8">
             <h2 className="text-lg font-semibold">{t.productsTitle}</h2>
             <p className="mt-1 text-sm text-muted">{t.productsLede}</p>
             <div className="mt-5 grid gap-3 sm:grid-cols-2">
@@ -147,7 +147,7 @@ export default function Simulator({
           </div>
         )}
 
-        <div className="rounded border border-line bg-surface p-6 sm:p-8">
+        <div className="rounded border border-line bg-surface p-4 sm:p-8">
           <h2 className="text-lg font-semibold">{t.buildTitle}</h2>
           <p className="mt-2 text-sm leading-7 text-muted">{t.buildLede}</p>
           <div className="mt-5 grid gap-3 sm:grid-cols-3">
@@ -186,7 +186,7 @@ export default function Simulator({
       </div>
 
       <aside className="lg:sticky lg:top-6 lg:self-start">
-        <div className="rounded border border-line bg-brand-deep p-6 text-white">
+        <div className="rounded border border-line bg-brand-deep p-4 sm:p-6 text-white">
           <div className="text-sm text-[#9FBBAB]">{t.resultTitle}</div>
           <div className="num mt-1 text-3xl font-semibold">
             <bdi>{formatTND(capacity.maxBudget, locale)}</bdi>
@@ -211,6 +211,26 @@ export default function Simulator({
           {bankTermsNote}
         </p>
       </aside>
+
+      {/* شريط حيّ على التليفون: النتيجة تحت السلّم، والمستعمل يحرّك المدخلات
+          ويقرأ الرقم يتبدّل بلا ما ينزل ويطلع في كلّ مرّة */}
+      <div
+        style={{ paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom))' }}
+        className="sticky bottom-0 z-30 -mx-4 flex items-center gap-4 border-t border-brand bg-brand-deep px-4 pt-3 text-white lg:hidden"
+      >
+        <div className="min-w-0 flex-1">
+          <div className="text-[11px] leading-5 text-[#9FBBAB]">{t.resultTitle}</div>
+          <div className="num truncate text-lg font-semibold">
+            <bdi>{formatTND(capacity.maxBudget, locale)}</bdi>
+          </div>
+        </div>
+        <div className="min-w-0 text-end">
+          <div className="text-[11px] leading-5 text-[#9FBBAB]">{t.monthly}</div>
+          <div className="num truncate text-sm">
+            <bdi>{formatTND(payment, locale)}</bdi>
+          </div>
+        </div>
+      </div>
     </div>
   )
 }

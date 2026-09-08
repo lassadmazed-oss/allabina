@@ -45,7 +45,7 @@ export default async function StandingPage({
 
   if (levels.length === 0) {
     return (
-      <div className="mx-auto max-w-3xl px-5 py-16">
+      <div className="mx-auto max-w-3xl px-4 py-10 sm:px-5 sm:py-16">
         <h1 className="display text-3xl font-semibold">{t.title}</h1>
         <p className="mt-4 leading-8 text-muted">{t.disclaimer}</p>
       </div>
@@ -81,7 +81,7 @@ export default async function StandingPage({
     )
 
   return (
-    <div className="mx-auto max-w-5xl px-5 py-12">
+    <div className="mx-auto max-w-5xl px-4 py-8 sm:px-5 sm:py-12">
       <h1 className="display text-3xl font-semibold">{t.title}</h1>
       <p className="mt-4 max-w-3xl leading-8 text-muted">{t.lede}</p>
 
@@ -146,17 +146,19 @@ export default async function StandingPage({
         <h2 className="display text-xl font-semibold">{t.breakdownTitle}</h2>
         <p className="mt-2 max-w-3xl text-sm leading-7 text-muted">{t.breakdownLede}</p>
 
-        <div className="mt-5 overflow-x-auto rounded border border-line bg-surface">
-          <table className="w-full min-w-[560px] text-sm">
+        {/* على التليفون: عمود «الدينار للمتر» ينزل تحت اسم اللوط بدل ما يدفع
+            الجدول إلى تمرير أفقي لا يراه المستعمل ولا يخمّن أنّه موجود */}
+        <div className="mt-5 rounded border border-line bg-surface">
+          <table className="w-full text-sm">
             <thead>
               <tr className="bg-surface-2">
-                <th className="px-4 py-3 text-start text-xs font-semibold text-muted">
+                <th className="px-3 py-3 text-start text-xs font-semibold text-muted sm:px-4">
                   {t.lotCol}
                 </th>
-                <th className="px-4 py-3 text-start text-xs font-semibold text-muted">
+                <th className="hidden px-4 py-3 text-start text-xs font-semibold text-muted sm:table-cell">
                   {t.perM2Col}
                 </th>
-                <th className="px-4 py-3 text-start text-xs font-semibold text-muted">
+                <th className="px-3 py-3 text-start text-xs font-semibold text-muted sm:px-4">
                   {t.totalCol}
                 </th>
               </tr>
@@ -164,10 +166,15 @@ export default async function StandingPage({
             <tbody>
               {breakdown.map((line) => (
                 <tr key={line.lotCode} className="border-t border-line">
-                  <td className="px-4 py-2.5">
-                    <div className="flex items-center gap-3">
-                      <span className="num w-6 text-xs text-faint">{line.lotCode}</span>
-                      <span className="min-w-32 flex-1">{lotName(line)}</span>
+                  <td className="px-3 py-2.5 sm:px-4">
+                    <div className="flex items-center gap-2 sm:gap-3">
+                      <span className="num w-6 shrink-0 text-xs text-faint">{line.lotCode}</span>
+                      <span className="flex-1 sm:min-w-32">
+                        {lotName(line)}
+                        <span className="num mt-0.5 block text-xs text-faint sm:hidden">
+                          {formatNumber(line.perM2, 1)} {perM2Label(locale)}
+                        </span>
+                      </span>
                       <span
                         className="hidden h-1.5 rounded-full bg-gold-light sm:block"
                         style={{ width: `${Math.round((line.perM2 / maxPerM2) * 90)}px` }}
@@ -175,14 +182,16 @@ export default async function StandingPage({
                       />
                     </div>
                   </td>
-                  <td className="num px-4 py-2.5 text-muted">{formatNumber(line.perM2, 1)}</td>
-                  <td className="num px-4 py-2.5">{formatMoney(line.total, locale)}</td>
+                  <td className="num hidden px-4 py-2.5 text-muted sm:table-cell">
+                    {formatNumber(line.perM2, 1)}
+                  </td>
+                  <td className="num px-3 py-2.5 sm:px-4">{formatMoney(line.total, locale)}</td>
                 </tr>
               ))}
               <tr className="border-t-2 border-line-strong bg-surface-2 font-semibold">
-                <td className="px-4 py-3">{t.totalLabel}</td>
-                <td className="num px-4 py-3">{formatNumber(selected.price)}</td>
-                <td className="num px-4 py-3">
+                <td className="px-3 py-3 sm:px-4">{t.totalLabel}</td>
+                <td className="num hidden px-4 py-3 sm:table-cell">{formatNumber(selected.price)}</td>
+                <td className="num px-3 py-3 sm:px-4">
                   {formatMoney(breakdownTotal(breakdown), locale)}
                 </td>
               </tr>
@@ -212,7 +221,7 @@ export default async function StandingPage({
                   <div className="flex flex-wrap items-baseline justify-between gap-3">
                     <Link
                       href={link({ level: lv.code })}
-                      className="font-medium text-brand hover:underline"
+                      className="-my-2 inline-flex min-h-11 items-center font-medium text-brand hover:underline"
                     >
                       {fmt(up ? t.upgradeTo : t.downgradeTo, { level: levelName(lv) })}
                     </Link>
@@ -253,7 +262,7 @@ export default async function StandingPage({
         {t.disclaimer}
       </p>
 
-      <section className="mt-10 flex flex-wrap items-center justify-between gap-4 rounded border border-line bg-surface p-6">
+      <section className="mt-10 flex flex-wrap items-center justify-between gap-4 rounded border border-line bg-surface p-4 sm:p-6">
         <div>
           <h2 className="font-semibold">{t.ctaTitle}</h2>
           <p className="mt-1 text-sm text-muted">{t.ctaBody}</p>

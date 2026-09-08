@@ -34,7 +34,7 @@ export default async function DemandePage({
   return (
     <div className="bg-ground">
       <div className="border-b border-line bg-surface">
-        <div className="mx-auto max-w-3xl px-5 py-8">
+        <div className="mx-auto max-w-3xl px-4 py-6 sm:px-5 sm:py-8">
           <h1 className="display text-2xl font-semibold sm:text-3xl">{t.form.pageTitle}</h1>
           <p className="mt-2 text-muted">{t.form.pageLede}</p>
         </div>

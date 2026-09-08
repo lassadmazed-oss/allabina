@@ -95,7 +95,7 @@ export default async function RealisationsPage({
   const selected = sp.delegation ? Number(sp.delegation) : null
 
   return (
-    <div className="mx-auto max-w-5xl px-5 py-12">
+    <div className="mx-auto max-w-5xl px-4 py-8 sm:px-5 sm:py-12">
       <h1 className="display text-3xl font-semibold">{t.cases.title}</h1>
       <p className="mt-4 max-w-3xl leading-8 text-muted">{t.cases.lede}</p>
 
@@ -154,7 +154,7 @@ export default async function RealisationsPage({
         {selected && (
           <Link
             href={path(locale, '/realisations')}
-            className="mt-4 inline-block text-sm text-brand hover:underline"
+            className="mt-4 inline-flex min-h-11 items-center text-sm text-brand hover:underline"
           >
             ← {t.cases.allDelegations}
           </Link>
@@ -181,7 +181,7 @@ export default async function RealisationsPage({
               const solution = (isFr && c.solution_fr) || c.solution_ar
               const result = (isFr && c.result_fr) || c.result_ar
               return (
-                <article key={c.id} className="rounded border border-line bg-surface p-6 sm:p-8">
+                <article key={c.id} className="rounded border border-line bg-surface p-4 sm:p-8">
                   <div className="flex flex-wrap items-baseline justify-between gap-3">
                     <h3 className="display text-xl font-semibold">
                       {title}
@@ -198,15 +198,15 @@ export default async function RealisationsPage({
                       // حالة قديمة برابطين يدويين فقط
                       if (!c.photo_before && !c.photo_after) return null
                       return (
-                        <div className="mt-5 grid gap-3 sm:grid-cols-2">
+                        <div className="-mx-4 mt-5 flex snap-x snap-mandatory gap-3 overflow-x-auto px-4 pb-2 sm:mx-0 sm:grid sm:grid-cols-2 sm:overflow-x-visible sm:px-0 sm:pb-0">
                           {c.photo_before && (
-                            <figure>
+                            <figure className="w-60 shrink-0 snap-start sm:w-auto">
                               <img src={c.photo_before} alt={t.cases.beforeLabel} className="w-full rounded border border-line object-cover" />
                               <figcaption className="mt-1 text-xs text-faint">{t.cases.beforeLabel}</figcaption>
                             </figure>
                           )}
                           {c.photo_after && (
-                            <figure>
+                            <figure className="w-60 shrink-0 snap-start sm:w-auto">
                               <img src={c.photo_after} alt={t.cases.afterLabel} className="w-full rounded border border-line object-cover" />
                               <figcaption className="mt-1 text-xs text-faint">{t.cases.afterLabel}</figcaption>
                             </figure>
@@ -224,20 +224,24 @@ export default async function RealisationsPage({
                           </span>
                         </div>
                         <p className="mt-0.5 text-xs text-faint">{t.cases.albumLede}</p>
-                        <ol className="mt-3 flex flex-col gap-4">
+                        {/* على التليفون: المراحل كلّها شريط أفقي واحد يُسحب
+                            بالإبهام. كلّ مرحلة في سطر مستقلّ كانت تجعل صفحة
+                            إحدى وعشرين حالة ثلاثين ألف بكسل طولاً. فوق sm
+                            يعود التكديس العمودي والشبكة كما كانا. */}
+                        <ol className="-mx-4 mt-3 flex snap-x snap-mandatory gap-5 overflow-x-auto px-4 pb-2 sm:mx-0 sm:flex-col sm:gap-4 sm:overflow-x-visible sm:px-0 sm:pb-0">
                           {groups.map((g) => (
-                            <li key={g.stage}>
+                            <li key={g.stage} className="shrink-0 snap-start sm:shrink">
                               <div className="mb-2 flex items-center gap-2">
                                 <span className="h-2 w-2 rounded-full bg-gold" aria-hidden="true" />
                                 <span className="text-xs font-medium text-gold">
                                   {t.cases.stage[g.stage]}
                                 </span>
                               </div>
-                              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                              <div className="flex gap-3 sm:grid sm:grid-cols-2 lg:grid-cols-3">
                                 {g.photos.map((ph) => {
                                   const caption = (isFr && ph.caption_fr) || ph.caption_ar
                                   return (
-                                    <figure key={ph.id}>
+                                    <figure key={ph.id} className="w-60 shrink-0 sm:w-auto">
                                       <img
                                         src={photoPublicUrl(baseUrl, ph.storage_path)}
                                         alt={caption ?? t.cases.stage[g.stage]}
@@ -303,7 +307,7 @@ export default async function RealisationsPage({
         {t.cases.disclaimer}
       </p>
 
-      <section className="mt-10 flex flex-wrap items-center justify-between gap-4 rounded border border-line bg-surface p-6">
+      <section className="mt-10 flex flex-wrap items-center justify-between gap-4 rounded border border-line bg-surface p-4 sm:p-6">
         <div>
           <h2 className="font-semibold">{t.cases.ctaTitle}</h2>
           <p className="mt-1 text-sm text-muted">{t.cases.ctaBody}</p>

@@ -24,7 +24,7 @@ export default function PledgeForm({
     return (
       <div
         role="status"
-        className="rounded border border-brand bg-brand-soft p-6 text-sm leading-7 text-brand-deep"
+        className="rounded border border-brand bg-brand-soft p-4 sm:p-6 text-sm leading-7 text-brand-deep"
       >
         {t.pledgeThanks}
       </div>
@@ -119,7 +119,7 @@ export default function PledgeForm({
       <button
         type="submit"
         disabled={pending}
-        className="self-start rounded bg-brand px-6 py-3 text-sm font-medium text-white transition hover:bg-brand-deep disabled:opacity-60"
+        className="flex min-h-12 w-full items-center justify-center rounded bg-brand px-6 text-sm font-medium text-white transition hover:bg-brand-deep active:scale-[0.99] disabled:opacity-60 sm:w-auto sm:self-start"
       >
         {pending ? t.pledgeSubmitting : t.pledgeSubmit}
       </button>

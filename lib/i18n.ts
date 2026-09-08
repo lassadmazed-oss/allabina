@@ -25,6 +25,12 @@ const ar = {
         slogan: 'معاً… نبني حلول السكن',
         simulator: 'محاكي التمويل',
         track: 'تتبّع مطلبي',
+        menuTitle: 'القائمة',
+        menuOpen: 'افتح القائمة',
+        menuClose: 'سكّر القائمة',
+        groupStart: 'ابدا من هنا',
+        groupLearn: 'اعرف أكثر',
+        groupJoin: 'شارك معانا',
         cta: 'سجّل مطلبك'
     },
     footer: {
@@ -835,6 +841,12 @@ const fr: Dictionary = {
         slogan: 'Ensemble, nous bâtissons des solutions de logement',
         simulator: 'Simulateur',
         track: 'Suivre ma demande',
+        menuTitle: 'Menu',
+        menuOpen: 'Ouvrir le menu',
+        menuClose: 'Fermer le menu',
+        groupStart: 'Commencer',
+        groupLearn: 'En savoir plus',
+        groupJoin: 'Participer',
         cta: 'Déposer ma demande'
     },
     footer: {

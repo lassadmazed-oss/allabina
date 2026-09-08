@@ -41,8 +41,8 @@ export default async function MerciPage({
     tier && request.desired_area_m2 ? buildCostRange(request.desired_area_m2, tier) : null
 
   return (
-    <div className="mx-auto max-w-3xl px-5 py-16">
-      <div className="rounded border border-line bg-surface p-8">
+    <div className="mx-auto max-w-3xl px-4 py-10 sm:px-5 sm:py-16">
+      <div className="rounded border border-line bg-surface p-5 sm:p-8">
         <span className="brick mb-5 block" aria-hidden="true" />
         <h1 className="display text-2xl font-semibold sm:text-3xl">
           {fmt(t.merci.title, { name: request.full_name.split(' ')[0] })}
@@ -51,7 +51,7 @@ export default async function MerciPage({
           {score ? t.labels.citizenMsg[score.band] : t.merci.fallbackMsg}
         </p>
 
-        <div className="mt-8 rounded border border-line bg-brand-soft p-6">
+        <div className="mt-8 rounded border border-line bg-brand-soft p-4 sm:p-6">
           <div className="text-sm text-muted">{t.merci.refLabel}</div>
           <div className="num mt-1 text-3xl font-semibold text-brand" dir="ltr">
             {request.ref_code}
@@ -119,16 +119,17 @@ export default async function MerciPage({
         <p className="mt-8 text-xs leading-6 text-faint">{t.sim.scenarioBody}</p>
       </div>
 
-      <div className="mt-6 flex flex-wrap gap-3">
+      {/* على التليفون زرّان بعرض الشاشة، وعلى الحاسوب صفّ كما كان */}
+      <div className="mt-6 grid gap-3 sm:flex sm:flex-wrap">
         <Link
           href={path(locale)}
-          className="rounded border border-line px-6 py-3 text-sm hover:border-line-strong"
+          className="flex min-h-12 items-center justify-center rounded border border-line px-6 text-sm transition hover:border-line-strong active:scale-[0.99]"
         >
           {t.merci.home}
         </Link>
         <Link
           href={path(locale, '/simulateur')}
-          className="rounded bg-brand px-6 py-3 text-sm font-medium text-white hover:bg-brand-deep"
+          className="flex min-h-12 items-center justify-center rounded bg-brand px-6 text-sm font-medium text-white transition hover:bg-brand-deep active:scale-[0.99]"
         >
           {t.merci.trySim}
         </Link>

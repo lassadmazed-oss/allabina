@@ -248,7 +248,7 @@ export default function PropertyForm({
         <input type="hidden" name="locale" value={locale} />
 
         {/* معطيات العقار */}
-        <fieldset className="rounded border border-line bg-surface p-6 sm:p-8">
+        <fieldset className="rounded border border-line bg-surface p-4 sm:p-8">
           <legend className="px-2 text-lg font-semibold">{t.sectionProperty}</legend>
 
           <div className="mt-4">
@@ -526,7 +526,7 @@ export default function PropertyForm({
         </fieldset>
 
         {/* معطيات المالك */}
-        <fieldset className="rounded border border-line bg-surface p-6 sm:p-8">
+        <fieldset className="rounded border border-line bg-surface p-4 sm:p-8">
           <legend className="px-2 text-lg font-semibold">{t.sectionOwner}</legend>
           <div className="mt-4 grid gap-5 sm:grid-cols-2">
             <Field label={t.ownerName} error={err('ownerName')}>
@@ -602,7 +602,7 @@ export default function PropertyForm({
         <button
           type="submit"
           disabled={pending}
-          className="self-start rounded bg-brand px-8 py-3 font-medium text-white transition hover:bg-brand-deep disabled:opacity-60"
+          className="flex min-h-12 w-full items-center justify-center rounded bg-brand px-8 font-medium text-white transition hover:bg-brand-deep active:scale-[0.99] disabled:opacity-60 sm:w-auto sm:self-start"
         >
           {pending ? t.submitting : t.review}
         </button>
@@ -630,11 +630,11 @@ export default function PropertyForm({
               {t.errors.consent}
             </p>
           )}
-          <div className="mt-5 flex flex-wrap justify-end gap-3">
+          <div className="mt-5 flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:justify-end sm:gap-3">
             <button
               type="button"
               onClick={() => setRecapOpen(false)}
-              className="rounded border border-line px-5 py-2.5 text-sm hover:border-line-strong"
+              className="inline-flex min-h-11 items-center justify-center rounded border border-line px-5 text-sm transition hover:border-line-strong active:scale-[0.99]"
             >
               {t.recapEdit}
             </button>
@@ -642,7 +642,7 @@ export default function PropertyForm({
               type="button"
               onClick={confirmAndSubmit}
               disabled={pending || !v.consent}
-              className="rounded bg-brand px-6 py-2.5 text-sm font-medium text-white hover:bg-brand-deep disabled:opacity-50"
+              className="inline-flex min-h-11 items-center justify-center rounded bg-brand px-6 text-sm font-medium text-white transition hover:bg-brand-deep active:scale-[0.99] disabled:opacity-50"
             >
               {pending ? t.submitting : t.recapConfirm}
             </button>
@@ -676,11 +676,11 @@ export default function PropertyForm({
           <p className="mt-3 text-xs leading-6 text-muted">
             {t.errorKept} {t.errorGoTo}
           </p>
-          <div className="mt-5 flex justify-end">
+          <div className="mt-5 flex flex-col sm:flex-row sm:justify-end">
             <button
               type="button"
               onClick={closeErrorAndJump}
-              className="rounded bg-brand px-6 py-2.5 text-sm font-medium text-white hover:bg-brand-deep"
+              className="inline-flex min-h-11 items-center justify-center rounded bg-brand px-6 text-sm font-medium text-white transition hover:bg-brand-deep active:scale-[0.99]"
             >
               {t.errorClose}
             </button>

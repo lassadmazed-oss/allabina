@@ -27,11 +27,11 @@ export default async function ProprietairePage({
   ])
 
   return (
-    <div className="mx-auto max-w-3xl px-5 py-12">
+    <div className="mx-auto max-w-3xl px-4 py-8 sm:px-5 sm:py-12">
       <h1 className="display text-3xl font-semibold">{t.proprietaire.title}</h1>
       <p className="mt-4 leading-8 text-muted">{t.proprietaire.lede}</p>
 
-      <section className="mt-8 rounded border border-line bg-gold-soft p-6">
+      <section className="mt-8 rounded border border-line bg-gold-soft p-4 sm:p-6">
         <h2 className="font-semibold">{t.proprietaire.howTitle}</h2>
         <ol className="mt-3 space-y-2 text-sm leading-7">
           {t.proprietaire.how.map((step, i) => (

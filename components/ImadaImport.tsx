@@ -9,7 +9,7 @@ export default function ImadaImport() {
   const [state, action, pending] = useActionState(importImadasAction, initial)
 
   return (
-    <div className="rounded border border-line bg-surface p-6">
+    <div className="rounded border border-line bg-surface p-4 sm:p-6">
       <h3 className="font-semibold">إضافة العمادات</h3>
       <p className="mt-2 text-sm leading-7 text-muted">
         سطر لكلّ معتمدية بالشكل: <code className="text-xs">المعتمدية: عمادة، عمادة، عمادة</code>.

@@ -60,8 +60,8 @@ export default async function ReseauThanksPage({
   const hasContact = Boolean(contact.phone || contact.whatsapp || contact.email)
 
   return (
-    <div className="mx-auto max-w-2xl px-5 py-16">
-      <div className="rounded border border-line bg-surface p-8">
+    <div className="mx-auto max-w-2xl px-4 py-10 sm:px-5 sm:py-16">
+      <div className="rounded border border-line bg-surface p-5 sm:p-8">
         <span className="brick mb-5 block" aria-hidden="true" />
         <h1 className="display text-2xl font-semibold sm:text-3xl">{t.merciTitle}</h1>
         <p className="mt-3 leading-8 text-muted">{t.merciLede}</p>
@@ -82,7 +82,7 @@ export default async function ReseauThanksPage({
 
       {/* كيفاش نوصلولك */}
       {pro && (
-        <section className="mt-6 rounded border border-line bg-surface p-6">
+        <section className="mt-6 rounded border border-line bg-surface p-4 sm:p-6">
           <h2 className="font-semibold">{t.contactYouTitle}</h2>
           <p className="mt-1 text-sm leading-7 text-muted">{t.contactYouLede}</p>
           <dl className="mt-4 grid gap-3 text-sm sm:grid-cols-3">
@@ -107,14 +107,18 @@ export default async function ReseauThanksPage({
       )}
 
       {/* كيفاش توصلنا */}
-      <section className="mt-6 rounded border border-line bg-surface p-6">
+      <section className="mt-6 rounded border border-line bg-surface p-4 sm:p-6">
         <h2 className="font-semibold">{t.contactUsTitle}</h2>
         {hasContact ? (
           <ul className="mt-3 flex flex-col gap-2 text-sm">
             {contact.phone && (
               <li className="flex flex-wrap items-baseline gap-x-3">
                 <span className="text-muted">{t.phone}</span>
-                <a href={`tel:${contact.phone.replace(/\s/g, '')}`} className="num text-brand hover:underline" dir="ltr">
+                <a
+                  href={`tel:${contact.phone.replace(/\s/g, '')}`}
+                  className="num inline-flex min-h-11 items-center text-brand hover:underline"
+                  dir="ltr"
+                >
                   {contact.phone}
                 </a>
               </li>
@@ -126,7 +130,7 @@ export default async function ReseauThanksPage({
                   href={`https://wa.me/${contact.whatsapp.replace(/\D/g, '')}?text=${encodeURIComponent(pro ? `${t.waPrefill} ${pro.ref_code}` : t.waPrefill)}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="num text-brand hover:underline"
+                  className="num inline-flex min-h-11 items-center text-brand hover:underline"
                   dir="ltr"
                 >
                   {contact.whatsapp}
@@ -136,7 +140,11 @@ export default async function ReseauThanksPage({
             {contact.email && (
               <li className="flex flex-wrap items-baseline gap-x-3">
                 <span className="text-muted">{t.email}</span>
-                <a href={`mailto:${contact.email}`} className="text-brand hover:underline" dir="ltr">
+                <a
+                  href={`mailto:${contact.email}`}
+                  className="inline-flex min-h-11 items-center text-brand hover:underline"
+                  dir="ltr"
+                >
                   {contact.email}
                 </a>
               </li>
@@ -151,7 +159,7 @@ export default async function ReseauThanksPage({
 
       <Link
         href={path(locale)}
-        className="mt-6 inline-block rounded border border-line px-6 py-3 text-sm hover:border-line-strong"
+        className="mt-6 inline-flex min-h-12 items-center rounded border border-line px-6 text-sm transition hover:border-line-strong"
       >
         {t.merciBack}
       </Link>

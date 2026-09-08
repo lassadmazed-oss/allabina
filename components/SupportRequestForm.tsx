@@ -69,7 +69,7 @@ export default function SupportRequestForm({
 
   if (state.ok) {
     return (
-      <div className="mt-8 rounded border border-line bg-surface p-8">
+      <div className="mt-8 rounded border border-line bg-surface p-5 sm:p-8">
         <span className="brick mb-5 block" aria-hidden="true" />
         <h2 className="display text-2xl font-semibold">{t.okTitle}</h2>
         <p className="mt-3 leading-8 text-muted">{t.okBody}</p>
@@ -85,7 +85,7 @@ export default function SupportRequestForm({
 
         <Link
           href={path(locale, '/suivi')}
-          className="mt-6 inline-block rounded border border-line px-5 py-2.5 text-sm hover:border-line-strong"
+          className="mt-6 inline-block inline-flex min-h-11 items-center justify-center rounded border border-line px-5 text-sm transition hover:border-line-strong active:scale-[0.99]"
         >
           {t.okTrack}
         </Link>

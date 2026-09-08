@@ -20,7 +20,7 @@ export default async function SimulateurPage({
   ])
 
   return (
-    <div className="mx-auto max-w-6xl px-5 py-12">
+    <div className="mx-auto max-w-6xl px-4 py-8 sm:px-5 sm:py-12">
       <div className="mb-8 max-w-2xl">
         <h1 className="display text-3xl font-semibold">{t.sim.title}</h1>
         <p className="mt-3 leading-8 text-muted">{t.sim.lede}</p>

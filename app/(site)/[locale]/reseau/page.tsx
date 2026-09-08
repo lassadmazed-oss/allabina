@@ -35,11 +35,11 @@ export default async function ReseauPage({ params }: { params: Promise<{ locale:
     ])
 
   return (
-    <div className="mx-auto max-w-3xl px-5 py-12">
+    <div className="mx-auto max-w-3xl px-4 py-8 sm:px-5 sm:py-12">
       <h1 className="display text-3xl font-semibold">{t.reseau.title}</h1>
       <p className="mt-4 leading-8 text-muted">{t.reseau.lede}</p>
 
-      <section className="mt-8 rounded border border-line bg-gold-soft p-6">
+      <section className="mt-8 rounded border border-line bg-gold-soft p-4 sm:p-6">
         <h2 className="font-semibold">{t.reseau.howTitle}</h2>
         <ol className="mt-3 space-y-2 text-sm leading-7">
           {t.reseau.how.map((step, i) => (
