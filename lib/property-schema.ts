@@ -3,11 +3,37 @@ import { z } from 'zod'
 export const PROPERTY_KINDS = ['land', 'house', 'apartment', 'building', 'other'] as const
 export const LEGAL_STATUSES = ['titled', 'in_progress', 'undivided', 'unregistered', 'other'] as const
 
+/**
+ * «150 000» و«150.000» و«150,000» كلّها 150000. الناس يكتبون الثمن كما
+ * يقرؤونه، والاستمارة كانت ترفض «الثمن لازم يكون رقماً صحيحاً» على مسافة.
+ * فاصل الآلاف بالفرنسية مسافة أو نقطة؛ لا نخمّن كسوراً في أثمان بالدينار.
+ */
+export function parseLooseInt(input: unknown): number | null | undefined {
+  if (input === undefined) return undefined
+  const raw = String(input).trim()
+  if (raw === '') return null
+  // أرقام عربية-هندية → لاتينية
+  const latin = raw.replace(/[٠-٩]/g, (d) => String('٠١٢٣٤٥٦٧٨٩'.indexOf(d)))
+  // فواصل الآلاف: مسافة عادية أو رفيعة أو ثابتة، نقطة، فاصلة، فاصلة عليا
+  const digits = latin.replace(/[\s  .,'’]/g, '')
+  if (!/^-?\d+$/.test(digits)) return NaN
+  return Number(digits)
+}
+
+// ملاحظة Zod v4: المفتاح الغائب يحتاج optional() صراحةً حتى مع unknown()
 const nullableNum = (min: number, max: number) =>
   z
-    .union([z.literal(''), z.coerce.number().min(min).max(max)])
+    .unknown()
     .optional()
-    .transform((v) => (v === '' || v === undefined ? null : Number(v)))
+    .transform((v, ctx) => {
+      const n = parseLooseInt(v)
+      if (n === undefined || n === null) return null
+      if (Number.isNaN(n) || n < min || n > max) {
+        ctx.addIssue({ code: 'custom', message: `expected integer in [${min}, ${max}]` })
+        return z.NEVER
+      }
+      return n
+    })
 
 const nullableEnum = <T extends readonly [string, ...string[]]>(values: T) =>
   z
