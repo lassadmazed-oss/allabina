@@ -2,6 +2,7 @@ import Link from 'next/link'
 import type { Metadata } from 'next'
 import RequestForm from '@/components/RequestForm'
 import { loadOwnRequest, closeOwnerSession } from '@/lib/actions/request-edit'
+import { loadOwnSupportCase, setPublicationConsent } from '@/lib/actions/support-consent'
 import {
   getBuildTiers,
   getDelegations,
@@ -30,7 +31,7 @@ export default async function ModifierPage({
   searchParams,
 }: {
   params: Promise<{ locale: string }>
-  searchParams: Promise<{ saved?: string }>
+  searchParams: Promise<{ saved?: string; consent?: string }>
 }) {
   const [{ locale: raw }, sp] = await Promise.all([params, searchParams])
   const locale: Locale = isLocale(raw) ? raw : 'ar'
@@ -54,6 +55,8 @@ export default async function ModifierPage({
       </div>
     )
   }
+
+  const supportCase = await loadOwnSupportCase(own.id)
 
   const [governorates, delegations, imadas, zones, finance, build] = await Promise.all([
     getGovernorates(),
@@ -100,6 +103,58 @@ export default async function ModifierPage({
             {new Date(own.ownerUpdatedAt).toLocaleDateString(locale === 'ar' ? 'fr-TN' : 'fr-FR')}
           </span>
         </p>
+      )}
+
+      {sp.consent === 'on' && (
+        <p
+          role="status"
+          className="mt-4 rounded border border-brand/40 bg-brand-soft px-4 py-3 text-sm leading-7 text-brand"
+        >
+          {t.consentSavedOn}
+        </p>
+      )}
+      {sp.consent === 'off' && (
+        <p
+          role="status"
+          className="mt-4 rounded border border-line bg-surface-2 px-4 py-3 text-sm leading-7 text-muted"
+        >
+          {t.consentSavedOff}
+        </p>
+      )}
+
+      {/* موافقة النشر — كانت خانة يؤشّرها المستشار في اللوحة. موافقة
+          على نشر حكاية عائلة تُؤخذ ممّن يعيشها. */}
+      {supportCase && (
+        <section className="mt-6 rounded border border-brand/30 bg-brand-soft p-4 sm:p-6">
+          <h2 className="display text-lg font-semibold text-brand-deep">{t.consentTitle}</h2>
+          <p className="mt-2 leading-8 text-ink-soft">{t.consentLede}</p>
+
+          <p className="mt-4 text-sm font-medium">
+            {supportCase.consentGiven ? t.consentOn : t.consentOff}
+          </p>
+          {supportCase.published && (
+            <p className="mt-1 text-sm leading-7 text-muted">{t.consentPublished}</p>
+          )}
+
+          <form action={setPublicationConsent} className="mt-4">
+            <input type="hidden" name="locale" value={locale} />
+            <input type="hidden" name="give" value={supportCase.consentGiven ? '0' : '1'} />
+            <button
+              type="submit"
+              className={`flex min-h-12 w-full items-center justify-center rounded px-6 font-medium transition active:scale-[0.99] sm:w-auto ${
+                supportCase.consentGiven
+                  ? 'border border-line bg-surface text-ink hover:border-line-strong'
+                  : 'bg-brand text-white hover:bg-brand-deep'
+              }`}
+            >
+              {supportCase.consentGiven ? t.consentWithdraw : t.consentGive}
+            </button>
+          </form>
+
+          {supportCase.consentGiven && (
+            <p className="mt-3 text-xs leading-6 text-muted">{t.consentWithdrawNote}</p>
+          )}
+        </section>
       )}
 
       <p className="mt-4 rounded border border-gold/40 bg-gold-soft px-4 py-3 text-xs leading-6 text-gold">
