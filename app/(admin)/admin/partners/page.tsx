@@ -35,7 +35,7 @@ export default async function PartnersPage() {
   const partners = (data ?? []) as Partner[]
 
   return (
-    <div className="mx-auto max-w-5xl px-5 py-10">
+    <div className="mx-auto max-w-5xl px-4 py-8 sm:px-5 sm:py-10">
       <Link href="/admin" className="text-sm text-muted hover:text-brand">
         ← لوحة القيادة
       </Link>
@@ -46,7 +46,7 @@ export default async function PartnersPage() {
       </p>
 
       {/* شريك جديد */}
-      <section className="mt-8 rounded border border-line bg-surface p-6">
+      <section className="mt-8 rounded border border-line bg-surface p-4 sm:p-6">
         <h2 className="text-sm font-semibold">إضافة شريك</h2>
         <form action={upsertPartnerAction} className="mt-4 grid gap-4 sm:grid-cols-2">
           <label className="block">
@@ -84,7 +84,7 @@ export default async function PartnersPage() {
       {/* القائمة */}
       <div className="mt-8 flex flex-col gap-3">
         {partners.length === 0 && (
-          <p className="rounded border border-line bg-surface p-8 text-center text-muted">
+          <p className="rounded border border-line bg-surface p-5 sm:p-8 text-center text-muted">
             ما فمّا حتّى شريك مسجّل.
           </p>
         )}

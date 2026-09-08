@@ -56,7 +56,7 @@ export default async function BordereauPage({
   for (const a of articles) countByLot.set(a.lot_id, (countByLot.get(a.lot_id) ?? 0) + 1)
 
   return (
-    <div className="mx-auto max-w-6xl px-5 py-10">
+    <div className="mx-auto max-w-6xl px-4 py-8 sm:px-5 sm:py-10">
       <Link href="/admin" className="text-sm text-muted hover:text-brand">
         ← لوحة القيادة
       </Link>
@@ -98,7 +98,7 @@ export default async function BordereauPage({
       </div>
 
       {/* مقال جديد */}
-      <section className="mt-8 rounded border border-line bg-surface p-6">
+      <section className="mt-8 rounded border border-line bg-surface p-4 sm:p-6">
         <h2 className="text-sm font-semibold">إضافة مقال</h2>
         <form action={upsertArticleAction} className="mt-4 grid gap-4 sm:grid-cols-3">
           <label className="block">

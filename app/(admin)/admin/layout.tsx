@@ -34,26 +34,28 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   return (
     <>
       <header className="border-b border-line bg-surface">
-        <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-4 px-5 py-3">
-          <div className="flex items-center gap-5">
-            <Link href="/admin" className="flex items-center gap-2.5">
-              <span className="brick" aria-hidden="true" />
-              <span className="display font-semibold text-brand-deep">اللَّبنة</span>
-            </Link>
-            <nav className="flex items-center gap-1 text-sm">
-              {links.map((l) => (
-                <Link
-                  key={l.href}
-                  href={l.href}
-                  className="rounded px-2.5 py-1.5 text-muted transition hover:bg-surface-2 hover:text-brand"
-                >
-                  {l.label}
-                </Link>
-              ))}
-            </nav>
-          </div>
+        {/* أحد عشر رابطاً في صفّ واحد يفيضان عن شاشة تليفون بـ455 بكسل.
+            على التليفون: الشعار والهويّة في سطر، والتنقّل شريط يُسحب
+            بالإبهام في سطر تحته. من lg يعود الصفّ الواحد كما كان. */}
+        <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-x-4 gap-y-2 px-4 py-3 sm:px-5">
+          <Link href="/admin" className="order-1 flex min-h-11 items-center gap-2.5">
+            <span className="brick shrink-0" aria-hidden="true" />
+            <span className="display font-semibold text-brand-deep">اللَّبنة</span>
+          </Link>
 
-          <div className="flex items-center gap-3 text-sm">
+          <nav className="order-3 -mx-4 flex w-[calc(100%+2rem)] items-center gap-1 overflow-x-auto px-4 pb-0.5 text-sm lg:order-2 lg:mx-0 lg:me-auto lg:w-auto lg:overflow-x-visible lg:px-0 lg:pb-0">
+            {links.map((l) => (
+              <Link
+                key={l.href}
+                href={l.href}
+                className="shrink-0 rounded px-2.5 py-1.5 whitespace-nowrap text-muted transition hover:bg-surface-2 hover:text-brand"
+              >
+                {l.label}
+              </Link>
+            ))}
+          </nav>
+
+          <div className="order-2 flex items-center gap-3 text-sm lg:order-3">
             {can(staff.role, 'requests.export') && (
               <a
                 href="/admin/export"

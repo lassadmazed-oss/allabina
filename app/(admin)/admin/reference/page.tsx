@@ -39,7 +39,7 @@ export default async function ReferencePage() {
   const totalImadas = (imadas ?? []).length
 
   return (
-    <div className="mx-auto max-w-5xl px-5 py-10">
+    <div className="mx-auto max-w-5xl px-4 py-8 sm:px-5 sm:py-10">
       <Link href="/admin" className="text-sm text-muted hover:text-brand">
         ← رجوع للوحة القيادة
       </Link>
@@ -201,7 +201,7 @@ export default async function ReferencePage() {
       </Section>
 
       {/* دراسة طلب المساندة — الأوزان والحدود */}
-      <section className="mt-10 rounded border border-line bg-surface p-6">
+      <section className="mt-10 rounded border border-line bg-surface p-4 sm:p-6">
         <h2 className="text-sm font-semibold">دراسة طلب المساندة: الأوزان وحدود الفئات</h2>
         <p className="mt-1 max-w-3xl text-xs leading-6 text-muted">
           ستّة معايير يقيّمها المستشار 0→3 بوصف مكتوب. الوزن يقول قدّاش يحسب كلّ معيار في
@@ -212,7 +212,7 @@ export default async function ReferencePage() {
       </section>
 
       {/* قنوات الاتّصال العمومية */}
-      <section className="mt-10 rounded border border-line bg-surface p-6">
+      <section className="mt-10 rounded border border-line bg-surface p-4 sm:p-6">
         <h2 className="text-sm font-semibold">قنوات الاتّصال العمومية</h2>
         <p className="mt-1 max-w-3xl text-xs leading-6 text-muted">
           تظهر في صفحات الشكر («كيفاش توصلنا؟»). الخانة الفارغة لا تُعرض. رقم الواتساب بالصيغة

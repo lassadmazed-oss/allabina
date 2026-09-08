@@ -61,7 +61,7 @@ export default async function StandingAdminPage({
   const balanced = sharesBalanced(selectedShares)
 
   return (
-    <div className="mx-auto max-w-6xl px-5 py-10">
+    <div className="mx-auto max-w-6xl px-4 py-8 sm:px-5 sm:py-10">
       <Link href="/admin" className="text-sm text-muted hover:text-brand">
         ← لوحة القيادة
       </Link>
@@ -136,7 +136,7 @@ export default async function StandingAdminPage({
 
       {/* تحرير المستوى المختار */}
       {selected && (
-        <section className="mt-10 rounded border border-line bg-surface p-6">
+        <section className="mt-10 rounded border border-line bg-surface p-4 sm:p-6">
           <h2 className="text-sm font-semibold">
             المستوى <span className="num">{selected.code}</span> — {selected.nameAr}
           </h2>
@@ -281,7 +281,7 @@ export default async function StandingAdminPage({
       )}
 
       {/* مستوى جديد */}
-      <section className="mt-10 rounded border border-line bg-surface p-6">
+      <section className="mt-10 rounded border border-line bg-surface p-4 sm:p-6">
         <h2 className="text-sm font-semibold">مستوى جديد</h2>
         <p className="mt-1 text-xs leading-6 text-muted">
           الرمز حروف وأرقام فقط (B06 مثلاً). التوزيع يُنسخ تلقائياً من أقرب مستوى بالسعر، وتنجّم

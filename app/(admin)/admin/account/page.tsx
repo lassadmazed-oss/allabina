@@ -9,7 +9,7 @@ export default async function AccountPage() {
   const staff = await requireSession()
 
   return (
-    <div className="mx-auto max-w-2xl px-5 py-10">
+    <div className="mx-auto max-w-2xl px-4 py-8 sm:px-5 sm:py-10">
       <h1 className="display text-2xl font-semibold">حسابي</h1>
       <p className="mt-1 text-sm text-muted" dir="ltr">
         {staff.email}
