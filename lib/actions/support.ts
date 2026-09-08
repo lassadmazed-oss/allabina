@@ -5,6 +5,7 @@ import { headers } from 'next/headers'
 import { staffWithPermission } from '@/lib/auth'
 import { db } from '@/lib/supabase/server'
 import { isPublicPledgeKind } from '@/lib/support'
+import { supportRequestSchema } from '@/lib/support-schema'
 
 /** إنشاء أو تحيين حالة تحتاج مساندة — النشر ممنوع بلا موافقة */
 export async function upsertSupportCaseAction(formData: FormData) {
@@ -162,4 +163,89 @@ export async function updatePledgeAction(formData: FormData) {
 
   if (error) console.error('update pledge', error)
   revalidatePath('/admin/support')
+}
+
+/* ============================================================
+ * «نحتاج مساندة» — الاستمارة العمومية
+ * ============================================================
+ * لا تنشئ حالة معروضة ولا تنشر شيئاً. تفتح ملفّاً عادياً في المسار
+ * (housing_requests) مع تقييم اجتماعي، ويبقى عند الفريق. النشر على
+ * صفحة «حالات تحتاج مساندة» قرار لاحق بموافقة صريحة من صاحب الملفّ.
+ */
+
+export type SupportRequestState = {
+  ok: boolean
+  ref?: string
+  error?: 'banner' | 'rateLimited' | 'server'
+  fields?: string[]
+}
+
+export async function submitSupportRequest(
+  _prev: SupportRequestState,
+  formData: FormData
+): Promise<SupportRequestState> {
+  if ((formData.get('website') as string)?.length) return { ok: false, error: 'server' }
+
+  const raw = Object.fromEntries(formData.entries())
+  const parsed = supportRequestSchema.safeParse({
+    ...raw,
+    hasDisability: raw.hasDisability === 'on',
+    ownsLand: raw.ownsLand === 'on',
+    consent: raw.consent === 'on',
+  })
+
+  if (!parsed.success) {
+    const fields = [...new Set(parsed.error.issues.map((i) => String(i.path[0] ?? '')))].filter(
+      Boolean
+    )
+    console.error('support request validation failed:', fields.join(', '))
+    return { ok: false, error: 'banner', fields }
+  }
+
+  const d = parsed.data
+  const ip = (await headers()).get('x-forwarded-for')?.split(',')[0] ?? 'local'
+  if (rateLimited(ip) || rateLimited(d.phone)) return { ok: false, error: 'rateLimited' }
+
+  const { data: inserted, error } = await db
+    .from('housing_requests')
+    .insert({
+      full_name: d.fullName,
+      phone: d.phone,
+      email: d.email || null,
+      gov_code: d.govCode,
+      delegation_id: d.delegationId,
+      // ما عندناش نوع «مساندة» في request_type: نسجّل الأقرب والفريق يعيد التصنيف
+      request_type: d.ownsLand ? 'build_on_land' : 'economic',
+      owns_land: d.ownsLand,
+      urgency: d.urgency,
+      problem_note: d.needText,
+      // التوجيه إلى المسار الاجتماعي مع سببه — التصنيف بلا سبب لا يفيد أحداً
+      study_track: 'social',
+      track_reason: 'طلب مساندة من الاستمارة العمومية',
+      status: 'new',
+      consent_at: new Date().toISOString(),
+      source: 'support_form',
+    })
+    .select('id, ref_code')
+    .single()
+
+  if (error || !inserted) {
+    console.error('insert support request', error)
+    return { ok: false, error: 'server' }
+  }
+
+  const { error: socialErr } = await db.from('social_assessments').insert({
+    request_id: inserted.id,
+    household_size: d.householdSize,
+    dependents: d.dependents,
+    has_disability: d.hasDisability,
+    housing_condition: d.housingCondition,
+    income_stability: d.incomeStability,
+    notes: d.needText,
+  })
+  // الملفّ محفوظ حتى لو سقط التقييم — لا نضيّع طلب إنسان على سطر ثانوي
+  if (socialErr) console.error('insert social_assessment', socialErr)
+
+  revalidatePath('/admin')
+  return { ok: true, ref: inserted.ref_code as string }
 }

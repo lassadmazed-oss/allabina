@@ -167,6 +167,9 @@ export default async function SiteLayout({
                 <Link href={p('/soutien')} className="hover:text-brand">
                   {t.soutien.navLink}
                 </Link>
+                <Link href={p('/soutien/demande')} className="hover:text-brand">
+                  {t.soutien.askHelp.navCta}
+                </Link>
                 <Link href={p('/proprietaire')} className="hover:text-brand">
                   {t.proprietaire.navCta}
                 </Link>

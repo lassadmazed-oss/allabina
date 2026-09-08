@@ -115,6 +115,18 @@ export default async function SoutienPage({ params }: { params: Promise<{ locale
         ))}
       </ul>
 
+      {/* مدخل صاحب الحاجة — الصفحة كانت تعرض الحالات وتفتح باباً للمساهم وحده */}
+      <section className="mt-6 rounded border border-brand/30 bg-brand-soft p-6">
+        <h2 className="display text-lg font-semibold text-brand-deep">{t.askHelp.cardTitle}</h2>
+        <p className="mt-2 max-w-3xl leading-8 text-ink-soft">{t.askHelp.cardBody}</p>
+        <Link
+          href={path(locale, '/soutien/demande')}
+          className="mt-4 inline-block rounded bg-brand px-6 py-3 font-medium text-white transition hover:bg-brand-deep"
+        >
+          {t.askHelp.cardCta}
+        </Link>
+      </section>
+
       <section className="mt-12">
         {cases.length === 0 ? (
           <p className="rounded border border-line bg-surface p-10 text-center leading-8 text-muted">

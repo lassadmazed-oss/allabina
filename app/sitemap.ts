@@ -13,6 +13,7 @@ const PAGES = [
   '/reseau',
   '/realisations',
   '/soutien',
+  '/soutien/demande',
   '/confidentialite',
 ] as const
 
