@@ -327,6 +327,14 @@ const ar = {
         durationLabel: 'مدّة الإنجاز',
         months: 'شهر',
         areaLabel: 'المساحة',
+        albumTitle: 'الحالة بالصور',
+        albumLede: 'من أوّل صورة إلى مفتاح الدار. بلا وجوه ولا أسماء.',
+        stage: {
+            before: 'قبل',
+            progress: 'أثناء الأشغال',
+            after: 'بعد'
+        } as Record<string, string>,
+        photoCount: '{n} صورة',
         beforeLabel: 'قبل',
         afterLabel: 'بعد',
         consentNote: 'كل حالة تُنشر بموافقة صاحبها، ومجهّلة الهوية ما لم يطلب غير ذلك.',
@@ -930,6 +938,14 @@ const fr: Dictionary = {
         durationLabel: 'Durée de réalisation',
         months: 'mois',
         areaLabel: 'Surface',
+        albumTitle: 'Le cas en images',
+        albumLede: 'De la première photo à la remise des clés. Sans visages ni noms.',
+        stage: {
+            before: 'Avant',
+            progress: 'Pendant les travaux',
+            after: 'Après'
+        } as Record<string, string>,
+        photoCount: '{n} photo(s)',
         beforeLabel: 'Avant',
         afterLabel: 'Après',
         consentNote: "Chaque cas est publié avec l'accord de son titulaire, et anonymisé sauf demande contraire.",

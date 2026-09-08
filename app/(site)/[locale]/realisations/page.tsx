@@ -1,8 +1,9 @@
 import Link from 'next/link'
 import { db } from '@/lib/supabase/server'
-import { getDictionary, isLocale, path, type Locale } from '@/lib/i18n'
+import { fmt, getDictionary, isLocale, path, type Locale } from '@/lib/i18n'
 import { formatNumber } from '@/lib/format'
 import DemoBadge from '@/components/DemoBadge'
+import { groupByStage, photoPublicUrl, type CasePhoto } from '@/lib/photos'
 
 export const dynamic = 'force-dynamic'
 
@@ -67,6 +68,20 @@ export default async function RealisationsPage({
   ])
 
   const cases = (casesRaw ?? []) as CaseStudy[]
+
+  const { data: photosRaw } = cases.length
+    ? await db
+        .from('case_photos')
+        .select('id, case_id, storage_path, stage, caption_ar, caption_fr, taken_at, sort_order')
+        .in('case_id', cases.map((c) => c.id))
+    : { data: [] as CasePhoto[] }
+  const photosByCase = new Map<string, CasePhoto[]>()
+  for (const ph of (photosRaw ?? []) as CasePhoto[]) {
+    const list = photosByCase.get(ph.case_id) ?? []
+    list.push(ph)
+    photosByCase.set(ph.case_id, list)
+  }
+  const baseUrl = process.env.SUPABASE_URL ?? process.env.NEXT_PUBLIC_SUPABASE_URL ?? ''
   const activity = ((activityRaw ?? []) as Activity[]).sort(
     (a, b) =>
       b.completed_cases + b.active_files - (a.completed_cases + a.active_files) ||
@@ -177,34 +192,74 @@ export default async function RealisationsPage({
                     </span>
                   </div>
 
-                  {(c.photo_before || c.photo_after) && (
-                    <div className="mt-5 grid gap-3 sm:grid-cols-2">
-                      {c.photo_before && (
-                        <figure>
-                          <img
-                            src={c.photo_before}
-                            alt={t.cases.beforeLabel}
-                            className="w-full rounded border border-line object-cover"
-                          />
-                          <figcaption className="mt-1 text-xs text-faint">
-                            {t.cases.beforeLabel}
-                          </figcaption>
-                        </figure>
-                      )}
-                      {c.photo_after && (
-                        <figure>
-                          <img
-                            src={c.photo_after}
-                            alt={t.cases.afterLabel}
-                            className="w-full rounded border border-line object-cover"
-                          />
-                          <figcaption className="mt-1 text-xs text-faint">
-                            {t.cases.afterLabel}
-                          </figcaption>
-                        </figure>
-                      )}
-                    </div>
-                  )}
+                  {(() => {
+                    const groups = groupByStage(photosByCase.get(c.id) ?? [])
+                    if (groups.length === 0) {
+                      // حالة قديمة برابطين يدويين فقط
+                      if (!c.photo_before && !c.photo_after) return null
+                      return (
+                        <div className="mt-5 grid gap-3 sm:grid-cols-2">
+                          {c.photo_before && (
+                            <figure>
+                              <img src={c.photo_before} alt={t.cases.beforeLabel} className="w-full rounded border border-line object-cover" />
+                              <figcaption className="mt-1 text-xs text-faint">{t.cases.beforeLabel}</figcaption>
+                            </figure>
+                          )}
+                          {c.photo_after && (
+                            <figure>
+                              <img src={c.photo_after} alt={t.cases.afterLabel} className="w-full rounded border border-line object-cover" />
+                              <figcaption className="mt-1 text-xs text-faint">{t.cases.afterLabel}</figcaption>
+                            </figure>
+                          )}
+                        </div>
+                      )
+                    }
+                    const total = groups.reduce((n, g) => n + g.photos.length, 0)
+                    return (
+                      <section className="mt-5">
+                        <div className="flex items-baseline justify-between gap-3">
+                          <h4 className="text-sm font-medium">{t.cases.albumTitle}</h4>
+                          <span className="num text-xs text-faint">
+                            {fmt(t.cases.photoCount, { n: total })}
+                          </span>
+                        </div>
+                        <p className="mt-0.5 text-xs text-faint">{t.cases.albumLede}</p>
+                        <ol className="mt-3 flex flex-col gap-4">
+                          {groups.map((g) => (
+                            <li key={g.stage}>
+                              <div className="mb-2 flex items-center gap-2">
+                                <span className="h-2 w-2 rounded-full bg-gold" aria-hidden="true" />
+                                <span className="text-xs font-medium text-gold">
+                                  {t.cases.stage[g.stage]}
+                                </span>
+                              </div>
+                              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                                {g.photos.map((ph) => {
+                                  const caption = (isFr && ph.caption_fr) || ph.caption_ar
+                                  return (
+                                    <figure key={ph.id}>
+                                      <img
+                                        src={photoPublicUrl(baseUrl, ph.storage_path)}
+                                        alt={caption ?? t.cases.stage[g.stage]}
+                                        loading="lazy"
+                                        className="aspect-[4/3] w-full rounded border border-line object-cover"
+                                      />
+                                      {(caption || ph.taken_at) && (
+                                        <figcaption className="mt-1 flex justify-between gap-2 text-xs text-faint">
+                                          <span>{caption}</span>
+                                          {ph.taken_at && <span className="num">{ph.taken_at}</span>}
+                                        </figcaption>
+                                      )}
+                                    </figure>
+                                  )
+                                })}
+                              </div>
+                            </li>
+                          ))}
+                        </ol>
+                      </section>
+                    )
+                  })()}
 
                   <dl className="mt-5 space-y-3 text-sm leading-7">
                     <div>
