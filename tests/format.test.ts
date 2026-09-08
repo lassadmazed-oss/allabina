@@ -1,5 +1,13 @@
 import { describe, expect, it } from 'vitest'
-import { THIN_NBSP, formatMoney, formatNumber, formatRange } from '@/lib/format'
+import {
+  THIN_NBSP,
+  formatMoney,
+  formatNumber,
+  formatRange,
+  formatSignedMoney,
+  LRI,
+  PDI,
+} from '@/lib/format'
 import { formatTND } from '@/lib/finance'
 
 /**
@@ -47,5 +55,23 @@ describe('تنسيق موحّد', () => {
 
   it('قيمة غير صالحة ترجع شرطة بدل NaN', () => {
     expect(formatNumber(Number.NaN)).toBe('—')
+  })
+})
+
+describe('مبلغ بإشارة داخل نصّ عربي', () => {
+  it('الإشارة والرقم معزولان في جزيرة LTR، والعملة خارجها', () => {
+    const out = formatSignedMoney(-12000)
+    expect(out.startsWith(LRI)).toBe(true)
+    expect(out).toContain(`−12 000${PDI}`)
+    expect(out.endsWith('د.ت')).toBe(true)
+  })
+
+  it('الموجب بعلامة +، والصفر بلا إشارة', () => {
+    expect(formatSignedMoney(3900)).toContain('+3 900')
+    expect(formatSignedMoney(0)).toContain(`${LRI}0${PDI}`)
+  })
+
+  it('بالفرنسية نفس العزل والعملة DT', () => {
+    expect(formatSignedMoney(-2160, 'fr')).toMatch(/⁦−2 160⁩ DT$/)
   })
 })

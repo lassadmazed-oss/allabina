@@ -151,10 +151,11 @@ footer{margin-top:60px;padding-top:22px;border-top:1px solid var(--line);color:v
     <li><a href="#s14"><span class="n">14</span>خريطة صفاقس ثمّ تونس</a></li>
     <li><a href="#s15"><span class="n">15</span>المرصد العقاري</a></li>
     <li><a href="#s16"><span class="n">16</span>واجهة المستثمر</a></li>
-    <li><a href="#s17"><span class="n">17</span>الـBack-office</a></li>
-    <li><a href="#s18"><span class="n">18</span>البنية التقنية</a></li>
-    <li><a href="#links"><span class="n">19</span>ربط الوحدات ببعضها</a></li>
-    <li><a href="#phases"><span class="n">20</span>المراحل وترتيب العمل</a></li>
+    <li><a href="#s17"><span class="n">17</span>شبكة المتدخلين والمزوّدين</a></li>
+    <li><a href="#s18"><span class="n">18</span>الـBack-office</a></li>
+    <li><a href="#s19"><span class="n">19</span>البنية التقنية</a></li>
+    <li><a href="#links"><span class="n">20</span>ربط الوحدات ببعضها</a></li>
+    <li><a href="#phases"><span class="n">21</span>المراحل وترتيب العمل</a></li>
   </ol>
 </nav>
 
@@ -611,14 +612,154 @@ footer{margin-top:60px;padding-top:22px;border-top:1px solid var(--line);color:v
 </section>
 
 <section id="s17">
-  <div class="sec-head"><span class="sec-num">17</span><h2>الـBack-office</h2><span class="st partial">جزئي</span></div>
+  <div class="sec-head"><span class="sec-num">17</span><h2>شبكة المتدخلين والمزوّدين</h2><span class="st partial">جزئي</span></div>
+  <p class="lead">ليست دليل إعلانات للحرفيين. هي <b>أداة تنفيذ داخلية</b>: قاعدة مركزية لكلّ من يمكن أن يتدخّل في مشروع بناء — حرفيّون، مقاولون، مكاتب دراسات، مهندسون، مزوّدو مواد — موزّعة جغرافياً، حتى تصل اللبنة عند كلّ مشروع إلى <b>المتدخّل المؤهَّل والأقرب والمتوفّر</b> في دقائق لا في أسابيع. قيمتها تتراكم: كلّ chantier ينتهي يزيد المنصّة معرفة بمن يشتغل مليح، وشحال التكلفة الحقيقية، وشحال تستغرق الأشغال.</p>
+
+  <div class="chain">
+    <span>تسجيل مهني</span><i>←</i><span>وثائق</span><i>←</i><span class="key">تحقّق اللبنة</span><i>←</i><span>اعتماد</span><i>←</i><span>الشبكة</span><i>←</i><span class="key">مطابقة مع chantier</span><i>←</i><span>إسناد Lot</span><i>←</i><span>تنفيذ</span><i>←</i><span class="key">تقييم</span><i>←</i><span>ملفّ خبرة</span>
+  </div>
+
+  <h3>1 · المدخل من الواجهة</h3>
+  <p class="lead">مدخل مستقلّ في الواجهة العمومية: «<b>هل أنت مهني في قطاع البناء؟</b>» أو «انضمّ إلى شبكة متدخّلي اللبنة». يُشرح فيه أنّ التسجيل مفتوح للحرفي والمقاول والمهندس ومكتب الدراسات والشركة ومزوّد المواد.</p>
+  <div class="gap"><b>قاعدة لا تُخفى على المسجِّل:</b> التسجيل ليس اعتماداً. كلّ ملفّ يمرّ على إدارة اللبنة. تُكتب هذه الجملة في الاستمارة نفسها لا في شروط الاستعمال، حتى لا ينتظر الحرفي عملاً لن يأتي.</div>
+
+  <h3>2 · التصنيفات — قابلة للتوسيع لا مكتوبة في الكود</h3>
+  <p class="lead">أربع عائلات أولية: <b>الحرف والمقاولات</b> (بنّاء · Coffreur · Ferrailleur · سبّاك · كهربائي · Carreleur · دهّان · Plâtrier · نجّار خشب · نجّار ألمنيوم · Étanchéité · Façadier · حدّاد · تكييف · تدفئة · بستنة · أشغال خارجية)، <b>المهن الفنّية</b> (مهندس معماري · مهندس مدني · مكتب دراسات · Géomètre · طوبوغرافي · مهندس ديكور · تقني بناء)، <b>الشركات</b> (مقاولة عامّة · مقاولة مختصّة · باعث عقاري · مناول)، <b>المزوّدون</b> (comptoir مواد · إسمنت · حديد · آجرّ · رمل وحصى · خرسانة · بلاط · صحّي · سباكة · كهرباء · ألمنيوم · خشب · دهن · مطابخ · عزل).</p>
+  <div class="gap"><b>شرط تقني حاسم — القسم 25 من كراس الشروط:</b> الجدول الحالي <code>partners</code> يخزّن النوع في <code>enum partner_kind</code> مكتوب في الـSQL. إضافة «Photovoltaïque» أو «Domotique» أو «Piscine» غداً تعني هجرة قاعدة بيانات ونشراً جديداً — وهذا بالضبط ما يمنعه كراس الشروط. يُستبدَل الـenum بجدولَين: <code>intervenant_categories</code> (عائلة · تسمية عربية وفرنسية · ترتيب · نشط) و<code>skills</code> المرتبط بها. الإدارة تضيف وتحذف وتعدّل من الـBack-office بلا مطوّر.</div>
+
+  <h3>3 · الملفّ المهني 360°</h3>
+  <p class="lead">لكلّ متدخّل ملفّ واحد يجمع ما يعرّفه وما يجيد وما أنجز.</p>
+  <ul class="list">
+    <li><b>الهوية:</b> الاسم واللقب · اسم المؤسّسة عند الاقتضاء · الهاتف · واتساب · البريد · نوع المتدخّل · الاختصاص الرئيسي · اختصاصات إضافية · سنوات الخبرة.</li>
+    <li><b>الوضعية المهنية:</b> حرفي مستقلّ · عامل · صاحب Patente · شركة · مؤسّسة فردية · مزوّد · مكتب دراسات · مهندس. تُسجَّل الوضعية كما هي — <b>لا يُستبعَد أحد آلياً</b> لأنّه بلا patente؛ الوضعية تحدّد الوثائق المطلوبة فقط.</li>
+    <li><b>Savoir-faire:</b> أهمّ حقل في الملفّ. «أنا بنّاء» لا تكفي. البنّاء يختار من: Maçonnerie · Cloisons · Enduit intérieur · Enduit extérieur · Façade · Pose briques · Rénovation. والسبّاك من: Installation sanitaire · Réseau eau · Évacuation · Chauffe-eau · Dépannage · Installation complète maison. متعدّد الاختيار، ومربوط بجدول المهارات القابل للتوسيع.</li>
+    <li><b>Portfolio:</b> صور وفيديو ووصف المشروع ونوع الأشغال وتاريخ تقريبي — «Villa 150 m² – Sfax · Installation plomberie complète».</li>
+  </ul>
+
+  <h3>4 · الوثائق — مطلوبة حسب الصنف لا حسب قائمة واحدة</h3>
+  <p class="lead">CIN · Patente · RNE · وثائق الشركة · Diplôme · Agrément · Assurance · شهادات مهنية · وثائق أخرى تحدّدها الإدارة.</p>
+  <div class="gap"><b>الشرط:</b> الإدارة تحدّد لكلّ صنف أيّ وثيقة <b>Obligatoire</b> وأيّها <b>Facultatif</b> — من الـBack-office. مهندس معماري وسبّاك مستقلّ لا يُطلب منهما نفس الملفّ. جدول <code>category_documents</code> يربط الصنف بنوع الوثيقة وإلزاميّتها، والنظام يحسب تلقائياً «وثائق ناقصة» بدل أن يعتمد على ذاكرة الموظّف.</div>
+
+  <h3>5 · التوزيع الجغرافي ونطاق التدخّل</h3>
+  <p class="lead">لكلّ متدخّل مقرّ (ولاية ← معتمدية ← منطقة) و<b>Zone d'intervention</b> منفصلة عنه: متدخّل مقرّه ساقية الزيت قد يقبل العمل في كامل صفاقس. ويُضاف <b>Rayon d'intervention</b> بالكيلومترات عند الحاجة.</p>
+  <div class="built"><b>الأساس موجود:</b> التسلسل الجغرافي مبنيّ ومعبّأ (<code>governorates</code> · <code>delegations</code> · <code>imadas</code> · <code>zones</code>) ويستعمله المطلب والعقار. نطاق التدخّل يُبنى فوقه كعلاقة متعدّد-إلى-متعدّد <code>intervenant_zones</code>، لا كنصّ حرّ.</div>
+
+  <h3>6 · التوفّر</h3>
+  <p class="lead">أربع حالات: <b>متوفّر</b> · <b>مشغول</b> · <b>متوفّر ابتداءً من تاريخ</b> · <b>غير متوفّر</b>. الغرض عملي بحت: ألّا يقترح النظام على الإدارة سبّاكاً في chantier آخر لا يستطيع مغادرته.</p>
+
+  <h3>7 · مسار الاعتماد والتحقّق الداخلي</h3>
+  <div class="chain">
+    <span>Nouveau</span><i>←</i><span>À vérifier</span><i>←</i><span>Documents manquants</span><i>←</i><span>Vérifié</span><i>←</i><span class="key">Validé</span><i>·</i><span>Suspendu</span><i>·</i><span>Refusé</span><i>·</i><span>Archivé</span>
+  </div>
+  <p class="lead">في الـBack-office فضاء يسمح لفريق اللبنة بمراجعة البيانات والوثائق، الاتصال بالمتدخّل، إضافة ملاحظات داخلية، طلب وثائق إضافية، ثمّ القبول أو التعليق أو الرفض.</p>
+  <div class="built"><b>النمط جاهز للنسخ:</b> نظام الأدوار وسجلّ التدقيق المنفَّذ (<code>staff</code> · <code>staff_events</code> · مصفوفة صلاحيات واحدة في <code>lib/permissions.ts</code>) يعطي مباشرةً ما يطلبه هذا القسم: <b>من اتّخذ القرار · متى · ولماذا</b>. يُعاد استعمال نفس البنية في <code>intervenant_events</code>.</div>
+
+  <h3>8 · المطابقة: متدخّل ↔ chantier</h3>
+  <p class="lead">عند وجود حاجة — «Chantier صفاقس · Besoin: Plomberie · انطلاق 15/10 · Villa 120 m²» — يبحث النظام في الشبكة حسب: <b>المهنة + المهارة + الموقع + التوفّر + حالة التحقّق + السوابق + الأداء</b>، ويعرض على الإدارة قائمة مختصرة.</p>
+  <div class="gap"><b>حدّ لا يُتجاوز:</b> النظام <b>يقترح ولا يقرّر</b>. القرار النهائي لإدارة اللبنة، ويُسجَّل مع سببه. نفس المبدأ المعتمد في محرّك المطابقة (القسم 09) ونظام التنقيط: الآلة ترتّب، والإنسان يقرّر.</div>
+
+  <h3>9 · الإسناد والربط بالبوردرو</h3>
+  <p class="lead">بعد الاختيار: <b>Intervenant ← Projet ← Lot ← Articles</b>. المتدخّل لا يأخذ بالضرورة المشروع كاملاً؛ يُسنَد إليه Lot كامل أو مقالات محدّدة داخله.</p>
+  <div class="built"><b>نصف الطريق مقطوع:</b> البوردرو مبنيّ — <code>lots</code> (عشرون قسطاً) و<code>articles</code> بأسعارها المفصولة <code>pu_fourniture_ht</code> و<code>pu_main_oeuvre_ht</code>، و<code>devis</code> و<code>devis_lines</code>. الإسناد لا يحتاج نظام تسعير جديداً: يحتاج جدول <code>assignments</code> يربط المتدخّل بمقالات البوردرو.</div>
+  <div class="tw">
+    <table>
+      <thead><tr><th>على كلّ سطر إسناد</th><th>يُسجَّل</th><th>الفائدة التراكمية</th></tr></thead>
+      <tbody>
+        <tr><td><b>Prix prévu</b></td><td>من قاعدة أسعار اللبنة وقت إعداد الـDevis</td><td>المرجع</td></tr>
+        <tr><td><b>Prix proposé / négocié</b></td><td>ما اتّفق عليه مع المتدخّل</td><td>فجوة التفاوض حسب المنطقة والمهنة</td></tr>
+        <tr><td><b>Coût réel</b></td><td>ما دُفع فعلاً بعد التنفيذ</td><td><b>قاعدة أسعار حقيقية</b> تُغذّي الـDevis القادم</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="note">هنا القيمة الاقتصادية للوحدة كلّها: بعد عشرين مشروعاً تعرف اللبنة الكلفة الحقيقية لكلّ Article في كلّ منطقة — لا التقدير النظري. ويصبح الـDevis المقدَّم للمواطن أدقّ من أيّ منافس يقدّر من ذاكرته.</div>
+
+  <h3>10 · المزوّدون — منطق مختلف عن الحرفي</h3>
+  <p class="lead">المزوّد لا يُعامَل كحرفي. ملفّه: الشركة · الموقع · مناطق التوصيل · أنواع المواد · العلامات التجارية · الأسعار · شروط الدفع · آجال التوصيل · Minimum de commande · التوفّر · جهة الاتصال التجارية.</p>
+  <ul class="list">
+    <li><b>Catalogue:</b> في مرحلة متقدّمة يضيف المزوّد منتجاته — بلاط (صورة · Marque · Référence · أبعاد · Prix HT/m² · Stock · تاريخ السعر)، إسمنت (Marque · Conditionnement · سعر · توفّر).</li>
+    <li><b>حاجز إلزامي:</b> أيّ سعر جديد من مزوّد <b>لا يدخل تلقائياً</b> في Devis المواطنين. يمرّ على مصادقة إدارة اللبنة. نفس قاعدة قاعدة الأسعار في القسم 11.</li>
+    <li><b>القرب من الـchantier:</b> عند الحاجة إلى مواد يقترح النظام الموردين الأقرب — بموازنة <b>السعر + المسافة + التوفّر + آجال التسليم + تقييم المورّد</b>، لا الأرخص وحده.</li>
+    <li><b>Demande de Prix (RFQ):</b> إرسال طلب أسعار («120 م² بلاط · 30 كيس إسمنت») إلى مجموعة موردين معتمدين، واستقبال عروضهم ومقارنتها. تُطلَق في مرحلة لاحقة، لكن <b>البنية الحالية يجب ألّا تمنعها</b>: يكفي أن يكون الكتالوج والمقالات مرتبطين بمعرّفات ثابتة منذ اليوم.</li>
+  </ul>
+
+  <h3>11 · التقييم وملفّ الخبرة الحقيقي</h3>
+  <p class="lead">بعد كلّ مهمّة يقيّم فريق اللبنة المتدخّل <b>داخلياً</b> على: الجودة · احترام الآجال · احترام السعر · التوفّر · نظافة الـchantier · احترام التعليمات · سرعة الاستجابة. لا يُختزَل القرار في نجوم.</p>
+  <div class="note">مع الوقت يعرف النظام أنّ متدخّلاً بعينه: <b>أنجز 17 chantier مع اللبنة · 13 في الآجال · 2 بتأخير · 0 مشاكل جودة كبيرة · متخصّص في الفيلات · يشتغل أساساً في صفاقس الكبرى.</b> هذه المعطيات أصدق من كلّ ما كتبه عن نفسه وقت التسجيل، وهي التي تُغذّي المطابقة في القسم 8.</div>
+
+  <h3>12 · حدود العلاقة مع المواطن</h3>
+  <p class="lead">قاعدة عمل لا قاعدة تقنية، ويجب أن يفهمها المطوّر قبل أن يكتب سطراً: <b>المواطن حريف اللبنة</b>.</p>
+  <div class="chain">
+    <span>Citoyen</span><i>↔</i><span class="key">AL-LUBNA</span><i>↔</i><span>Projet</span><i>↔</i><span>Intervenants / Fournisseurs</span>
+  </div>
+  <div class="gap"><b>لا:</b> <code>Citoyen ↔ Intervenant</code> مباشرةً. في المشاريع التي تتولّى اللبنة تنفيذها لا تتحوّل المنصّة إلى Marketplace يضع المواطن أمام العامل أو المزوّد. الصياغة والعقود النهائية تُثبَّت قانونياً قبل التشغيل، وتتغيّر بحسب نوع المشروع والإطار التعاقدي.</div>
+
+  <h3>13 · صلاحيات المتدخّل — ما يراه وما لا يراه</h3>
+  <div class="tw">
+    <table>
+      <thead><tr><th>يرى</th><th>لا يرى</th></tr></thead>
+      <tbody>
+        <tr><td>عنوان الـchantier</td><td>دخل المواطن</td></tr>
+        <tr><td>الـLot المسنَد إليه والأشغال المطلوبة</td><td>محاكيه المالي وميزانيته</td></tr>
+        <tr><td>الوثائق التقنية اللازمة للمهمّة</td><td>وثائقه الشخصية</td></tr>
+        <tr><td>التواريخ والمهامّ وحالة التنفيذ</td><td>الملاحظات الداخلية للإدارة والتنقيط</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="gap"><b>ينفَّذ في القاعدة لا في الواجهة:</b> إخفاء حقل من الشاشة ليس حماية. الصلاحية تُكتب سياسةَ RLS على <code>housing_requests</code> و<code>financial_profiles</code> و<code>scores</code> بحيث لا يقرأ المتدخّل إلّا الأسطر المرتبطة بإسناد نشط له — على نفس منوال السياسات المنفَّذة اليوم لجدول الفريق.</div>
+
+  <h3>14 · اللوحتان</h3>
+  <div class="grid2">
+    <div class="panel">
+      <span class="kicker">Dashboard المتدخّل</span>
+      <ul class="list">
+        <li>المرحلة الأولى: الملفّ · الوثائق · التوفّر · المهامّ المقترحة · المهامّ الجارية · السوابق.</li>
+        <li>لاحقاً: Devis · فواتير · دفوعات · Planning · مراسلة · تنبيهات.</li>
+      </ul>
+    </div>
+    <div class="panel">
+      <span class="kicker">Dashboard الإدارة</span>
+      <ul class="list">
+        <li>عدد المسجَّلين والمعتمدين — حسب الاختصاص والولاية والمعتمدية والتوفّر والأداء.</li>
+        <li>الموردون · الوثائق المنتهية الصلاحية · المشاريع المسنَدة · المشغولون · المتاحون.</li>
+        <li>بحث وفلاتر مركّبة، على منوال شاشة المطالب المنفَّذة.</li>
+      </ul>
+    </div>
+  </div>
+
+  <h3>15 · الجداول المقترحة</h3>
+  <div class="tw">
+    <table>
+      <thead><tr><th>الجدول</th><th>الدور</th><th>الحالة</th></tr></thead>
+      <tbody>
+        <tr><td><code>intervenant_categories</code></td><td>العائلات والاختصاصات — يحلّ محلّ <code>enum partner_kind</code></td><td><span class="st todo">ينقص</span></td></tr>
+        <tr><td><code>skills</code> · <code>intervenant_skills</code></td><td>الـSavoir-faire متعدّد الاختيار</td><td><span class="st todo">ينقص</span></td></tr>
+        <tr><td><code>intervenants</code></td><td>الملفّ المهني 360° وحالته في مسار الاعتماد</td><td><span class="st partial">يوسّع <code>partners</code></span></td></tr>
+        <tr><td><code>intervenant_zones</code></td><td>نطاق التدخّل فوق الجغرافيا القائمة</td><td><span class="st todo">ينقص</span></td></tr>
+        <tr><td><code>category_documents</code> · <code>intervenant_documents</code></td><td>الوثائق المطلوبة حسب الصنف وما سُلّم منها</td><td><span class="st todo">ينقص</span></td></tr>
+        <tr><td><code>portfolio_items</code></td><td>الأعمال السابقة بصورها</td><td><span class="st todo">ينقص</span></td></tr>
+        <tr><td><code>assignments</code></td><td>متدخّل ← مشروع ← Lot ← Articles · الأسعار الثلاثة</td><td><span class="st todo">ينقص</span></td></tr>
+        <tr><td><code>evaluations</code></td><td>التقييم بعد كلّ مهمّة وملفّ الأداء</td><td><span class="st todo">ينقص</span></td></tr>
+        <tr><td><code>supplier_catalog</code> · <code>rfq</code> · <code>rfq_offers</code></td><td>كتالوج المزوّد وطلبات الأسعار</td><td><span class="st todo">مرحلة لاحقة · البنية تسمح</span></td></tr>
+        <tr><td><code>lots</code> · <code>articles</code> · <code>devis</code></td><td>البوردرو الذي يُسنَد عليه العمل</td><td><span class="st done">منفَّذ</span></td></tr>
+        <tr><td><code>governorates</code> · <code>delegations</code> · <code>imadas</code> · <code>zones</code></td><td>الجغرافيا</td><td><span class="st done">منفَّذ</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="built"><b>منفَّذ اليوم:</b> جدول <code>partners</code> بثمانية أنواع وشاشة «الشركاء» في الـBack-office · <code>tasks</code> يسنِد مهمّة إلى شريك داخل ملفّ حريف · <code>contributions</code> يسجّل مساهمة شريك في حلّ · البوردرو كاملاً (<code>lots</code> · <code>articles</code> · <code>devis</code>) · الجغرافيا المتسلسلة · نظام الأدوار وسجلّ التدقيق.</div>
+  <div class="gap"><b>ينقص:</b> الملفّ المهني 360° والـsavoir-faire والـportfolio · الوثائق حسب الصنف · نطاق التدخّل والتوفّر · مسار الاعتماد بحالاته الثمانية · المطابقة مع الـchantier · الإسناد على مستوى الـLot والـArticle بأسعاره الثلاثة · التقييم وملفّ الأداء · كتالوج المزوّدين والـRFQ · حساب المتدخّل ولوحته. وقبل هذا كلّه: <b>تفعيل Supabase Storage</b> — بلا تخزين آمن للملفّات لا وثائق ولا portfolio.</div>
+  <div class="note"><b>ترتيب مقترح للتنفيذ:</b> (1) تحويل التصنيفات إلى جداول قابلة للتوسيع وتوسيع <code>partners</code> إلى ملفّ 360° · (2) الوثائق والتخزين ومسار الاعتماد · (3) الجغرافيا والتوفّر · (4) الإسناد على البوردرو بالأسعار الثلاثة — وهنا تبدأ قاعدة الأسعار الحقيقية في التكوّن · (5) التقييم وملفّ الأداء · (6) المطابقة التي تستهلك كلّ ما سبق · (7) المزوّدون والكتالوج والـRFQ. المطابقة آخر ما يُبنى لا أوّله: محرّك بلا معطيات يرتّبها لا قيمة له.</div>
+</section>
+
+<section id="s18">
+  <div class="sec-head"><span class="sec-num">18</span><h2>الـBack-office</h2><span class="st partial">جزئي</span></div>
   <p class="lead">اللوحة المركزية تجيب الإدارة كلّ صباح عن ثلاثة أسئلة: <b>شنوّة المشاكل الموجودة؟ شنوّة الملفّات الأقرب للحلّ؟ شنوّة يلزمنا نعملو اليوم؟</b></p>
   <div class="built"><b>منفَّذ:</b> لوحة بمؤشّرات (مطالب اليوم، نسبة الأصناف، معدّل الميزانية، استفسارات مفتوحة)، توزيع الطلب حسب الولاية والمعتمدية، إجراءات في انتظار التنفيذ، فلاتر مركّبة، تصدير CSV، وشاشات: المطالب · العقارات · الحالات المنجزة · الشركاء · المعطيات المرجعية · الفريق. مع أدوار وصلاحيات (مالك · مدير · وكيل · مطّلع) وسجلّ تدقيق.</div>
   <div class="gap"><b>ينقص:</b> إعادة ترتيب اللوحة حول الأسئلة الثلاثة صراحةً، ومؤشّرات: <b>مدّة معالجة الملفّ</b>، الزيارات الميدانية، والمشاريع قيد الإنجاز.</div>
 </section>
 
-<section id="s18">
-  <div class="sec-head"><span class="sec-num">18</span><h2>البنية التقنية</h2><span class="st partial">جزئي</span></div>
+<section id="s19">
+  <div class="sec-head"><span class="sec-num">19</span><h2>البنية التقنية</h2><span class="st partial">جزئي</span></div>
   <p class="lead">المشروع <b>Cloud Platform</b> لا موقع تقليدي. وتُبنى الـAPIs من البداية حتى يمكن لاحقاً ربط تطبيق الهاتف وواتساب والمساعد الصوتي والمؤسّسات المالية والشركاء.</p>
   <div class="tw">
     <table>
@@ -641,7 +782,7 @@ footer{margin-top:60px;padding-top:22px;border-top:1px solid var(--line);color:v
 </section>
 
 <section id="links">
-  <div class="sec-head"><span class="sec-num">19</span><h2>كيف ترتبط الوحدات ببعضها</h2></div>
+  <div class="sec-head"><span class="sec-num">20</span><h2>كيف ترتبط الوحدات ببعضها</h2></div>
   <p class="lead">لا تُبنى الوحدات جزراً منفصلة. هذا ما تأخذه كلّ وحدة وما تعطيه — وهو ما يجعل المنصة منظومة لا مجموعة شاشات.</p>
   <div class="tw">
     <table>
@@ -666,7 +807,7 @@ footer{margin-top:60px;padding-top:22px;border-top:1px solid var(--line);color:v
 </section>
 
 <section id="phases">
-  <div class="sec-head"><span class="sec-num">20</span><h2>المراحل وترتيب العمل</h2></div>
+  <div class="sec-head"><span class="sec-num">21</span><h2>المراحل وترتيب العمل</h2></div>
   <p class="lead">المطوّر لا يبدأ بالخمسين ميزة دفعةً واحدة. النسخة الأولى تشتغل وتجمع بيانات حقيقية بسرعة، وكلّ قرار تطوير لاحق يُبنى على <b>استعمال الحرفاء الحقيقي لا على فرضيات</b>.</p>
   <div class="road">
     <div class="phase"><div class="p">Phase 1</div><div><h4>الأساس <span class="st done">منجَز</span></h4><p>طلب السكن · ملفّ 360° · الـBack-office · بوابة أصحاب العقارات · متابعة الملفّات.</p></div></div>

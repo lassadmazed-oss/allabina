@@ -37,3 +37,23 @@ export const areaLabel = (locale: Locale = 'ar') => (locale === 'fr' ? 'm²' : '
 export function formatRange(min: number, max: number): string {
   return `${formatNumber(min)} – ${formatNumber(max)}`
 }
+
+/**
+ * جزيرة اتّجاه يسار→يمين بمحارف يونيكود: LRI … PDI.
+ * تُستعمل حيث لا نملك عنصر HTML (داخل قوالب الترجمة مثلاً).
+ */
+export const LRI = '⁦'
+export const PDI = '⁩'
+
+/**
+ * مبلغ بإشارة: «−12 000 د.ت» / «+3 900 د.ت».
+ *
+ * في اتّجاه RTL تُعامَل علامة «−» كمحرف محايد، فتلتحق بالسياق العربي وتنزل
+ * يمين الأرقام فتُقرأ «12 000−». الحلّ ليس تبديل مكان العلامة بل عزل
+ * «الإشارة + الرقم» في جزيرة LTR، ثمّ العملة خارجها بحسب لغة الصفحة.
+ */
+export function formatSignedMoney(value: number, locale: Locale = 'ar'): string {
+  const sign = value < 0 ? '−' : value > 0 ? '+' : ''
+  const number = formatNumber(Math.abs(Math.round(value)))
+  return `${LRI}${sign}${number}${PDI}${THIN_NBSP}${currencyLabel(locale)}`
+}

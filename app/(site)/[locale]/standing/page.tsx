@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import { db, getStandingLevels } from '@/lib/supabase/server'
 import { fmt, getDictionary, isLocale, path, type Locale } from '@/lib/i18n'
-import { formatNumber, formatMoney, perM2Label } from '@/lib/format'
+import { formatMoney, formatNumber, formatSignedMoney, perM2Label } from '@/lib/format'
 import {
   biggestDifferences,
   breakdownTotal,
@@ -235,8 +235,7 @@ export default async function StandingPage({
                           <li key={d.lotCode}>
                             {(isFr && d.lotNameFr) || d.lotNameAr}{' '}
                             <span className="num text-ink-soft">
-                              {d.diff > 0 ? '+' : '−'}
-                              {formatMoney(Math.abs(d.diff), locale)}
+                              {formatSignedMoney(d.diff, locale)}
                             </span>
                           </li>
                         ))}
