@@ -21,3 +21,6 @@ dev.log
 # Vercel
 .vercel
 .env*.local
+
+# مسوّدات استعلامات مؤقّتة — لا تُتابَع
+scripts/.tmp/
