@@ -93,6 +93,35 @@ export default function PropertyForm({
   const err = (k: string) =>
     state.fields?.includes(k) ? t.errors[k] ?? t.errors.fallback : undefined
 
+  /** الحقول الغالطة كما جاءت من الخادم؛ lat/lng حقل واحد في الواجهة */
+  const badFields = [...new Set((state.fields ?? []).map((f) => (f === 'lng' ? 'lat' : f)))]
+  const invalid = (k: string) => badFields.includes(k)
+  const invalidCls = (k: string) =>
+    invalid(k) ? ' border-[#c0392b] ring-2 ring-[#c0392b]/25' : ''
+
+  /**
+   * القفز إلى الحقل: نافذة الخطأ تقول «وين»، والصفحة توصّلك.
+   * الإحداثيات ليس لها name (حقلاها مخفيّان) فنقفز إلى خانة الرابط.
+   */
+  const jumpTo = (field: string) => {
+    const selector =
+      field === 'lat' || field === 'lng'
+        ? '#coords-input'
+        : field === 'kind'
+          ? 'input[name="kind"]'
+          : `[name="${field}"]`
+    const el = document.querySelector<HTMLElement>(selector)
+    if (!el) return
+    el.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    // التركيز بعد التمرير حتى لا يقطعه المتصفّح
+    window.setTimeout(() => el.focus({ preventScroll: true }), 350)
+  }
+
+  const closeErrorAndJump = () => {
+    setErrorOpen(false)
+    if (badFields[0]) jumpTo(badFields[0])
+  }
+
   const isLand = v.kind === 'land'
   const delegationImadas = imadas.filter((i) => String(i.delegation_id) === v.delegationId)
 
@@ -109,7 +138,10 @@ export default function PropertyForm({
   const name = (list: { id: number; name_ar: string }[], id: string) =>
     list.find((x) => String(x.id) === id)?.name_ar ?? ''
 
-  const fieldErrors = (state.fields ?? []).map((f) => t.errors[f] ?? `${f}: ${t.errors.fallback}`)
+  const fieldErrors = badFields.map((f) => ({
+    field: f,
+    label: t.errors[f] ?? `${f}: ${t.errors.fallback}`,
+  }))
 
   /** رقم كما يفهمه الخادم؛ وإن لم يكن رقماً عُرض كما كُتب — الخطأ يُسمّيه الخادم */
   const shown = (raw: string, unit: string) => {
@@ -167,7 +199,7 @@ export default function PropertyForm({
 
           <div className="mt-4">
             <span className="mb-2 block text-sm font-medium">{t.kind}</span>
-            <div className="flex flex-wrap gap-2">
+            <div className={`flex flex-wrap gap-2 rounded p-1${invalid('kind') ? ' ring-2 ring-[#c0392b]/40' : ''}`}>
               {PROPERTY_KINDS.map((k) => (
                 <label
                   key={k}
@@ -274,7 +306,8 @@ export default function PropertyForm({
                 name="areaM2"
                 value={v.areaM2}
                 onChange={(e) => set('areaM2', e.target.value)}
-                className={`${inputCls} num`}
+                aria-invalid={invalid('areaM2') || undefined}
+                className={`${inputCls} num${invalidCls('areaM2')}`}
               />
             </Field>
 
@@ -287,7 +320,8 @@ export default function PropertyForm({
                     name="builtAreaM2"
                     value={v.builtAreaM2}
                     onChange={(e) => set('builtAreaM2', e.target.value)}
-                    className={`${inputCls} num`}
+                    aria-invalid={invalid('builtAreaM2') || undefined}
+                    className={`${inputCls} num${invalidCls('builtAreaM2')}`}
                   />
                 </Field>
                 <Field label={t.rooms}>
@@ -297,7 +331,8 @@ export default function PropertyForm({
                     name="rooms"
                     value={v.rooms}
                     onChange={(e) => set('rooms', e.target.value)}
-                    className={`${inputCls} num`}
+                    aria-invalid={invalid('rooms') || undefined}
+                    className={`${inputCls} num${invalidCls('rooms')}`}
                   />
                 </Field>
               </>
@@ -311,7 +346,8 @@ export default function PropertyForm({
                 value={v.priceTnd}
                 onChange={(e) => set('priceTnd', e.target.value)}
                 placeholder="150 000"
-                className={`${inputCls} num`}
+                aria-invalid={invalid('priceTnd') || undefined}
+                className={`${inputCls} num${invalidCls('priceTnd')}`}
               />
             </Field>
 
@@ -344,7 +380,8 @@ export default function PropertyForm({
           </label>
 
           <div className="mt-6">
-            <CoordsField t={t} inputCls={inputCls} />
+            <CoordsField t={t} inputCls={inputCls} invalid={invalid('lat')} />
+            {invalid('lat') && <p className="mt-2 text-sm text-[#8c2f22]">{t.errors.lat}</p>}
           </div>
 
           <div className="mt-6">
@@ -374,7 +411,8 @@ export default function PropertyForm({
                 name="ownerName"
                 value={v.ownerName}
                 onChange={(e) => set('ownerName', e.target.value)}
-                className={inputCls}
+                aria-invalid={invalid('ownerName') || undefined}
+                className={`${inputCls}${invalidCls('ownerName')}`}
               />
             </Field>
             <Field label={t.ownerPhone} error={err('ownerPhone')}>
@@ -384,7 +422,8 @@ export default function PropertyForm({
                 dir="ltr"
                 value={v.ownerPhone}
                 onChange={(e) => set('ownerPhone', e.target.value)}
-                className={inputCls}
+                aria-invalid={invalid('ownerPhone') || undefined}
+                className={`${inputCls}${invalidCls('ownerPhone')}`}
               />
             </Field>
             <div className="sm:col-span-2">
@@ -395,7 +434,8 @@ export default function PropertyForm({
                   dir="ltr"
                   value={v.ownerEmail}
                   onChange={(e) => set('ownerEmail', e.target.value)}
-                  className={inputCls}
+                  aria-invalid={invalid('ownerEmail') || undefined}
+                  className={`${inputCls}${invalidCls('ownerEmail')}`}
                 />
               </Field>
             </div>
@@ -412,7 +452,7 @@ export default function PropertyForm({
             </div>
           </div>
 
-          <label className="mt-5 flex cursor-pointer items-start gap-3 rounded border border-line p-4">
+          <label className={`mt-5 flex cursor-pointer items-start gap-3 rounded border p-4 ${invalid('consent') ? 'border-[#c0392b] ring-2 ring-[#c0392b]/25' : 'border-line'}`}>
             <input
               type="checkbox"
               name="consent"
@@ -488,20 +528,34 @@ export default function PropertyForm({
 
       {/* نافذة الخطأ */}
       {errorOpen && state.error && (
-        <Modal title={t.errorTitle} onClose={() => setErrorOpen(false)} tone="error">
+        <Modal title={t.errorTitle} onClose={closeErrorAndJump} tone="error">
           <p className="text-sm leading-7">{t.errors[state.error] ?? t.errors.banner}</p>
           {fieldErrors.length > 0 && (
-            <ul className="mt-3 list-disc space-y-1 ps-5 text-sm">
+            <ul className="mt-3 space-y-1.5 text-sm">
               {fieldErrors.map((m) => (
-                <li key={m}>{m}</li>
+                <li key={m.field}>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setErrorOpen(false)
+                      jumpTo(m.field)
+                    }}
+                    className="flex w-full items-start gap-2 rounded border border-[#e0b4ac] bg-[#fbeeeb] px-3 py-2 text-start text-[#8c2f22] hover:border-[#c0392b]"
+                  >
+                    <span aria-hidden="true">←</span>
+                    <span>{m.label}</span>
+                  </button>
+                </li>
               ))}
             </ul>
           )}
-          <p className="mt-3 text-xs leading-6 text-muted">{t.errorKept}</p>
+          <p className="mt-3 text-xs leading-6 text-muted">
+            {t.errorKept} {t.errorGoTo}
+          </p>
           <div className="mt-5 flex justify-end">
             <button
               type="button"
-              onClick={() => setErrorOpen(false)}
+              onClick={closeErrorAndJump}
               className="rounded bg-brand px-6 py-2.5 text-sm font-medium text-white hover:bg-brand-deep"
             >
               {t.errorClose}

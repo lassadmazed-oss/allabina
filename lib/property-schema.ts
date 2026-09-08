@@ -35,6 +35,33 @@ const nullableNum = (min: number, max: number) =>
       return n
     })
 
+/**
+ * عدد عشري للإحداثيات: «34.783508» أو «34,783508». هنا النقطة فاصلة عشرية
+ * لا فاصل آلاف — عكس الأثمان. خلطُ الاثنين هو ما حوّل 34.78 إلى 34 مليوناً.
+ */
+export function parseLooseDecimal(input: unknown): number | null | undefined {
+  if (input === undefined) return undefined
+  const raw = String(input).trim()
+  if (raw === '') return null
+  const latin = raw.replace(/[٠-٩]/g, (d) => String('٠١٢٣٤٥٦٧٨٩'.indexOf(d))).replace(',', '.')
+  if (!/^-?\d+(\.\d+)?$/.test(latin)) return NaN
+  return Number(latin)
+}
+
+const nullableDecimal = (min: number, max: number) =>
+  z
+    .unknown()
+    .optional()
+    .transform((v, ctx) => {
+      const n = parseLooseDecimal(v)
+      if (n === undefined || n === null) return null
+      if (Number.isNaN(n) || n < min || n > max) {
+        ctx.addIssue({ code: 'custom', message: `expected decimal in [${min}, ${max}]` })
+        return z.NEVER
+      }
+      return n
+    })
+
 const nullableEnum = <T extends readonly [string, ...string[]]>(values: T) =>
   z
     .union([z.literal(''), z.enum(values)])
@@ -47,8 +74,8 @@ export const propertySchema = z.object({
   delegationId: nullableNum(1, 1_000_000),
   imadaId: nullableNum(1, 1_000_000),
   address: z.string().max(200).optional().transform((v) => v ?? ''),
-  lat: nullableNum(-90, 90),
-  lng: nullableNum(-180, 180),
+  lat: nullableDecimal(-90, 90),
+  lng: nullableDecimal(-180, 180),
   areaM2: nullableNum(10, 1_000_000),
   builtAreaM2: nullableNum(10, 100_000),
   rooms: nullableNum(1, 20),

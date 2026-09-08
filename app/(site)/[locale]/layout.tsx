@@ -117,6 +117,12 @@ export default async function SiteLayout({
               >
                 {t.proprietaire.navCta}
               </Link>
+              <Link
+                href={p('/reseau')}
+                className="hidden rounded px-2 py-1 text-muted hover:text-brand lg:inline"
+              >
+                {t.reseau.navCta}
+              </Link>
               <Suspense fallback={null}>
                 <LangSwitch current={locale} other={other} label={t.otherLangName} />
               </Suspense>
@@ -163,6 +169,9 @@ export default async function SiteLayout({
                 </Link>
                 <Link href={p('/proprietaire')} className="hover:text-brand">
                   {t.proprietaire.navCta}
+                </Link>
+                <Link href={p('/reseau')} className="hover:text-brand">
+                  {t.reseau.navCta}
                 </Link>
                 <Link href={p('/confidentialite')} className="hover:text-brand">
                   {t.footer.privacy}

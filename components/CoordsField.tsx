@@ -19,9 +19,12 @@ import type { Dictionary } from '@/lib/i18n'
 export default function CoordsField({
   t,
   inputCls,
+  invalid = false,
 }: {
   t: Dictionary['proprietaire']
   inputCls: string
+  /** الخادم رفض الإحداثيات: إطار أحمر وهدف للقفز */
+  invalid?: boolean
 }) {
   const [raw, setRaw] = useState('')
   const [coords, setCoords] = useState<Coords | null>(null)
@@ -69,14 +72,16 @@ export default function CoordsField({
           <span className="mr-2 text-xs font-normal text-faint">{t.coordsHint}</span>
         </span>
         <input
+          id="coords-input"
           type="text"
+          aria-invalid={invalid || undefined}
           value={raw}
           onChange={(e) => onChange(e.target.value)}
           placeholder={t.coordsPlaceholder}
           dir="ltr"
           inputMode="text"
           autoComplete="off"
-          className={`${inputCls} text-start`}
+          className={`${inputCls} text-start ${invalid ? 'border-[#c0392b] ring-2 ring-[#c0392b]/25' : ''}`}
         />
       </label>
 

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { parseLooseInt, propertySchema } from '@/lib/property-schema'
+import { parseLooseDecimal, parseLooseInt, propertySchema } from '@/lib/property-schema'
 
 describe('أرقام كما يكتبها الناس', () => {
   it('يقرأ فواصل الآلاف بكلّ أشكالها', () => {
@@ -68,5 +68,31 @@ describe('استمارة العقار', () => {
       const fields = [...new Set(r.error.issues.map((i) => String(i.path[0])))]
       expect(fields.sort()).toEqual(['areaM2', 'priceTnd'])
     }
+  })
+})
+
+describe('الإحداثيات عشرية لا أثمان', () => {
+  it('النقطة هنا فاصلة عشرية — 34.783508 يبقى 34.783508', () => {
+    expect(parseLooseDecimal('34.783508')).toBeCloseTo(34.783508, 6)
+    expect(parseLooseDecimal('10,722577')).toBeCloseTo(10.722577, 6)
+    expect(parseLooseDecimal('-3.5')).toBe(-3.5)
+    expect(parseLooseDecimal('')).toBeNull()
+    expect(parseLooseDecimal(undefined)).toBeUndefined()
+    expect(parseLooseDecimal('34.7.8')).toBeNaN()
+  })
+
+  it('الاستمارة تقبل إحداثيات حقل الخريطة — كانت تُرفض بعد إصلاح الأثمان', () => {
+    const r = propertySchema.safeParse({ ...base, lat: '34.783508', lng: '10.722577' })
+    expect(r.success).toBe(true)
+    if (r.success) {
+      expect(r.data.lat).toBeCloseTo(34.783508, 6)
+      expect(r.data.lng).toBeCloseTo(10.722577, 6)
+    }
+  })
+
+  it('إحداثية خارج الكرة تُرفض على حقلها', () => {
+    const r = propertySchema.safeParse({ ...base, lat: '95', lng: '10' })
+    expect(r.success).toBe(false)
+    if (!r.success) expect(r.error.issues.map((i) => i.path[0])).toEqual(['lat'])
   })
 })

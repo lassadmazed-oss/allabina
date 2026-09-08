@@ -29,6 +29,8 @@ export type Permission =
   | 'team.read'
   | 'team.manage_members'
   | 'team.manage_admins'
+  | 'network.read'
+  | 'network.manage'
 
 const MATRIX: Record<Role, readonly Permission[]> = {
   owner: [
@@ -39,6 +41,8 @@ const MATRIX: Record<Role, readonly Permission[]> = {
     'team.read',
     'team.manage_members',
     'team.manage_admins',
+    'network.read',
+    'network.manage',
   ],
   admin: [
     'requests.read',
@@ -47,9 +51,11 @@ const MATRIX: Record<Role, readonly Permission[]> = {
     'reference.manage',
     'team.read',
     'team.manage_members',
+    'network.read',
+    'network.manage',
   ],
-  agent: ['requests.read', 'requests.update'],
-  viewer: ['requests.read'],
+  agent: ['requests.read', 'requests.update', 'network.read'],
+  viewer: ['requests.read', 'network.read'],
 }
 
 export function can(role: Role, permission: Permission): boolean {
