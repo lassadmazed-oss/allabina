@@ -147,6 +147,9 @@ const FLEX_LABELS: Record<string, string> = {
 }
 
 import RequestFiles from '@/components/RequestFiles'
+import SupportAssessmentForm from '@/components/SupportAssessmentForm'
+import { loadAssessmentConfig } from '@/lib/actions/assessment'
+import { BAND_AR, DECISION_AR, type Band, type Decision } from '@/lib/support-assessment'
 import type { RequestFile } from '@/lib/documents'
 
 const LEDGER_EVENT_LABELS: Record<string, string> = {
@@ -174,6 +177,8 @@ export default async function RequestDetail({ params }: { params: Promise<{ id: 
     { data: docs },
     { data: requestFiles },
     { data: smsRows },
+    { data: assessment },
+    assessmentConfig,
     { data: social },
     { data: config },
     { data: latestDevis },
@@ -211,6 +216,8 @@ export default async function RequestDetail({ params }: { params: Promise<{ id: 
     db.from('request_documents').select('*').eq('request_id', id),
     db.from('request_files').select('*').eq('request_id', id).order('created_at'),
     db.from('sms_log').select('template, status, to_number, error, sent_at, created_at').eq('request_id', id).order('created_at', { ascending: false }),
+    db.from('support_assessments').select('*').eq('request_id', id).maybeSingle(),
+    loadAssessmentConfig(),
     db.from('social_assessments').select('*').eq('request_id', id).maybeSingle(),
     db.from('project_configs').select('*').eq('request_id', id).maybeSingle(),
     db
@@ -859,6 +866,39 @@ export default async function RequestDetail({ params }: { params: Promise<{ id: 
           </button>
         </form>
       </div>
+
+      {/* دراسة طلب المساندة — الأهلية ومدى الصحّة والقرار */}
+      {(r.study_track === 'social' || assessment) && (
+        <div className="mt-6 rounded border border-brand/40 bg-surface p-6">
+          <div className="flex flex-wrap items-baseline justify-between gap-3">
+            <h2 className="text-sm font-semibold">دراسة طلب المساندة</h2>
+            {assessment && (
+              <span className="text-xs text-muted">
+                آخر دراسة: <b className="num">{assessment.total}</b>/100 ·{' '}
+                {BAND_AR[assessment.band as Band]} · {DECISION_AR[assessment.decision as Decision]}
+                {assessment.decided_at && (
+                  <span className="num text-faint"> · {new Date(assessment.decided_at).toLocaleDateString('fr-TN')}</span>
+                )}
+              </span>
+            )}
+          </div>
+          <p className="mt-1 text-xs leading-6 text-muted">
+            ستّة معايير بوصف مكتوب لكلّ درجة حتى يحكم مستشاران بنفس الميزان، وحاجز صحّة: لا «أولوية»
+            بلا وثيقة أو زيارة، ولا فوق «للمراجعة» مع تناقض مرصود. الدرجة تعاون القرار — والقرار لك،
+            وبسبب مكتوب. الأوزان في «المعطيات المرجعية».
+          </p>
+          {canEdit ? (
+            <SupportAssessmentForm
+              requestId={r.id}
+              existing={assessment}
+              weights={assessmentConfig.weights}
+              thresholds={assessmentConfig.thresholds}
+            />
+          ) : (
+            <p className="mt-3 text-xs text-faint">القراءة فقط — الدراسة تستوجب صلاحية التحيين.</p>
+          )}
+        </div>
+      )}
 
       {/* المساندة ودفتر الشفافية — Module 12-bis */}
       <div className="mt-6 rounded border border-line bg-surface p-6">

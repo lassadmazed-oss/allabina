@@ -8,6 +8,38 @@ import {
 } from '@/lib/actions/support'
 import { CONTRIBUTION_KINDS, LEDGER_EVENTS, needsProgress } from '@/lib/support'
 import { formatMoney } from '@/lib/format'
+import { BAND_AR, DECISION_AR, type Band, type Decision } from '@/lib/support-assessment'
+
+const URGENCY_AR: Record<string, string> = {
+  planning: 'يخطّط',
+  within_year: 'خلال سنة',
+  urgent: 'مستعجل',
+  critical: 'حرج',
+}
+const BAND_CLS: Record<string, string> = {
+  priority: 'bg-brand text-white',
+  eligible: 'bg-brand-soft text-brand',
+  review: 'bg-gold-soft text-gold',
+  not_eligible: 'bg-surface-2 text-muted',
+}
+
+type InboxRow = {
+  id: string
+  ref_code: string
+  full_name: string
+  delegation_id: number | null
+  urgency: string | null
+  status: string
+  problem_note: string | null
+  created_at: string
+  is_demo: boolean
+  total: number | null
+  band: string | null
+  decision: string | null
+  decided_at: string | null
+  inconsistencies_found: boolean | null
+  checks_done: number | null
+}
 
 export const metadata = { title: 'المساندة ودفتر الشفافية — اللَّبنة' }
 export const dynamic = 'force-dynamic'
@@ -84,12 +116,13 @@ export default async function SupportAdminPage({
   await requirePermission('requests.update')
   const { request: prefillRequestId } = await searchParams
 
-  const [{ data: casesRaw }, { data: pledgesRaw }, { data: delegs }, { data: partners }] =
+  const [{ data: casesRaw }, { data: pledgesRaw }, { data: delegs }, { data: partners }, { data: inboxRaw }] =
     await Promise.all([
       db.from('support_cases').select('*').order('created_at', { ascending: false }),
       db.from('support_pledges').select('*').order('created_at', { ascending: false }).limit(100),
       db.from('delegations').select('id, name_ar').eq('gov_code', 'SFX').order('id'),
       db.from('partners').select('id, name').order('name'),
+      db.from('support_inbox').select('*').order('created_at', { ascending: false }).limit(200),
     ])
 
   const cases = (casesRaw ?? []) as SupportCase[]
@@ -116,6 +149,17 @@ export default async function SupportAdminPage({
 
   const newPledges = pledges.filter((p) => p.status === 'new')
 
+  // قائمة العمل: الحرج أوّلاً، ثمّ ما لم يُدرَس، ثمّ الأقدم
+  const URG_RANK: Record<string, number> = { critical: 3, urgent: 2, within_year: 1, planning: 0 }
+  const inbox = ((inboxRaw ?? []) as InboxRow[]).sort((a, b) => {
+    const u = (URG_RANK[b.urgency ?? ''] ?? 0) - (URG_RANK[a.urgency ?? ''] ?? 0)
+    if (u) return u
+    const d = Number(!!a.decision && a.decision !== 'pending') - Number(!!b.decision && b.decision !== 'pending')
+    if (d) return d
+    return a.created_at.localeCompare(b.created_at)
+  })
+  const undecided = inbox.filter((x) => !x.decision || x.decision === 'pending').length
+
   return (
     <div className="mx-auto max-w-6xl px-5 py-10">
       <Link href="/admin" className="text-sm text-muted hover:text-brand">
@@ -127,6 +171,79 @@ export default async function SupportAdminPage({
         يتحذفش — القاعدة نفسها ترفض. التصحيح يكون بقيد جديد. والصفحة العمومية تعرض{' '}
         <b>أعداد الحاجيات لا مبالغ</b>؛ القيمة التقديرية تحت للاستعمال الداخلي فقط.
       </p>
+
+      {/* قائمة عمل المساندة — طلبات «اطلب مساندة» بدرجتها وقرارها */}
+      <section className="mt-8 rounded border border-line bg-surface">
+        <div className="flex flex-wrap items-baseline justify-between gap-3 border-b border-line px-6 py-4">
+          <h2 className="text-sm font-semibold">
+            طلبات المساندة الواردة
+            {undecided > 0 && (
+              <span className="num ms-2 rounded-full bg-gold-soft px-2 py-0.5 text-xs text-gold">
+                {undecided} بلا قرار
+              </span>
+            )}
+          </h2>
+          <span className="text-xs text-faint">الحرج أوّلاً · ثمّ ما لم يُدرَس · ثمّ الأقدم</span>
+        </div>
+        {inbox.length === 0 ? (
+          <p className="p-8 text-center text-sm text-muted">ما فمّاش طلب مساندة توّا.</p>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[900px] text-sm">
+              <thead>
+                <tr className="bg-surface-2">
+                  <Th>الرمز</Th>
+                  <Th>الاسم</Th>
+                  <Th>المعتمدية</Th>
+                  <Th>الاستعجال</Th>
+                  <Th>الحاجة</Th>
+                  <Th>الدرجة</Th>
+                  <Th>التثبّت</Th>
+                  <Th>القرار</Th>
+                </tr>
+              </thead>
+              <tbody>
+                {inbox.map((x) => (
+                  <tr key={x.id} className="border-t border-line align-top">
+                    <td className="num px-4 py-3">
+                      <Link href={`/admin/${x.id}`} className="text-brand hover:underline">
+                        {x.ref_code}
+                      </Link>
+                      {x.is_demo && <span className="ms-1 text-[10px] text-gold">تجريبي</span>}
+                    </td>
+                    <td className="px-4 py-3">{x.full_name}</td>
+                    <td className="px-4 py-3 text-xs">{x.delegation_id ? delegName.get(x.delegation_id) ?? '—' : '—'}</td>
+                    <td className="px-4 py-3">
+                      <span className={`rounded px-2 py-0.5 text-xs ${x.urgency === 'critical' ? 'bg-[#fbeeeb] text-[#8c2f22]' : x.urgency === 'urgent' ? 'bg-gold-soft text-gold' : 'bg-surface-2 text-muted'}`}>
+                        {URGENCY_AR[x.urgency ?? ''] ?? '—'}
+                      </span>
+                    </td>
+                    <td className="max-w-xs px-4 py-3 text-xs leading-5 text-muted">
+                      {x.problem_note ? (x.problem_note.length > 110 ? x.problem_note.slice(0, 110) + '…' : x.problem_note) : '—'}
+                    </td>
+                    <td className="px-4 py-3">
+                      {x.band ? (
+                        <span className={`rounded px-2 py-0.5 text-xs ${BAND_CLS[x.band]}`}>
+                          <span className="num">{x.total}</span> · {BAND_AR[x.band as Band]}
+                        </span>
+                      ) : (
+                        <span className="text-xs text-faint">لم يُدرَس</span>
+                      )}
+                    </td>
+                    <td className="num px-4 py-3 text-xs">
+                      {x.checks_done ?? 0}/4
+                      {x.inconsistencies_found && <span className="ms-1 text-[#8c2f22]" title="تناقض مرصود">⚠</span>}
+                    </td>
+                    <td className="px-4 py-3 text-xs">
+                      {x.decision && x.decision !== 'pending' ? DECISION_AR[x.decision as Decision] : <span className="text-gold">بانتظار القرار</span>}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </section>
 
       {/* صندوق التعهّدات الواردة */}
       <section className="mt-8 rounded border border-line bg-surface">
