@@ -6,6 +6,7 @@ import { formatNumber, formatRange } from '@/lib/format'
 import ImadaImport from '@/components/ImadaImport'
 import AssessmentConfigForm from '@/components/AssessmentConfigForm'
 import { loadAssessmentConfig } from '@/lib/actions/assessment'
+import { saveContactSettingsAction } from '@/lib/actions/settings'
 
 export const metadata = { title: 'المعطيات المرجعية — اللَّبنة' }
 export const dynamic = 'force-dynamic'
@@ -13,6 +14,11 @@ export const dynamic = 'force-dynamic'
 export default async function ReferencePage() {
   await requirePermission('reference.manage')
   const assessmentConfig = await loadAssessmentConfig()
+  const { data: contactRows } = await db
+    .from('app_settings')
+    .select('key, value')
+    .in('key', ['contact.phone', 'contact.whatsapp', 'contact.email', 'contact.hours'])
+  const contact = new Map((contactRows ?? []).map((r) => [r.key as string, String(r.value ?? '')]))
 
   const [finance, build, products, { data: delegs }, { data: imadas }, { data: prices }] =
     await Promise.all([
@@ -203,6 +209,36 @@ export default async function ReferencePage() {
           الصحّة (لا أولوية بلا تثبّت) ثابت في المحرّك ولا يُعدَّل من هنا — هو قاعدة لا إعداد.
         </p>
         <AssessmentConfigForm weights={assessmentConfig.weights} thresholds={assessmentConfig.thresholds} />
+      </section>
+
+      {/* قنوات الاتّصال العمومية */}
+      <section className="mt-10 rounded border border-line bg-surface p-6">
+        <h2 className="text-sm font-semibold">قنوات الاتّصال العمومية</h2>
+        <p className="mt-1 max-w-3xl text-xs leading-6 text-muted">
+          تظهر في صفحات الشكر («كيفاش توصلنا؟»). الخانة الفارغة لا تُعرض. رقم الواتساب بالصيغة
+          الدولية بلا مسافات (21620123456).
+        </p>
+        <form action={saveContactSettingsAction} className="mt-4 grid gap-3 sm:grid-cols-4">
+          <label className="block">
+            <span className="mb-1.5 block text-xs text-muted">الهاتف</span>
+            <input name="phone" defaultValue={contact.get('contact.phone') ?? ''} dir="ltr" className="num w-full rounded border border-line bg-surface px-3 py-2 text-sm" />
+          </label>
+          <label className="block">
+            <span className="mb-1.5 block text-xs text-muted">واتساب</span>
+            <input name="whatsapp" defaultValue={contact.get('contact.whatsapp') ?? ''} dir="ltr" className="num w-full rounded border border-line bg-surface px-3 py-2 text-sm" />
+          </label>
+          <label className="block">
+            <span className="mb-1.5 block text-xs text-muted">البريد</span>
+            <input name="email" type="email" defaultValue={contact.get('contact.email') ?? ''} dir="ltr" className="w-full rounded border border-line bg-surface px-3 py-2 text-sm" />
+          </label>
+          <label className="block">
+            <span className="mb-1.5 block text-xs text-muted">أوقات الردّ</span>
+            <input name="hours" defaultValue={contact.get('contact.hours') ?? ''} className="w-full rounded border border-line bg-surface px-3 py-2 text-sm" />
+          </label>
+          <div className="sm:col-span-4">
+            <button className="rounded bg-brand px-5 py-2 text-sm font-medium text-white hover:bg-brand-deep">احفظ القنوات</button>
+          </div>
+        </form>
       </section>
     </div>
   )

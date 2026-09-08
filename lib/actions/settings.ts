@@ -74,3 +74,22 @@ export async function saveAssessmentConfigAction(
   revalidatePath('/admin/support')
   return { ok: true }
 }
+
+
+/** قنوات اتّصال المنصّة التي تظهر في صفحات الشكر — فارغة = لا تُعرض */
+export async function saveContactSettingsAction(formData: FormData) {
+  const actor = await staffWithPermission('reference.manage')
+  if (!actor) return
+  const str = (k: string) => String(formData.get(k) ?? '').trim().slice(0, 120)
+  const rows = [
+    { key: 'contact.phone', value: str('phone') },
+    { key: 'contact.whatsapp', value: str('whatsapp').replace(/[^\d+]/g, '') },
+    { key: 'contact.email', value: str('email') },
+    { key: 'contact.hours', value: str('hours') },
+  ]
+  const { error } = await db.from('app_settings').upsert(rows, { onConflict: 'key' })
+  if (error) console.error('save contact settings', error)
+  revalidatePath('/admin/reference')
+  revalidatePath('/ar/reseau/merci')
+  revalidatePath('/fr/reseau/merci')
+}

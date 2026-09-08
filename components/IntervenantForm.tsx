@@ -1,6 +1,7 @@
 'use client'
 
-import { useActionState, useMemo, useState } from 'react'
+import { useActionState, useMemo, useRef, useState } from 'react'
+import Modal from '@/components/Modal'
 import { joinNetwork, type NetworkState } from '@/lib/actions/network'
 import { AVAILABILITIES, LEGAL_STATUSES, type CategoryRow, type FamilyRow, type SkillRow } from '@/lib/network'
 import type { Locale } from '@/lib/i18n'
@@ -54,6 +55,12 @@ export type NetworkStrings = {
   errDuplicate: string
   errServer: string
   notApproved: string
+  review: string
+  recapTitle: string
+  recapLede: string
+  recapEdit: string
+  recapConfirm: string
+  notProvided: string
 }
 
 const field =
@@ -84,6 +91,42 @@ export default function IntervenantForm({
   const [family, setFamily] = useState(families[0]?.code ?? '')
   const [categoryId, setCategoryId] = useState<number | ''>('')
   const [availability, setAvailability] = useState<string>('available')
+  const formRef = useRef<HTMLFormElement>(null)
+  const [recap, setRecap] = useState<[string, string][] | null>(null)
+
+  /**
+   * الملخّص يُقرأ من الاستمارة نفسها وقت الطلب — الحقول غير متحكَّم فيها،
+   * فلا نكرّر حالتها. الأرقام تُترجم إلى أسماء من القوائم الممرَّرة.
+   */
+  const buildRecap = (): [string, string][] => {
+    const fd = new FormData(formRef.current!)
+    const v = (k: string) => String(fd.get(k) ?? '').trim()
+    const many = (k: string) => fd.getAll(k).map(String)
+    const byId = <T extends { id: number }>(rows: T[], id: string) => rows.find((r) => String(r.id) === id)
+    const cat = byId(categories, v('categoryId'))
+    const fam = families.find((f) => f.code === family)
+    return [
+      [t.fullName, v('fullName')],
+      [t.companyName, v('companyName')],
+      [t.phone, v('phone')],
+      [t.whatsapp, v('whatsapp')],
+      [t.email, v('email')],
+      [t.family, fam ? name(fam) : ''],
+      [t.category, cat ? name(cat) : ''],
+      [t.legalStatus, t.legalLabels[v('legalStatus')] ?? v('legalStatus')],
+      [t.years, v('yearsExperience')],
+      [t.skills, many('skillIds').map((id) => byId(skills, id)).filter(Boolean).map((s) => name(s!)).join(' · ')],
+      [t.extraCategories, many('extraCategoryIds').map((id) => byId(categories, id)).filter(Boolean).map((c) => name(c!)).join(' · ')],
+      [t.bio, v('bio')],
+      [t.delegation, byId(delegations, v('delegationId'))?.name_ar ?? ''],
+      [t.zone, byId(zones, v('zoneId'))?.name_ar ?? ''],
+      [t.address, v('address')],
+      [t.interventionZones, many('zoneDelegationIds').map((id) => byId(delegations, id)?.name_ar).filter(Boolean).join(' · ')],
+      [t.radius, v('radiusKm') ? `${v('radiusKm')} km` : ''],
+      [t.availability, t.availabilityLabels[v('availability')] ?? v('availability')],
+      [t.availableFrom, v('availableFrom')],
+    ]
+  }
 
   const name = (row: { name_ar: string; name_fr: string | null }) =>
     locale === 'fr' ? row.name_fr || row.name_ar : row.name_ar
@@ -110,7 +153,19 @@ export default function IntervenantForm({
             : null
 
   return (
-    <form action={action} className="mt-8">
+    <>
+    <form
+      ref={formRef}
+      action={action}
+      className="mt-8"
+      onSubmit={(e) => {
+        // الزرّ الظاهر يفتح الملخّص؛ الإرسال الفعلي من داخل النافذة فقط
+        if (!(e.nativeEvent as SubmitEvent).submitter?.hasAttribute('data-confirm')) {
+          e.preventDefault()
+          if (formRef.current?.reportValidity()) setRecap(buildRecap())
+        }
+      }}
+    >
       <input type="hidden" name="locale" value={locale} />
       <input type="hidden" name="govCode" value={govCode} />
       <input
@@ -409,8 +464,48 @@ export default function IntervenantForm({
         disabled={pending}
         className="mt-6 w-full rounded bg-brand px-6 py-3.5 font-medium text-white transition hover:bg-brand-deep disabled:opacity-60 sm:w-auto"
       >
-        {pending ? t.submitting : t.submit}
+        {pending ? t.submitting : t.review}
       </button>
+      <button type="submit" data-confirm hidden aria-hidden="true" tabIndex={-1} />
     </form>
+
+    {recap && (
+      <Modal title={t.recapTitle} onClose={() => setRecap(null)}>
+        <p className="text-sm leading-7 text-muted">{t.recapLede}</p>
+        <dl className="mt-4 divide-y divide-line rounded border border-line">
+          {recap.map(([k, val]) => (
+            <div key={k} className="flex flex-wrap items-baseline justify-between gap-3 px-4 py-2.5 text-sm">
+              <dt className="text-muted">{k}</dt>
+              <dd className={`max-w-[60%] text-end ${val ? '' : 'text-faint'}`} dir="auto">
+                {val || t.notProvided}
+              </dd>
+            </div>
+          ))}
+        </dl>
+        <div className="mt-5 flex flex-wrap justify-end gap-3">
+          <button
+            type="button"
+            onClick={() => setRecap(null)}
+            className="rounded border border-line px-5 py-2.5 text-sm hover:border-line-strong"
+          >
+            {t.recapEdit}
+          </button>
+          <button
+            type="button"
+            disabled={pending}
+            onClick={() => {
+              setRecap(null)
+              formRef.current?.requestSubmit(
+                formRef.current.querySelector<HTMLButtonElement>('button[data-confirm]') ?? undefined
+              )
+            }}
+            className="rounded bg-brand px-6 py-2.5 text-sm font-medium text-white hover:bg-brand-deep disabled:opacity-50"
+          >
+            {pending ? t.submitting : t.recapConfirm}
+          </button>
+        </div>
+      </Modal>
+    )}
+    </>
   )
 }

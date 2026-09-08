@@ -6,6 +6,7 @@ import {
   propertyConfirmationText,
   requestConfirmationText,
   segmentCount,
+  networkConfirmationText,
   statusUpdateText,
   supportAcceptedText,
   type SmsTemplate,
@@ -60,7 +61,7 @@ async function smsEnabled(): Promise<boolean> {
   return data?.value !== false
 }
 
-type Target = { requestId?: string; propertyId?: string }
+type Target = { requestId?: string; propertyId?: string; intervenantId?: string }
 
 /**
  * إرسال + تسجيل. الدالّة لا ترمي أبداً: تُسجّل النتيجة وتصمت.
@@ -71,6 +72,7 @@ async function sendAndLog(target: Target, template: SmsTemplate, phone: string, 
   const base = {
     request_id: target.requestId ?? null,
     property_id: target.propertyId ?? null,
+    intervenant_id: target.intervenantId ?? null,
     template,
     body: text,
     segments: segmentCount(text),
@@ -149,6 +151,15 @@ export async function sendStatusUpdate(requestId: string, refCode: string, phone
 export async function sendSupportAccepted(requestId: string, refCode: string, phone: string, locale: Locale) {
   try {
     await sendAndLog({ requestId }, 'support_accepted', phone, supportAcceptedText(refCode, locale))
+  } catch (e) {
+    console.warn('sms unexpected:', e instanceof Error ? e.message : e)
+  }
+}
+
+/** تأكيد تسجيل مهني في الشبكة */
+export async function sendNetworkConfirmation(intervenantId: string, refCode: string, category: string | null, phone: string, locale: Locale) {
+  try {
+    await sendAndLog({ intervenantId }, 'network_confirmation', phone, networkConfirmationText(refCode, category, locale))
   } catch (e) {
     console.warn('sms unexpected:', e instanceof Error ? e.message : e)
   }

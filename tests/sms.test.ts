@@ -5,6 +5,7 @@ import {
   isPlain,
   NOTIFIABLE_STATUSES,
   isNotifiableStatus,
+  networkConfirmationText,
   normalizeTnPhone,
   parseWinSmsReply,
   statusUpdateText,
@@ -127,5 +128,24 @@ describe('رسالة قبول طلب المساندة', () => {
     const fr = supportAcceptedText('LB-2026-000078', 'fr')
     expect(isPlain(fr)).toBe(true)
     expect(segmentCount(fr)).toBe(1)
+  })
+})
+
+describe('تأكيد تسجيل مهني', () => {
+  it('يحمل الاختصاص إن دخل في جزء واحد، وإلّا الرمز وحده', () => {
+    const short = networkConfirmationText('IN-2026-000012', 'كهرباء', 'ar')
+    expect(short).toContain('كهرباء')
+    expect(segmentCount(short)).toBe(1)
+    const long = networkConfirmationText('IN-2026-000012', 'أشغال الخرسانة المسلّحة والهياكل الحديدية الكبرى', 'ar')
+    expect(segmentCount(long)).toBe(1)
+    expect(long).not.toContain('الهياكل')
+    expect(long).toContain('IN-2026-000012')
+  })
+
+  it('بالفرنسية PLAIN في جزء واحد ولا يعد بالاعتماد', () => {
+    const fr = networkConfirmationText('IN-2026-000012', 'Electricite', 'fr')
+    expect(isPlain(fr)).toBe(true)
+    expect(segmentCount(fr)).toBe(1)
+    expect(fr).toMatch(/Validation/)
   })
 })

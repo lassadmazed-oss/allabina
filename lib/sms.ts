@@ -69,6 +69,7 @@ export type SmsTemplate =
   | 'request_confirmation_resend'
   | 'property_confirmation'
   | 'support_accepted'
+  | 'network_confirmation'
   | `status_${string}`
 
 /**
@@ -101,6 +102,23 @@ export function supportAcceptedText(refCode: string, locale: Locale): string {
     return `AL-LUBNA ${refCode}: votre demande d'aide est prise en charge, l'equipe vous appelle.`
   }
   return `اللبنة ${refCode}: طلب مساندتك دخل الدراسة، الفريق يتّصل بيك.`
+}
+
+/**
+ * تأكيد تسجيل مهني في الشبكة. يحمل ما سجّله: الاختصاص، إن دخل في جزء واحد —
+ * وإلّا الرمز وحده. التسجيل ليس اعتماداً، والرسالة تقول ذلك.
+ */
+export function networkConfirmationText(refCode: string, category: string | null, locale: Locale): string {
+  if (locale === 'fr') {
+    const withCat = `AL-LUBNA ${refCode}: inscription recue (${category ?? ''}). Validation par l'equipe avant tout contact.`
+    return category && isPlain(withCat) && [...withCat].length <= ONE_SEGMENT_PLAIN
+      ? withCat
+      : `AL-LUBNA ${refCode}: inscription recue. Validation par l'equipe avant tout contact.`
+  }
+  const withCat = `اللبنة ${refCode}: تسجيلك (${category ?? ''}) وصل. المراجعة قبل الاعتماد.`
+  return category && [...withCat].length <= ONE_SEGMENT_AR
+    ? withCat
+    : `اللبنة ${refCode}: تسجيلك في الشبكة وصل. المراجعة قبل الاعتماد.`
 }
 
 export const isNotifiableStatus = (s: string) =>

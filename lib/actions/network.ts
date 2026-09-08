@@ -1,6 +1,8 @@
 'use server'
 
 import { redirect } from 'next/navigation'
+import { after } from 'next/server'
+import { sendNetworkConfirmation } from '@/lib/sms/winsms'
 import { headers } from 'next/headers'
 import { revalidatePath } from 'next/cache'
 import { db } from '@/lib/supabase/server'
@@ -91,8 +93,10 @@ export async function joinNetwork(
       available_from: d.availableFrom,
       status: 'new',
       source: 'public_form',
+      lang: isLocale(String(formData.get('locale') ?? '')) ? String(formData.get('locale')) : DEFAULT_LOCALE,
     })
-    .select('id')
+    // علاقتان بين المتدخّل والاختصاصات (الرئيسي والإضافية): نسمّي المفتاح صراحةً
+    .select('id, ref_code, intervenant_categories!intervenants_category_id_fkey(name_ar, name_fr)')
     .single()
 
   if (error || !inserted) {
@@ -130,7 +134,14 @@ export async function joinNetwork(
 
   const locale = String(formData.get('locale') ?? '')
   const l = isLocale(locale) ? locale : DEFAULT_LOCALE
-  redirect(`/${l}/reseau/merci`)
+
+  // الرمز على الهاتف مع اختصاصه — بعد الردّ، والفشل يُسجَّل ولا يمسّ التسجيل
+  const refCode = String(inserted.ref_code)
+  const catRow = (inserted as unknown as { intervenant_categories: { name_ar: string; name_fr: string | null } | null }).intervenant_categories
+  const catName = catRow ? (l === 'fr' ? catRow.name_fr || catRow.name_ar : catRow.name_ar) : null
+  after(() => sendNetworkConfirmation(String(id), refCode, catName, d.phone, l))
+
+  redirect(`/${l}/reseau/merci?ref=${refCode}`)
 }
 
 /* ---------- الـBack-office ---------- */
