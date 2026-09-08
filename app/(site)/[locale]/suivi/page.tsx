@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import OwnerAccessForm from '@/components/OwnerAccessForm'
 import { getDictionary, isLocale, path, type Locale } from '@/lib/i18n'
 import { getPublicStats, lookupRequest } from '@/lib/tracking'
 import { formatNumber } from '@/lib/format'
@@ -147,6 +148,13 @@ export default async function SuiviPage({
             </div>
           </div>
         )}
+      </section>
+
+      {/* التعديل — صاحب المطلب يصلّح ما سجّله */}
+      <section className="mt-8 rounded border border-brand/30 bg-brand-soft p-4 sm:p-8">
+        <h2 className="display text-lg font-semibold text-brand-deep">{t.suivi.edit.title}</h2>
+        <p className="mt-2 max-w-3xl leading-8 text-ink-soft">{t.suivi.edit.lede}</p>
+        <OwnerAccessForm locale={locale} t={t.suivi} defaultRef={sp.ref ?? ''} />
       </section>
 
       {/* الحالات الثلاث — Les trois états */}

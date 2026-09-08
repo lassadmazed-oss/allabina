@@ -12,6 +12,7 @@ import {
   supportAcceptedText,
   propertyConfirmationText,
   requestConfirmationText,
+  requestEditedText,
   segmentCount,
 } from '@/lib/sms'
 
@@ -70,6 +71,17 @@ describe('نصوص التأكيد', () => {
     expect([...t].length).toBeLessThanOrEqual(ONE_SEGMENT_PLAIN)
     expect(segmentCount(t)).toBe(1)
     expect(t).toContain(ref)
+  })
+
+  it('تأكيد التعديل في جزء واحد، ويقول إنّه تسجّل بلا ما يقول شنوّة تبدّل', () => {
+    const ar = requestEditedText(ref, 'ar')
+    expect([...ar].length).toBeLessThanOrEqual(ONE_SEGMENT_AR)
+    expect(segmentCount(ar)).toBe(1)
+    expect(ar).toContain(ref)
+    const fr = requestEditedText(ref, 'fr')
+    expect(isPlain(fr)).toBe(true)
+    expect(segmentCount(fr)).toBe(1)
+    expect(fr).toContain(ref)
   })
 
   it('تأكيد العقار كذلك في جزء واحد باللغتين', () => {

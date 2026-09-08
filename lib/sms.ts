@@ -64,9 +64,23 @@ export function propertyConfirmationText(refCode: string, locale: Locale): strin
   return `اللبنة: عرض عقارك ${refCode} تسجّل. الفريق يتّصل بيك بعد المراجعة.`
 }
 
+/**
+ * تأكيد وصول تعديل صاحب المطلب.
+ *
+ * لا تذكر ما تبدّل: الرسالة تمرّ على شبكة الهاتف وتبقى في شاشة قد
+ * يراها غيره. «تعديلك تسجّل» يكفي — التفاصيل في صفحة المتابعة.
+ */
+export function requestEditedText(refCode: string, locale: Locale): string {
+  if (locale === 'fr') {
+    return `AL-LUBNA ${refCode}: modification enregistree, dossier mis a jour.`
+  }
+  return `اللبنة ${refCode}: تعديلك تسجّل والملفّ تحيّن.`
+}
+
 export type SmsTemplate =
   | 'request_confirmation'
   | 'request_confirmation_resend'
+  | 'request_edited'
   | 'property_confirmation'
   | 'support_accepted'
   | 'network_confirmation'

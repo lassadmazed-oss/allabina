@@ -31,8 +31,13 @@ function rateLimited(key: string): boolean {
   return hits.length > MAX_PER_WINDOW
 }
 
+/**
+ * `_prev: unknown` لا SubmitState: الفعل لا يقرأ الحالة السابقة أصلاً،
+ * والاستمارة الواحدة تبدّل بينه وبين فعل التعديل حسب الوضع — فلو أعلن
+ * نوعاً أضيق ما نجّمناش نمرّرو الاثنين لنفس useActionState.
+ */
 export async function submitRequest(
-  _prev: SubmitState,
+  _prev: unknown,
   formData: FormData
 ): Promise<SubmitState> {
   // فخّ للإرسال الآلي: حقل مخفي لازم يبقى فارغ

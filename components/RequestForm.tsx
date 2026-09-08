@@ -2,6 +2,7 @@
 
 import { useActionState, useEffect, useMemo, useState } from 'react'
 import { submitRequest, type SubmitState } from '@/lib/actions/request'
+import { updateOwnRequest, type EditState } from '@/lib/actions/request-edit'
 import ZoneInput, { type Zone } from '@/components/ZoneInput'
 import {
   REQUEST_TYPES,
@@ -96,6 +97,8 @@ export default function RequestForm({
   bankTermsNote,
   tiers,
   initialType = '',
+  mode = 'create',
+  initialValues,
 }: {
   locale: Locale
   t: Dictionary['form']
@@ -108,17 +111,32 @@ export default function RequestForm({
   bankTermsNote: string
   tiers: TierPrice[]
   initialType?: string
+  /** 'edit' = صاحب المطلب يصلّح مطلباً موجوداً، لا يبعث واحداً جديداً */
+  mode?: 'create' | 'edit'
+  /** القيم المسجّلة — مطلوبة في وضع التعديل */
+  initialValues?: Record<string, string | boolean>
 }) {
-  const [state, formAction, pending] = useActionState(submitRequest, initial)
+  const isEdit = mode === 'edit'
+  const [state, formAction, pending] = useActionState<SubmitState | EditState, FormData>(
+    isEdit ? updateOwnRequest : submitRequest,
+    initial
+  )
   const [step, setStep] = useState(1)
-  const [values, setValues] = useState<Record<string, string | boolean>>({
-    requestType: initialType,
-    govCode: 'SFX',
-    horizon: '',
-    employment: '',
-  })
+  const [values, setValues] = useState<Record<string, string | boolean>>(
+    isEdit && initialValues
+      ? initialValues
+      : {
+          requestType: initialType,
+          govCode: 'SFX',
+          horizon: '',
+          employment: '',
+        }
+  )
 
+  // مسوّدة المطلب الجديد لا تُقرأ ولا تُكتب وقت التعديل: كانت تدفن
+  // معطيات الملفّ الحقيقية تحت مسوّدة قديمة تركها صاحبها في المتصفّح.
   useEffect(() => {
+    if (isEdit) return
     try {
       const saved = localStorage.getItem(STORAGE_KEY)
       if (saved) {
@@ -128,13 +146,14 @@ export default function RequestForm({
         }))
       }
     } catch {}
-  }, [])
+  }, [isEdit])
 
   useEffect(() => {
+    if (isEdit) return
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(values))
     } catch {}
-  }, [values])
+  }, [values, isEdit])
 
   const set = (k: string, v: string | boolean) => setValues((s) => ({ ...s, [k]: v }))
   const num = (k: string) => Number(values[k] || 0)
@@ -843,17 +862,27 @@ export default function RequestForm({
           </div>
         </div>
 
-        <label className="mt-6 flex cursor-pointer items-start gap-3 rounded border border-line bg-surface p-4">
-          <input
-            type="checkbox"
-            name="consent"
-            checked={Boolean(values.consent)}
-            onChange={(e) => set('consent', e.target.checked)}
-            className="mt-1 size-4 accent-[#1d3a5f]"
-          />
-          <span className="text-sm leading-7">{t.consent}</span>
-        </label>
-        {err('consent') && <p className="mt-2 text-sm text-[#8c2f22]">{err('consent')}</p>}
+        {/* الموافقة تُعطى مرّة عند الإرسال الأوّل. طلبها من جديد على كلّ
+            تصحيح يوحي بأنّها قابلة للسحب بنسيان خانة — وهي ليست كذلك. */}
+        {isEdit ? (
+          <p className="mt-6 rounded border border-line bg-surface px-4 py-3 text-xs leading-6 text-muted">
+            {t.editConsentNote}
+          </p>
+        ) : (
+          <>
+            <label className="mt-6 flex cursor-pointer items-start gap-3 rounded border border-line bg-surface p-4">
+              <input
+                type="checkbox"
+                name="consent"
+                checked={Boolean(values.consent)}
+                onChange={(e) => set('consent', e.target.checked)}
+                className="mt-1 size-4 accent-[#1d3a5f]"
+              />
+              <span className="text-sm leading-7">{t.consent}</span>
+            </label>
+            {err('consent') && <p className="mt-2 text-sm text-[#8c2f22]">{err('consent')}</p>}
+          </>
+        )}
 
         <input
           type="text"
@@ -896,7 +925,7 @@ export default function RequestForm({
             disabled={pending}
             className="min-h-12 flex-1 rounded bg-brand px-8 font-medium text-white transition hover:bg-brand-deep active:scale-[0.99] disabled:opacity-60 sm:flex-none"
           >
-            {pending ? t.submitting : t.submit}
+            {pending ? t.submitting : isEdit ? t.saveEdit : t.submit}
           </button>
         )}
       </div>

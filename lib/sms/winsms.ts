@@ -5,6 +5,7 @@ import {
   parseWinSmsReply,
   propertyConfirmationText,
   requestConfirmationText,
+  requestEditedText,
   segmentCount,
   networkConfirmationText,
   statusUpdateText,
@@ -131,6 +132,15 @@ export async function sendPropertyConfirmation(propertyId: string, refCode: stri
 export async function resendRequestConfirmation(requestId: string, refCode: string, phone: string, locale: Locale) {
   try {
     await sendAndLog({ requestId }, 'request_confirmation_resend', phone, requestConfirmationText(refCode, locale))
+  } catch (e) {
+    console.warn('sms unexpected:', e instanceof Error ? e.message : e)
+  }
+}
+
+/** تأكيد تعديل صاحب المطلب — لا فهرس فريد عليه: التعديل يتكرّر بطبعه */
+export async function sendRequestEdited(requestId: string, refCode: string, phone: string, locale: Locale) {
+  try {
+    await sendAndLog({ requestId }, 'request_edited', phone, requestEditedText(refCode, locale))
   } catch (e) {
     console.warn('sms unexpected:', e instanceof Error ? e.message : e)
   }
