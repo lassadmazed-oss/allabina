@@ -7,6 +7,7 @@ import { headers } from 'next/headers'
 import { db, getBuildTiers, getFinanceContext } from '@/lib/supabase/server'
 import { buildCost, tierByKey } from '@/lib/pricing'
 import { requestSchema } from '@/lib/schema'
+import { writeClientAnswers } from '@/lib/actions/client-answers'
 import { computeScore } from '@/lib/scoring'
 import { DEFAULT_LOCALE, isLocale } from '@/lib/i18n'
 
@@ -45,9 +46,18 @@ export async function submitRequest(
     return { ok: false, error: 'server' }
   }
 
+  /**
+   * الحقول متعدّدة القيم تُقرأ بـgetAll لا بـfromEntries.
+   *
+   * fromEntries تحتفظ بآخر قيمة لكلّ مفتاح: خانتان مؤشّرتان باسم واحد
+   * تعطيان واحدة. «مستعدّ يتنازل على» كان يخسر كلّ اختيار إلّا الأخير
+   * منذ أن شُحن، بلا خطأ ولا أثر — الحقل يُملأ والقاعدة تستقبل واحداً.
+   */
   const raw = Object.fromEntries(formData.entries())
   const parsed = requestSchema.safeParse({
     ...raw,
+    flexibility: formData.getAll('flexibility'),
+    documents: formData.getAll('documents'),
     hasWater: raw.hasWater === 'on',
     hasPower: raw.hasPower === 'on',
     hasRoad: raw.hasRoad === 'on',
@@ -137,6 +147,8 @@ export async function submitRequest(
       urgency_note: d.urgencyNote || null,
       flexibility: d.flexibility.length ? d.flexibility : null,
       problem_note: d.problemNote || null,
+      problem_type: d.problemType,
+      financing_state: d.financingState ?? 'not_started',
       foprolos_interest: d.foprolosInterest,
       is_first_home: d.isFirstHome,
       has_social_housing: d.hasSocialHousing,
@@ -185,6 +197,10 @@ export async function submitRequest(
     })
     if (landErr) console.error('insert request_land', landErr)
   }
+
+  // المواصفات والوضع العائلي والوثائق: كانت تُعمَّر في اللوحة بعد
+  // مكالمة، وصارت تصل مع المطلب.
+  await writeClientAnswers(requestId, d)
 
   const { error: scoreErr } = await db.from('scores').insert({
     request_id: requestId,

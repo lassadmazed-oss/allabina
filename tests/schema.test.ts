@@ -134,3 +134,31 @@ describe('تنظيف المدخلات', () => {
     )
   })
 })
+
+describe('الحقول متعدّدة القيم', () => {
+  /**
+   * FormData.entries() تعطي مدخلاً لكلّ خانة مؤشّرة، وObject.fromEntries
+   * تحتفظ بالأخير. الاختبار يثبّت أنّ المخطّط يقبل المصفوفة كما تصل من
+   * getAll، وأنّ القيمة الواحدة تبقى مقبولة.
+   */
+  it('تقبل مصفوفة كاملة لا آخر قيمة', () => {
+    const r = requestSchema.safeParse({ ...apartmentForm, flexibility: ['area', 'zone', 'timing'] })
+    expect(r.success).toBe(true)
+    if (r.success) expect(r.data.flexibility).toEqual(['area', 'zone', 'timing'])
+  })
+
+  it('تقبل قيمة واحدة كنصّ', () => {
+    const r = requestSchema.safeParse({ ...apartmentForm, flexibility: 'zone' })
+    expect(r.success && r.data.flexibility).toEqual(['zone'])
+  })
+
+  it('تهمل ما ليس في القائمة بدل ما ترفض الاستمارة كلّها', () => {
+    const r = requestSchema.safeParse({ ...apartmentForm, flexibility: ['area', 'hacked'] })
+    expect(r.success && r.data.flexibility).toEqual(['area'])
+  })
+
+  it('الوثائق نفس القاعدة', () => {
+    const r = requestSchema.safeParse({ ...apartmentForm, documents: ['id-card', 'land-title', 'xx'] })
+    expect(r.success && r.data.documents).toEqual(['id-card', 'land-title'])
+  })
+})

@@ -11,7 +11,12 @@ import {
   TITLE_STATUSES,
   URGENCIES,
   FLEXIBILITIES,
+  LEVELS,
+  PROBLEM_KINDS,
+  FINANCING_STATES,
 } from '@/lib/schema'
+import { HOUSING_CONDITIONS, INCOME_STABILITY } from '@/lib/support-schema'
+import { CLIENT_DOC_CODES } from '@/lib/documents'
 import { computeCapacity, formatTND, type FinanceSettings } from '@/lib/finance'
 import { buildCostRange, tierByKey, type TierPrice } from '@/lib/pricing'
 import { fmt, type Dictionary, type Locale } from '@/lib/i18n'
@@ -42,20 +47,30 @@ const FIELD_STEP: Record<string, number> = {
   hasPower: 3,
   hasRoad: 3,
   hasPermit: 3,
-  monthlyIncome: 4,
-  spouseIncome: 4,
-  otherIncome: 4,
-  existingLoans: 4,
-  downPayment: 4,
-  maxMonthly: 4,
-  employment: 4,
-  seniorityYears: 4,
-  isExpat: 4,
-  expatCountry: 4,
-  fullName: 5,
-  phone: 5,
-  email: 5,
-  consent: 5,
+  levels: 2,
+  bathrooms: 2,
+  livingRooms: 2,
+  kitchens: 2,
+  householdSize: 4,
+  dependents: 4,
+  housingCondition: 4,
+  incomeStability: 4,
+  problemType: 4,
+  financingState: 4,
+  monthlyIncome: 5,
+  spouseIncome: 5,
+  otherIncome: 5,
+  existingLoans: 5,
+  downPayment: 5,
+  maxMonthly: 5,
+  employment: 5,
+  seniorityYears: 5,
+  isExpat: 5,
+  expatCountry: 5,
+  fullName: 6,
+  phone: 6,
+  email: 6,
+  consent: 6,
 }
 
 /** اسم كلّ حقل كما يراه الحريف — يُستعمل في لافتة الخطأ */
@@ -78,10 +93,21 @@ function fieldLabels(t: Dictionary['form']): Record<string, string> {
     employment: t.employment,
     seniorityYears: t.seniority,
     expatCountry: t.expatCountry,
+    levels: t.levels,
+    bathrooms: t.bathrooms,
+    livingRooms: t.livingRooms,
+    kitchens: t.kitchens,
+    householdSize: t.householdSize,
+    dependents: t.dependents,
+    housingCondition: t.housingCondition,
+    incomeStability: t.incomeStability,
+    problemType: t.problemType,
+    financingState: t.financingState,
     fullName: t.fullName,
     phone: t.phone,
     email: t.email,
-    consent: t.consent.slice(0, 40) + '…',
+    // قصّ جملة الموافقة الطويلة يعطي «…وتست…» في لائحة الأخطاء — نسمّيها باسمها
+    consent: t.consentShort,
   }
 }
 
@@ -164,6 +190,17 @@ export default function RequestForm({
     .split(',')
     .filter(Boolean)
 
+  const docs = String(values.documents ?? '')
+    .split(',')
+    .filter(Boolean)
+
+  const toggleDoc = (code: string) =>
+    setValues((v) => {
+      const cur = String(v.documents ?? '').split(',').filter(Boolean)
+      const next = cur.includes(code) ? cur.filter((x) => x !== code) : [...cur, code]
+      return { ...v, documents: next.join(',') }
+    })
+
   /**
    * التبديل يقرأ الحالة السابقة لا اللقطة المرسومة: نقرتان متتاليتان قبل
    * إعادة الرسم كانتا تُلغي إحداهما الأخرى.
@@ -177,6 +214,11 @@ export default function RequestForm({
 
   const isBuild = values.requestType === 'build_on_land'
   const needsStanding = isBuild || values.requestType === 'land_and_house'
+  /** من يبني أو يرمّم يعرف كم غرفة وكم طابق؛ من يشري شقّة جاهزة لا */
+  const needsSpecs =
+    isBuild ||
+    values.requestType === 'land_and_house' ||
+    values.requestType === 'renovation'
   const selectedTier = tierByKey(tiers, String(values.standing ?? ''))
   const areaForCost = Number(values.desiredAreaM2 || 0)
   const costRange =
@@ -189,7 +231,7 @@ export default function RequestForm({
     () => (isBuild ? t.stepNames : t.stepNames.filter((_, i) => i !== 2)),
     [isBuild, t.stepNames]
   )
-  const order = isBuild ? [1, 2, 3, 4, 5] : [1, 2, 4, 5]
+  const order = isBuild ? [1, 2, 3, 4, 5, 6] : [1, 2, 4, 5, 6]
   const stepIndex = order.indexOf(step)
 
   const capacity = computeCapacity({
@@ -204,7 +246,7 @@ export default function RequestForm({
   const canNext = () => {
     if (step === 1) return Boolean(values.requestType)
     if (step === 2) return Boolean(values.govCode && values.horizon)
-    if (step === 4) return num('monthlyIncome') > 0 && Boolean(values.employment)
+    if (step === 5) return num('monthlyIncome') > 0 && Boolean(values.employment)
     return true
   }
 
@@ -228,9 +270,9 @@ export default function RequestForm({
   useEffect(() => {
     if (!state.fields?.length) return
     const first = [...state.fields].sort(
-      (a, b) => (FIELD_STEP[a] ?? 5) - (FIELD_STEP[b] ?? 5)
+      (a, b) => (FIELD_STEP[a] ?? 6) - (FIELD_STEP[b] ?? 6)
     )[0]
-    const target = FIELD_STEP[first] ?? 5
+    const target = FIELD_STEP[first] ?? 6
     if (order.includes(target)) setStep(target)
 
     if (typeof window !== 'undefined') {
@@ -249,6 +291,19 @@ export default function RequestForm({
     <form
       action={formAction}
       noValidate
+      /**
+       * Enter داخل أيّ حقل يُرسل الاستمارة كاملةً — ولو كنّا في الخطوة الأولى.
+       * فيرجع الحريف بأخطاء حقول ما وصلهاش بعد. هنا Enter = «التالي».
+       * TEXTAREA مستثنى (Enter سطر جديد)، وآخر خطوة يبقى فيها الإرسال مقصوداً.
+       */
+      onKeyDown={(e) => {
+        if (e.key !== 'Enter' || e.shiftKey) return
+        const el = e.target as HTMLElement
+        if (el.tagName === 'TEXTAREA' || el.tagName === 'BUTTON') return
+        if (stepIndex === order.length - 1) return
+        e.preventDefault()
+        if (canNext()) go(1)
+      }}
       className="mx-auto max-w-3xl px-4 py-8 sm:px-5 sm:py-10"
     >
       <input type="hidden" name="locale" value={locale} />
@@ -586,6 +641,104 @@ export default function RequestForm({
             placeholder={t.problemPlaceholder}
           />
         </div>
+
+        {/* مواصفات الدار — كانت تُعمَّر في اللوحة بعد مكالمة. صاحبها
+            يعرفها، وهي مدخل العرض التقديري. */}
+        {needsSpecs && (
+          <div className="mt-8 rounded border border-line bg-surface p-4 sm:p-5">
+            <span className="mb-1 block text-sm font-medium">{t.specsTitle}</span>
+            <p className="mb-4 text-sm leading-7 text-muted">{t.specsLede}</p>
+
+            <Field label={t.levels}>
+              <div className="grid gap-2 sm:grid-cols-2">
+                {LEVELS.map((lv) => (
+                  <label
+                    key={lv}
+                    className={`flex min-h-11 cursor-pointer items-center gap-2.5 rounded border px-3 text-sm transition ${
+                      String(values.levels ?? '') === String(lv)
+                        ? 'border-brand bg-brand-soft'
+                        : 'border-line hover:border-line-strong'
+                    }`}
+                  >
+                    <input
+                      type="radio"
+                      name="levels"
+                      value={lv}
+                      checked={String(values.levels ?? '') === String(lv)}
+                      onChange={() => set('levels', String(lv))}
+                      className="size-4 accent-[#1d3a5f]"
+                    />
+                    {t.levelLabels[lv]}
+                  </label>
+                ))}
+              </div>
+            </Field>
+
+            <div className="mt-5 grid gap-4 sm:grid-cols-3">
+              <Field label={t.bathrooms} hint={t.optional} error={err('bathrooms')}>
+                <input
+                  type="number"
+                  inputMode="numeric"
+                  name="bathrooms"
+                  min={1}
+                  max={6}
+                  value={String(values.bathrooms ?? '')}
+                  onChange={(e) => set('bathrooms', e.target.value)}
+                  className={inputCls}
+                />
+              </Field>
+              <Field label={t.livingRooms} hint={t.optional} error={err('livingRooms')}>
+                <input
+                  type="number"
+                  inputMode="numeric"
+                  name="livingRooms"
+                  min={1}
+                  max={4}
+                  value={String(values.livingRooms ?? '')}
+                  onChange={(e) => set('livingRooms', e.target.value)}
+                  className={inputCls}
+                />
+              </Field>
+              <Field label={t.kitchens} hint={t.optional} error={err('kitchens')}>
+                <input
+                  type="number"
+                  inputMode="numeric"
+                  name="kitchens"
+                  min={1}
+                  max={3}
+                  value={String(values.kitchens ?? '')}
+                  onChange={(e) => set('kitchens', e.target.value)}
+                  className={inputCls}
+                />
+              </Field>
+            </div>
+
+            <div className="mt-5">
+              <span className="mb-2 block text-sm font-medium">{t.extrasTitle}</span>
+              <div className="flex flex-wrap gap-2">
+                {(['garage', 'terrasse', 'jardin'] as const).map((k) => (
+                  <label
+                    key={k}
+                    className={`flex min-h-11 cursor-pointer items-center gap-2 rounded border px-4 text-sm transition ${
+                      values[k]
+                        ? 'border-brand bg-brand-soft'
+                        : 'border-line hover:border-line-strong'
+                    }`}
+                  >
+                    <input
+                      type="checkbox"
+                      name={k}
+                      checked={Boolean(values[k])}
+                      onChange={(e) => set(k, e.target.checked)}
+                      className="size-4 accent-[#1d3a5f]"
+                    />
+                    {t[k]}
+                  </label>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
       </fieldset>
 
       {/* 3 */}
@@ -647,8 +800,113 @@ export default function RequestForm({
         </fieldset>
       )}
 
-      {/* 4 */}
+      {/* 4 — عائلتك ووضعك: كان المستشار يسألها في مكالمة ويكتبها في
+          «المسار الاجتماعي». صاحبها يعرفها أحسن، ويكتبها مرّة واحدة. */}
       <fieldset className={step === 4 ? 'block' : 'hidden'}>
+        <legend className="display mb-2 text-2xl font-semibold">{t.s6Title}</legend>
+        <p className="mb-6 leading-8 text-muted">{t.s6Lede}</p>
+
+        <div className="grid gap-5 sm:grid-cols-2">
+          <Field label={t.householdSize} hint={t.optional} error={err('householdSize')}>
+            <input
+              type="number"
+              inputMode="numeric"
+              name="householdSize"
+              min={1}
+              max={30}
+              value={String(values.householdSize ?? '')}
+              onChange={(e) => set('householdSize', e.target.value)}
+              className={inputCls}
+            />
+          </Field>
+          <Field label={t.dependents} hint={t.optional} error={err('dependents')}>
+            <input
+              type="number"
+              inputMode="numeric"
+              name="dependents"
+              min={0}
+              max={25}
+              value={String(values.dependents ?? '')}
+              onChange={(e) => set('dependents', e.target.value)}
+              className={inputCls}
+            />
+          </Field>
+          <Field label={t.housingCondition} hint={t.optional} error={err('housingCondition')}>
+            <select
+              name="housingCondition"
+              value={String(values.housingCondition ?? '')}
+              onChange={(e) => set('housingCondition', e.target.value)}
+              className={inputCls}
+            >
+              <option value="">{t.choose}</option>
+              {HOUSING_CONDITIONS.map((k) => (
+                <option key={k} value={k}>
+                  {t.housingLabels[k]}
+                </option>
+              ))}
+            </select>
+          </Field>
+          <Field label={t.incomeStability} hint={t.optional} error={err('incomeStability')}>
+            <select
+              name="incomeStability"
+              value={String(values.incomeStability ?? '')}
+              onChange={(e) => set('incomeStability', e.target.value)}
+              className={inputCls}
+            >
+              <option value="">{t.choose}</option>
+              {INCOME_STABILITY.map((k) => (
+                <option key={k} value={k}>
+                  {t.incomeLabels[k]}
+                </option>
+              ))}
+            </select>
+          </Field>
+          <Field label={t.problemType} hint={t.optional} error={err('problemType')}>
+            <select
+              name="problemType"
+              value={String(values.problemType ?? '')}
+              onChange={(e) => set('problemType', e.target.value)}
+              className={inputCls}
+            >
+              <option value="">{t.choose}</option>
+              {PROBLEM_KINDS.map((k) => (
+                <option key={k} value={k}>
+                  {t.problemLabels[k]}
+                </option>
+              ))}
+            </select>
+          </Field>
+          <Field label={t.financingState} hint={t.optional} error={err('financingState')}>
+            <select
+              name="financingState"
+              value={String(values.financingState ?? '')}
+              onChange={(e) => set('financingState', e.target.value)}
+              className={inputCls}
+            >
+              <option value="">{t.choose}</option>
+              {FINANCING_STATES.map((k) => (
+                <option key={k} value={k}>
+                  {t.financingLabels[k]}
+                </option>
+              ))}
+            </select>
+          </Field>
+        </div>
+
+        <label className="mt-6 flex cursor-pointer items-start gap-3 rounded border border-line bg-surface p-4">
+          <input
+            type="checkbox"
+            name="hasDisability"
+            checked={Boolean(values.hasDisability)}
+            onChange={(e) => set('hasDisability', e.target.checked)}
+            className="mt-1 size-4 accent-[#1d3a5f]"
+          />
+          <span className="text-sm leading-7">{t.hasDisability}</span>
+        </label>
+      </fieldset>
+
+      {/* 5 — القدرة المالية */}
+      <fieldset className={step === 5 ? 'block' : 'hidden'}>
         <legend className="display mb-2 text-2xl font-semibold">{t.s4Title}</legend>
         <p className="mb-6 text-muted">{t.s4Lede}</p>
 
@@ -823,8 +1081,8 @@ export default function RequestForm({
         </div>
       </fieldset>
 
-      {/* 5 */}
-      <fieldset className={step === 5 ? 'block' : 'hidden'}>
+      {/* 6 — الاتصال والوثائق */}
+      <fieldset className={step === 6 ? 'block' : 'hidden'}>
         <legend className="display mb-2 text-2xl font-semibold">{t.s5Title}</legend>
         <p className="mb-6 text-muted">{t.s5Lede}</p>
         <div className="grid gap-5 sm:grid-cols-2">
@@ -860,6 +1118,37 @@ export default function RequestForm({
               />
             </Field>
           </div>
+        </div>
+
+        {/* الوثائق — تصريح لا تثبّت. الفريق كان يكتشف النقص في المكالمة
+            الأولى، وصاحب الملفّ يعرفه من الآن. */}
+        <div className="mt-8 rounded border border-line bg-surface p-4 sm:p-5">
+          <span className="mb-1 block text-sm font-medium">{t.docsTitle}</span>
+          <p className="mb-4 text-sm leading-7 text-muted">{t.docsLede}</p>
+          <div className="grid gap-2 sm:grid-cols-2">
+            {CLIENT_DOC_CODES.map((code) => {
+              const on = docs.includes(code)
+              return (
+                <label
+                  key={code}
+                  className={`flex min-h-12 cursor-pointer items-center gap-2.5 rounded border px-3 text-sm transition ${
+                    on ? 'border-brand bg-brand-soft' : 'border-line hover:border-line-strong'
+                  }`}
+                >
+                  <input
+                    type="checkbox"
+                    name="documents"
+                    value={code}
+                    checked={on}
+                    onChange={() => toggleDoc(code)}
+                    className="size-4 accent-[#1d3a5f]"
+                  />
+                  {t.docLabels[code]}
+                </label>
+              )
+            })}
+          </div>
+          <p className="mt-3 text-xs leading-6 text-faint">{t.docsNote}</p>
         </div>
 
         {/* الموافقة تُعطى مرّة عند الإرسال الأوّل. طلبها من جديد على كلّ

@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { requireStaff } from '@/lib/auth'
+import { DOC_TYPE_LABELS } from '@/lib/documents'
 import { can } from '@/lib/permissions'
 import { db, getFinancingProducts, getStandingLevels } from '@/lib/supabase/server'
 import { LABELS } from '@/lib/schema'
@@ -121,14 +122,8 @@ const PUBLIC_STATE_AR: Record<string, string> = {
   closed: 'ملفّ مغلق حالياً',
 }
 
-const DOC_TYPES = [
-  'بطاقة تعريف',
-  'شهادة في العمل',
-  'كشف حساب بنكي',
-  'رسم عقاري / عقد ملكية',
-  'رخصة بناء',
-  'أمثلة ودراسات',
-]
+/** مصدر واحد مع الاستمارة العمومية — lib/documents.ts */
+const DOC_TYPES = DOC_TYPE_LABELS
 
 const URGENCY_LABELS: Record<string, string> = {
   planning: 'يخطّط بلا أجل',
@@ -478,7 +473,7 @@ export default async function RequestDetail({ params }: { params: Promise<{ id: 
       </div>
 
       {/* تغيير الحالة */}
-      <div className="mt-6 rounded border border-line bg-surface p-4 sm:p-6">
+      <div className="mt-4 rounded border border-line bg-surface p-4">
         <h2 className="text-sm font-semibold">تحيين الحالة</h2>
         {canEdit && (
           <form action={updateStatusAction} className="mt-4 flex flex-wrap items-end gap-3">
@@ -527,7 +522,7 @@ export default async function RequestDetail({ params }: { params: Promise<{ id: 
       </div>
 
       {/* مواصفات المشروع والعرض التقديري — Module 11 */}
-      <div className="mt-6 rounded border border-line bg-surface p-4 sm:p-6">
+      <div className="mt-4 rounded border border-line bg-surface p-4">
         <h2 className="text-sm font-semibold">مواصفات المشروع والعرض التقديري</h2>
         <p className="mt-1 text-xs leading-6 text-muted">
           المواصفات هي مدخل حساب العرض. العرض يتولّد من البوردرو وأسعاره وقت التوليد، ويبقى
@@ -638,7 +633,7 @@ export default async function RequestDetail({ params }: { params: Promise<{ id: 
         </form>
 
         {latestDevis && (
-          <div className="mt-6 rounded border border-line bg-ground p-5">
+          <div className="mt-4 rounded border border-line bg-ground p-5">
             <div className="flex flex-wrap items-baseline justify-between gap-3">
               <div>
                 <span className="num text-sm text-brand" dir="ltr">
@@ -734,7 +729,7 @@ export default async function RequestDetail({ params }: { params: Promise<{ id: 
       </div>
 
       {/* تصنيف الدراسة — Module 2 */}
-      <div className="mt-6 rounded border border-line bg-surface p-4 sm:p-6">
+      <div className="mt-4 rounded border border-line bg-surface p-4">
         <h2 className="text-sm font-semibold">تصنيف الدراسة</h2>
         <p className="mt-1 text-xs text-muted">
           التصنيف بلا سبب ما ينفعش. اكتب علاش صُنّف الملفّ هكذا وشنوّة الخطوة اللي يستنّاها.
@@ -772,7 +767,7 @@ export default async function RequestDetail({ params }: { params: Promise<{ id: 
       </div>
 
       {/* المسار الاجتماعي — Module 7 */}
-      <div className="mt-6 rounded border border-line bg-surface p-4 sm:p-6">
+      <div className="mt-4 rounded border border-line bg-surface p-4">
         <div className="flex flex-wrap items-baseline justify-between gap-2">
           <h2 className="text-sm font-semibold">المسار الاجتماعي</h2>
           {social?.is_priority && (
@@ -869,7 +864,7 @@ export default async function RequestDetail({ params }: { params: Promise<{ id: 
 
       {/* دراسة طلب المساندة — الأهلية ومدى الصحّة والقرار */}
       {(r.study_track === 'social' || assessment) && (
-        <div className="mt-6 rounded border border-brand/40 bg-surface p-4 sm:p-6">
+        <div className="mt-4 rounded border border-brand/40 bg-surface p-4">
           <div className="flex flex-wrap items-baseline justify-between gap-3">
             <h2 className="text-sm font-semibold">دراسة طلب المساندة</h2>
             {assessment && (
@@ -901,7 +896,7 @@ export default async function RequestDetail({ params }: { params: Promise<{ id: 
       )}
 
       {/* المساندة ودفتر الشفافية — Module 12-bis */}
-      <div className="mt-6 rounded border border-line bg-surface p-4 sm:p-6">
+      <div className="mt-4 rounded border border-line bg-surface p-4">
         <div className="flex flex-wrap items-baseline justify-between gap-3">
           <h2 className="text-sm font-semibold">المساندة ودفتر الشفافية</h2>
           <Link
@@ -959,7 +954,7 @@ export default async function RequestDetail({ params }: { params: Promise<{ id: 
       </div>
 
       {/* عناصر الحلّ — Module 7/8 */}
-      <div className="mt-6 rounded border border-line bg-surface p-4 sm:p-6">
+      <div className="mt-4 rounded border border-line bg-surface p-4">
         <h2 className="text-sm font-semibold">عناصر الحلّ</h2>
         <p className="mt-1 text-xs text-muted">
           أرض + تمويل + مواد + مقاول + دعم = حلّ سكني محتمل. كل عنصر مع الجهة اللي باش تساهم فيه.
@@ -1055,7 +1050,7 @@ export default async function RequestDetail({ params }: { params: Promise<{ id: 
       </div>
 
       {/* المهامّ — Module 8 */}
-      <div className="mt-6 rounded border border-line bg-surface p-4 sm:p-6">
+      <div className="mt-4 rounded border border-line bg-surface p-4">
         <h2 className="text-sm font-semibold">مهامّ الحلّ</h2>
         <p className="mt-1 text-xs text-muted">
           الحلّ يتقسّم مهامّ، وكل مهمّة تتسنّد لجهة معنيّة ويتّبع الفريق تقدّمها.
@@ -1134,7 +1129,7 @@ export default async function RequestDetail({ params }: { params: Promise<{ id: 
       </div>
 
       {/* العروض المقترحة — Matching Engine */}
-      <div className="mt-6 rounded border border-line bg-surface p-4 sm:p-6">
+      <div className="mt-4 rounded border border-line bg-surface p-4">
         <div className="flex flex-wrap items-baseline justify-between gap-2">
           <h2 className="text-sm font-semibold">عروض عقارية مقترحة</h2>
           <span className="text-xs text-muted">
@@ -1248,7 +1243,7 @@ export default async function RequestDetail({ params }: { params: Promise<{ id: 
       </div>
 
       {/* ما يراه الحريف في صفحة المتابعة */}
-      <div className="mt-6 rounded border border-line bg-surface p-4 sm:p-6">
+      <div className="mt-4 rounded border border-line bg-surface p-4">
         <div className="flex flex-wrap items-baseline justify-between gap-3">
           <h2 className="text-sm font-semibold">ما يراه الحريف في صفحة المتابعة</h2>
           <span className="rounded bg-brand-soft px-2.5 py-1 text-xs font-medium text-brand">
@@ -1292,7 +1287,7 @@ export default async function RequestDetail({ params }: { params: Promise<{ id: 
       </div>
 
       {/* تصنيف الملفّ */}
-      <div className="mt-6 rounded border border-line bg-surface p-4 sm:p-6">
+      <div className="mt-4 rounded border border-line bg-surface p-4">
         <h2 className="text-sm font-semibold">تصنيف الملفّ</h2>
         <form action={updateClassificationAction} className="mt-4 flex flex-wrap items-end gap-3">
           <input type="hidden" name="id" value={r.id} />
@@ -1347,7 +1342,7 @@ export default async function RequestDetail({ params }: { params: Promise<{ id: 
       </div>
 
       {/* المتابعة: الإجراء القادم وصيغة التمويل */}
-      <div className="mt-6 rounded border border-line bg-surface p-4 sm:p-6">
+      <div className="mt-4 rounded border border-line bg-surface p-4">
         <h2 className="text-sm font-semibold">المتابعة</h2>
         {canEdit && (
           <form action={updateFollowUpAction} className="mt-4 flex flex-wrap items-end gap-3">
@@ -1393,7 +1388,7 @@ export default async function RequestDetail({ params }: { params: Promise<{ id: 
       </div>
 
       {/* الأسئلة والمشاكل والاعتراضات */}
-      <div className="mt-6 rounded border border-line bg-surface p-4 sm:p-6">
+      <div className="mt-4 rounded border border-line bg-surface p-4">
         <div className="flex flex-wrap items-baseline justify-between gap-2">
           <h2 className="text-sm font-semibold">استفسارات الحريف ومشاكله</h2>
           <span className="text-xs text-muted">
@@ -1473,8 +1468,13 @@ export default async function RequestDetail({ params }: { params: Promise<{ id: 
       </div>
 
       {/* الوثائق */}
-      <div className="mt-6 rounded border border-line bg-surface p-4 sm:p-6">
+      <div className="mt-4 rounded border border-line bg-surface p-4">
         <h2 className="text-sm font-semibold">الوثائق المتوفّرة</h2>
+        {/* «قال عندو» و«شفناها» ليسا نفس الشيء: التأشيرة تثبّتك أنت،
+            والوسم الذهبي تصريح صاحب الملفّ في الاستمارة. */}
+        <p className="mt-1 text-xs leading-6 text-muted">
+          الوسم «صرّح بها» يجي من الاستمارة. التأشيرة تبقى تثبّتك أنت.
+        </p>
         <div className="mt-4 grid gap-2 sm:grid-cols-2">
           {DOC_TYPES.map((d) => {
             const rec = (docs ?? []).find((x) => x.doc_type === d)
@@ -1486,7 +1486,14 @@ export default async function RequestDetail({ params }: { params: Promise<{ id: 
               >
                 <input type="hidden" name="id" value={r.id} />
                 <input type="hidden" name="doc_type" value={d} />
-                <span className="text-sm">{d}</span>
+                <span className="flex flex-wrap items-center gap-2 text-sm">
+                  {d}
+                  {rec?.declared && (
+                    <span className="rounded bg-gold-soft px-1.5 py-0.5 text-[11px] text-gold">
+                      صرّح بها
+                    </span>
+                  )}
+                </span>
                 <span className="flex items-center gap-2">
                   <input
                     type="checkbox"
@@ -1511,7 +1518,7 @@ export default async function RequestDetail({ params }: { params: Promise<{ id: 
       </div>
 
       {/* السجلّ */}
-      <div className="mt-6 rounded border border-line bg-surface p-4 sm:p-6">
+      <div className="mt-4 rounded border border-line bg-surface p-4">
         <h2 className="text-sm font-semibold">سجلّ الأثر</h2>
         <ul className="mt-4 space-y-2 text-sm">
           {(events ?? []).map((e) => (
@@ -1538,7 +1545,7 @@ export default async function RequestDetail({ params }: { params: Promise<{ id: 
 
 function Card({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <div className="rounded border border-line bg-surface p-4 sm:p-6">
+    <div className="rounded border border-line bg-surface p-4">
       <h2 className="mb-4 text-sm font-semibold">{title}</h2>
       {children}
     </div>

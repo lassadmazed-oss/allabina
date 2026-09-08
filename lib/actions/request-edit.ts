@@ -11,15 +11,19 @@ import { phoneMatches } from '@/lib/public-state'
 import { sendRequestEdited } from '@/lib/sms/winsms'
 import { DEFAULT_LOCALE, isLocale, type Locale } from '@/lib/i18n'
 import { OWNER_COOKIE, OWNER_TTL_MS, issueOwnerToken, readOwnerToken } from '@/lib/owner-session'
+import { docCodeOf } from '@/lib/documents'
+import { writeClientAnswers } from '@/lib/actions/client-answers'
 import {
   OWNER_FIELDS,
   changedLabels,
   diffValues,
   toFormValues,
   touchesScore,
+  type ConfigRow,
   type FinanceRow,
   type LandRow,
   type RequestRow,
+  type SocialRow,
 } from '@/lib/owner-edit'
 
 export type OpenState = { error?: 'notFound' | 'rateLimited' | 'noInput' }
@@ -100,7 +104,8 @@ const REQUEST_COLUMNS =
   'id, ref_code, full_name, phone, email, gov_code, delegation_id, imada_id, land_location, ' +
   'request_type, desired_area_m2, bedrooms, horizon, standing, urgency, urgency_note, ' +
   'flexibility, problem_note, foprolos_interest, is_first_home, has_social_housing, ' +
-  'cnss_affiliated, cnss_number_years, lang, status, owner_updated_at'
+  'cnss_affiliated, cnss_number_years, problem_type, financing_state, ' +
+  'lang, status, owner_updated_at'
 
 export type OwnRequest = {
   id: string
@@ -119,7 +124,8 @@ export async function loadOwnRequest(): Promise<OwnRequest | null> {
   const { data: r } = await db.from('housing_requests').select(REQUEST_COLUMNS).eq('id', id).maybeSingle()
   if (!r) return null
 
-  const [{ data: fin }, { data: land }] = await Promise.all([
+  const [{ data: fin }, { data: land }, { data: cfg }, { data: social }, { data: docs }] =
+    await Promise.all([
     db
       .from('financial_profiles')
       .select(
@@ -133,6 +139,21 @@ export async function loadOwnRequest(): Promise<OwnRequest | null> {
       .select('area_m2, title_status, has_water, has_power, has_road, has_permit')
       .eq('request_id', id)
       .maybeSingle(),
+    db
+      .from('project_configs')
+      .select('levels, bathrooms, living_rooms, kitchens, garage, terrasse, jardin')
+      .eq('request_id', id)
+      .maybeSingle(),
+    db
+      .from('social_assessments')
+      .select('household_size, dependents, has_disability, housing_condition, income_stability')
+      .eq('request_id', id)
+      .maybeSingle(),
+    db
+      .from('request_documents')
+      .select('doc_type')
+      .eq('request_id', id)
+      .eq('declared', true),
   ])
 
   const row = r as unknown as RequestRow & {
@@ -146,7 +167,16 @@ export async function loadOwnRequest(): Promise<OwnRequest | null> {
     id: row.id,
     refCode: row.ref_code,
     lang: isLocale(row.lang) ? row.lang : DEFAULT_LOCALE,
-    values: toFormValues(row, (fin as FinanceRow | null) ?? null, (land as LandRow | null) ?? null),
+    values: toFormValues(
+      row,
+      (fin as FinanceRow | null) ?? null,
+      (land as LandRow | null) ?? null,
+      (cfg as ConfigRow | null) ?? null,
+      (social as SocialRow | null) ?? null,
+      ((docs ?? []) as { doc_type: string }[])
+        .map((x) => docCodeOf(x.doc_type))
+        .filter((c): c is string => Boolean(c))
+    ),
     ownerUpdatedAt: row.owner_updated_at,
   }
 }
@@ -171,9 +201,18 @@ export async function updateOwnRequest(_prev: unknown, formData: FormData): Prom
 
   if (hits(edits, current.id, 60 * 60 * 1000, 5)) return { ok: false, error: 'rateLimited' }
 
+  /**
+   * الحقول متعدّدة القيم تُقرأ بـgetAll لا بـfromEntries.
+   *
+   * fromEntries تحتفظ بآخر قيمة لكلّ مفتاح: خانتان مؤشّرتان باسم واحد
+   * تعطيان واحدة. «مستعدّ يتنازل على» كان يخسر كلّ اختيار إلّا الأخير
+   * منذ أن شُحن، بلا خطأ ولا أثر — الحقل يُملأ والقاعدة تستقبل واحداً.
+   */
   const raw = Object.fromEntries(formData.entries())
   const parsed = requestSchema.safeParse({
     ...raw,
+    flexibility: formData.getAll('flexibility'),
+    documents: formData.getAll('documents'),
     govCode: current.values.govCode,
     hasWater: raw.hasWater === 'on',
     hasPower: raw.hasPower === 'on',
@@ -221,6 +260,8 @@ export async function updateOwnRequest(_prev: unknown, formData: FormData): Prom
       has_social_housing: d.hasSocialHousing,
       cnss_affiliated: d.cnssAffiliated,
       cnss_number_years: d.cnssYears,
+      problem_type: d.problemType,
+      financing_state: d.financingState ?? 'not_started',
       owns_land: d.requestType === 'build_on_land',
       owner_updated_at: now,
       updated_at: now,
@@ -268,6 +309,9 @@ export async function updateOwnRequest(_prev: unknown, formData: FormData): Prom
   } else if (d.requestType !== 'build_on_land') {
     await db.from('request_land').delete().eq('request_id', current.id)
   }
+
+  // نفس ما يكتبه الإنشاء: المواصفات والوضع العائلي والوثائق المصرَّح بها
+  await writeClientAnswers(current.id, d)
 
   // ---- التنقيط
   let scoreBefore: { total: number; band: string } | null = null

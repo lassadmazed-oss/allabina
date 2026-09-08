@@ -34,6 +34,8 @@ const request: RequestRow = {
   has_social_housing: false,
   cnss_affiliated: true,
   cnss_number_years: 8,
+  problem_type: 'financing',
+  financing_state: 'not_started',
 }
 
 const finance: FinanceRow = {
@@ -139,6 +141,19 @@ describe('diffValues', () => {
     expect(diffValues(before, { ...before, hasWater: false }, OWNER_FIELDS)).toHaveProperty(
       'hasWater'
     )
+  })
+
+  it('الخانة الاختيارية الفارغة ليست تبديلاً حين يرجعها المخطّط صفراً', () => {
+    // maxMonthly في القاعدة null، والاستمارة تتركها فارغة، والمخطّط
+    // يعطي 0. بلا هذا يمتلئ سجلّ التدقيق بتبديل لم يقع.
+    expect(before.maxMonthly).toBe('')
+    const d = diffValues(before, { ...before, maxMonthly: 0 }, OWNER_FIELDS)
+    expect(d).not.toHaveProperty('maxMonthly')
+  })
+
+  it('لكنّ صفراً يصير رقماً حقيقياً يبقى تبديلاً', () => {
+    const d = diffValues(before, { ...before, maxMonthly: 900 }, OWNER_FIELDS)
+    expect(d).toHaveProperty('maxMonthly')
   })
 
   it('لا يخرج عن قائمة الحقول المسموحة', () => {

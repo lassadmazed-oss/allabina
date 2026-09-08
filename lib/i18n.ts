@@ -119,6 +119,7 @@ const ar = {
             'نوع المطلب',
             'المكان والمساحة',
             'الأرض',
+            'عائلتك ووضعك',
             'القدرة المالية',
             'الاتصال'
         ],
@@ -127,6 +128,77 @@ const ar = {
         submit: 'أرسل مطلبي',
         submitting: 'جاري الإرسال…',
         saveEdit: 'سجّل التعديل',
+
+        // مواصفات البناء — كان يعمّرها المستشار في اللوحة
+        specsTitle: 'مواصفات الدار',
+        specsLede: 'هذي المواصفات هي اللي نحسبو بيها العرض التقديري. عمّرها كيما تحبّها، وتنجّم تبدّلها من بعد.',
+        levels: 'كم طابق؟',
+        levelLabels: {
+            1: 'أرضي فقط (RDC)',
+            2: 'أرضي + طابق (R+1)',
+            3: 'أرضي + طابقين (R+2)',
+            4: 'أرضي + 3 طوابق (R+3)'
+        },
+        bathrooms: 'عدد الحمّامات',
+        livingRooms: 'عدد الصالونات',
+        kitchens: 'عدد المطابخ',
+        extrasTitle: 'زيادات',
+        garage: 'جراج',
+        terrasse: 'تراس',
+        jardin: 'حديقة',
+
+        // العائلة والوضع الحالي — كان المستشار يسألها في المكالمة
+        s6Title: 'عائلتك ووضعك الحالي',
+        s6Lede: 'هذي المعطيات تخدم في ترتيب الأولوية وفي فهم حاجتك الحقيقية. كلّها اختيارية، وكلّ ما عمّرت أكثر كلّ ما فهمنا ملفّك أحسن.',
+        householdSize: 'قدّاش فرد في دارك؟',
+        dependents: 'منهم قدّاش معال (صغار، مسنّين، بلا دخل)؟',
+        hasDisability: 'فمّا في العائلة شخص في وضعية إعاقة أو مرض مزمن',
+        housingCondition: 'وين تسكن توّة؟',
+        housingLabels: {
+            unsafe: 'مسكن غير آمن أو مهدّد',
+            overcrowded: 'مسكن ضيّق ومكتظّ',
+            rented_unstable: 'بالكراء وغير مستقرّ',
+            with_family: 'مع العائلة أو الأقارب',
+            homeless: 'بلا مسكن',
+            other: 'وضعية أخرى'
+        },
+        incomeStability: 'كيفاش دخلك؟',
+        incomeLabels: {
+            none: 'ما فمّاش دخل',
+            irregular: 'دخل غير قارّ',
+            low_stable: 'دخل قارّ لكن ضعيف',
+            other: 'وضعية أخرى'
+        },
+        problemType: 'شنوّة أكبر عائق قدّامك؟',
+        problemLabels: {
+            financing: 'التمويل',
+            land: 'الأرض أو العقار',
+            documents: 'الأوراق والوثائق',
+            budget_gap: 'الميزانية أقلّ من المطلوب',
+            no_offer: 'ما لقيتش عرض يناسبني في المنطقة',
+            other: 'حاجة أخرى'
+        },
+        financingState: 'وين وصلت مع البنك؟',
+        financingLabels: {
+            not_started: 'ما بديتش',
+            studying: 'نقلّب ونقارن',
+            bank_submitted: 'ملفّي عند البنك',
+            approved: 'تحصّلت على موافقة',
+            refused: 'تردّ عليّ',
+            self_funded: 'باش نموّل بروحي'
+        },
+
+        // الوثائق — تصريح لا تثبّت
+        docsTitle: 'وين وصلت في الأوراق؟',
+        docsLede: 'أشّر على اللي عندك جاهز. ما نطلبوش منّك ترفعها توّة — هذا باش نعرفو شنوّة ينقصك قبل ما نتّصلو بيك.',
+        docsNote: 'التأشير تصريح منّك. الفريق يتثبّت وقت الدراسة.',
+        docLabels: {
+            'id-card': 'بطاقة تعريف',
+            'work-certificate': 'شهادة في العمل',
+            'bank-statement': 'كشف حساب بنكي',
+            'land-title': 'رسم عقاري / عقد ملكية',
+            'building-permit': 'رخصة بناء'
+        },
         editConsentNote:
             'موافقتك على معالجة معطياتك مسجّلة من أوّل مرّة وما تتبدّلش بهالتعديل. تنجّم في أيّ وقت تطلب الاطّلاع على معطياتك ولا حذفها.',
         genericError: 'فمّا معطيات ناقصة ولا غير صحيحة.',
@@ -200,6 +272,7 @@ const ar = {
         phoneHint: 'مثال: 20123456 أو +33…',
         email: 'البريد الإلكتروني',
         consent: 'نوافق على أنّ اللَّبنة تجمع معطياتي وتستعملها لدراسة مطلبي، وتنجّم تمرّرها لشركة بناء أو باعث عقاري أو بنك في إطار هذا المطلب. نجّم نطلب الاطّلاع عليها أو حذفها في أيّ وقت.',
+        consentShort: 'الموافقة على معالجة المعطيات',
         errors: {
             banner: 'فمّا حقول ناقصة ولا غير صحيحة. رجّعناك للخطوة اللي فيها المشكل.',
             rateLimited: 'عدد المحاولات كثير. عاود بعد شويّة.',
@@ -970,6 +1043,7 @@ const fr: Dictionary = {
             'Type de demande',
             'Lieu et surface',
             'Terrain',
+            'Votre foyer',
             'Capacité financière',
             'Contact'
         ],
@@ -978,6 +1052,74 @@ const fr: Dictionary = {
         submit: 'Envoyer ma demande',
         submitting: 'Envoi…',
         saveEdit: 'Enregistrer la modification',
+
+        specsTitle: 'Caractéristiques de la maison',
+        specsLede: "Ces caractéristiques servent au calcul de l'estimation. Vous pourrez les modifier ensuite.",
+        levels: 'Combien de niveaux ?',
+        levelLabels: {
+            1: 'Rez-de-chaussée (RDC)',
+            2: 'RDC + 1 étage (R+1)',
+            3: 'RDC + 2 étages (R+2)',
+            4: 'RDC + 3 étages (R+3)'
+        },
+        bathrooms: 'Nombre de salles de bain',
+        livingRooms: 'Nombre de salons',
+        kitchens: 'Nombre de cuisines',
+        extrasTitle: 'Extras',
+        garage: 'Garage',
+        terrasse: 'Terrasse',
+        jardin: 'Jardin',
+
+        s6Title: 'Votre foyer et votre situation',
+        s6Lede: "Ces informations servent à classer les priorités et à comprendre votre besoin réel. Tout est facultatif : plus vous en donnez, mieux nous lisons votre dossier.",
+        householdSize: 'Combien de personnes vivent chez vous ?',
+        dependents: 'Combien sont à charge (enfants, aînés, sans revenu) ?',
+        hasDisability: 'Une personne du foyer est en situation de handicap ou de maladie chronique',
+        housingCondition: 'Où habitez-vous actuellement ?',
+        housingLabels: {
+            unsafe: 'Logement non sûr ou menacé',
+            overcrowded: 'Logement exigu et surpeuplé',
+            rented_unstable: 'En location instable',
+            with_family: 'Chez la famille ou des proches',
+            homeless: 'Sans logement',
+            other: 'Autre situation'
+        },
+        incomeStability: 'Quelle est votre situation de revenu ?',
+        incomeLabels: {
+            none: 'Aucun revenu',
+            irregular: 'Revenu irrégulier',
+            low_stable: 'Revenu stable mais faible',
+            other: 'Autre situation'
+        },
+        problemType: 'Quel est votre principal obstacle ?',
+        problemLabels: {
+            financing: 'Le financement',
+            land: 'Le terrain ou le bien',
+            documents: 'Les documents',
+            budget_gap: 'Budget inférieur au besoin',
+            no_offer: 'Aucune offre adaptée dans la zone',
+            other: 'Autre'
+        },
+        financingState: 'Où en êtes-vous avec la banque ?',
+        financingLabels: {
+            not_started: "Je n'ai pas commencé",
+            studying: 'Je compare les offres',
+            bank_submitted: 'Dossier déposé à la banque',
+            approved: 'Accord obtenu',
+            refused: 'Refus bancaire',
+            self_funded: 'Financement propre'
+        },
+
+        docsTitle: 'Où en sont vos documents ?',
+        docsLede: "Cochez ce que vous avez déjà. Inutile de les téléverser maintenant : c'est pour savoir ce qui manque avant de vous appeler.",
+        docsNote: "Cocher est une déclaration. L'équipe vérifie lors de l'étude.",
+        docLabels: {
+            'id-card': "Carte d'identité",
+            'work-certificate': 'Certificat de travail',
+            'bank-statement': 'Relevé bancaire',
+            'land-title': 'Titre foncier / acte',
+            'building-permit': 'Permis de bâtir'
+        },
         editConsentNote:
             "Votre consentement au traitement des donnees est enregistre depuis la premiere demande et n'est pas modifie ici. Vous pouvez a tout moment demander l'acces a vos donnees ou leur suppression.",
         genericError: 'Des informations sont manquantes ou invalides.',
@@ -1051,6 +1193,7 @@ const fr: Dictionary = {
         phoneHint: 'Ex. : 20123456 ou +33…',
         email: 'E-mail',
         consent: "J'accepte qu'AL-LUBNA collecte mes données et les utilise pour étudier ma demande, et puisse les transmettre à une entreprise de construction, un promoteur ou une banque dans ce cadre. Je peux demander leur accès ou leur suppression à tout moment.",
+        consentShort: "Consentement au traitement des données",
         errors: {
             banner: "Des champs sont manquants ou invalides. Nous vous avons ramené à l'étape concernée.",
             rateLimited: 'Trop de tentatives. Réessayez dans quelques instants.',

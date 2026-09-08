@@ -27,6 +27,8 @@ export type RequestRow = {
   has_social_housing: boolean | null
   cnss_affiliated: boolean | null
   cnss_number_years: number | null
+  problem_type: string | null
+  financing_state: string | null
 }
 
 export type FinanceRow = {
@@ -40,6 +42,24 @@ export type FinanceRow = {
   seniority_months: number | null
   is_expat: boolean | null
   expat_country: string | null
+}
+
+export type ConfigRow = {
+  levels: number | null
+  bathrooms: number | null
+  living_rooms: number | null
+  kitchens: number | null
+  garage: boolean | null
+  terrasse: boolean | null
+  jardin: boolean | null
+}
+
+export type SocialRow = {
+  household_size: number | null
+  dependents: number | null
+  has_disability: boolean | null
+  housing_condition: string | null
+  income_stability: string | null
 }
 
 export type LandRow = {
@@ -71,7 +91,10 @@ export function monthsToYears(months: number | null | undefined): string {
 export function toFormValues(
   r: RequestRow,
   f: FinanceRow | null,
-  land: LandRow | null
+  land: LandRow | null,
+  cfg: ConfigRow | null = null,
+  social: SocialRow | null = null,
+  declaredDocs: readonly string[] = []
 ): FormValues {
   return {
     requestType: r.request_type,
@@ -93,6 +116,25 @@ export function toFormValues(
     hasSocialHousing: b(r.has_social_housing),
     cnssAffiliated: b(r.cnss_affiliated),
     cnssYears: s(r.cnss_number_years),
+
+    levels: s(cfg?.levels ?? null),
+    bathrooms: s(cfg?.bathrooms ?? null),
+    livingRooms: s(cfg?.living_rooms ?? null),
+    kitchens: s(cfg?.kitchens ?? null),
+    garage: b(cfg?.garage),
+    terrasse: b(cfg?.terrasse),
+    jardin: b(cfg?.jardin),
+
+    householdSize: s(social?.household_size ?? null),
+    dependents: s(social?.dependents ?? null),
+    hasDisability: b(social?.has_disability),
+    housingCondition: social?.housing_condition ?? '',
+    incomeStability: social?.income_stability ?? '',
+    problemType: r.problem_type ?? '',
+    financingState: r.financing_state ?? '',
+
+    // نفس شكل المرونة: نصّ بفواصل تفهمه الاستمارة
+    documents: [...declaredDocs].sort().join(','),
 
     landAreaM2: s(land?.area_m2 ?? null),
     titleStatus: land?.title_status ?? '',
@@ -124,6 +166,22 @@ export function toFormValues(
 
 export type Change = { from: unknown; to: unknown }
 
+/**
+ * حقول رقمية اختيارية يحوّل فيها المخطّط الفراغ إلى صفر.
+ *
+ * الخانة تُترك فارغة، والقاعدة تسجّل null، ويرجع المخطّط 0 — فيقرأ
+ * المقارِن «تبدّل من فراغ إلى صفر» في كلّ حفظ. سجلّ تدقيق يمتلئ بتبديل
+ * لم يقع يفقد قيمته، ويجرّ معه إعادة حساب تنقيط بلا سبب.
+ */
+const EMPTY_IS_ZERO = new Set([
+  'spouseIncome',
+  'otherIncome',
+  'existingLoans',
+  'downPayment',
+  'maxMonthly',
+  'seniorityYears',
+])
+
 /** ما تبدّل فعلاً بين قيمتين، بمفاتيح الاستمارة كما يقرأها الإنسان. */
 export function diffValues(
   before: Record<string, unknown>,
@@ -132,8 +190,9 @@ export function diffValues(
 ): Record<string, Change> {
   const out: Record<string, Change> = {}
   for (const k of fields) {
-    const a = normalize(before[k])
-    const z = normalize(after[k])
+    const zeroish = EMPTY_IS_ZERO.has(k)
+    const a = normalize(before[k], zeroish)
+    const z = normalize(after[k], zeroish)
     if (a !== z) out[k] = { from: before[k] ?? null, to: after[k] ?? null }
   }
   return out
@@ -143,11 +202,13 @@ export function diffValues(
  * «1500» و1500 نفس الشيء، و''‏ وnull وundefined كلّها «ما عطاش قيمة».
  * بلا هذا يظهر كلّ حقل كأنّه تبدّل لمجرّد أنّه عاد من الاستمارة نصّاً.
  */
-function normalize(v: unknown): string {
-  if (v === null || v === undefined) return ''
-  if (Array.isArray(v)) return v.join(',')
+function normalize(v: unknown, emptyIsZero = false): string {
+  if (v === null || v === undefined) return emptyIsZero ? '0' : ''
+  // القوائم مجموعات لا تسلسلات: ترتيب التأشير ليس معطى يتبدّل
+  if (Array.isArray(v)) return [...v].map(String).sort().join(',')
   if (typeof v === 'boolean') return v ? '1' : ''
   const str = String(v).trim()
+  if (emptyIsZero && (str === '' || str === '0')) return '0'
   return str
 }
 
@@ -170,6 +231,21 @@ export const OWNER_FIELDS = [
   'hasSocialHousing',
   'cnssAffiliated',
   'cnssYears',
+  'levels',
+  'bathrooms',
+  'livingRooms',
+  'kitchens',
+  'garage',
+  'terrasse',
+  'jardin',
+  'householdSize',
+  'dependents',
+  'hasDisability',
+  'housingCondition',
+  'incomeStability',
+  'problemType',
+  'financingState',
+  'documents',
   'landAreaM2',
   'titleStatus',
   'hasWater',
@@ -243,6 +319,21 @@ export const FIELD_LABELS_AR: Record<string, string> = {
   hasSocialHousing: 'استفاد من سكن اجتماعي',
   cnssAffiliated: 'منخرط في الضمان',
   cnssYears: 'سنوات الضمان',
+  levels: 'عدد الطوابق',
+  bathrooms: 'عدد الحمّامات',
+  livingRooms: 'عدد الصالونات',
+  kitchens: 'عدد المطابخ',
+  garage: 'جراج',
+  terrasse: 'تراس',
+  jardin: 'حديقة',
+  householdSize: 'عدد أفراد العائلة',
+  dependents: 'عدد المُعالين',
+  hasDisability: 'إعاقة أو مرض مزمن',
+  housingCondition: 'وضعية السكن الحالية',
+  incomeStability: 'استقرار الدخل',
+  problemType: 'أكبر عائق',
+  financingState: 'وضع التمويل',
+  documents: 'الوثائق المصرَّح بها',
   landAreaM2: 'مساحة الأرض',
   titleStatus: 'وضعية الرسم',
   hasWater: 'الماء',

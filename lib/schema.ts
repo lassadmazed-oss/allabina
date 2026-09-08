@@ -1,4 +1,6 @@
 import { z } from 'zod'
+import { CLIENT_DOC_CODES } from '@/lib/documents'
+import { HOUSING_CONDITIONS, INCOME_STABILITY } from '@/lib/support-schema'
 
 export const REQUEST_TYPES = [
   'build_on_land',
@@ -27,6 +29,34 @@ export const EMPLOYMENT_TYPES = [
 ] as const
 
 export const HORIZONS = ['now', '6m', '12m', '24m'] as const
+
+/**
+ * أكبر عائق كما يراه صاحب المطلب.
+ *
+ * نفس قيم problem_kind في القاعدة. كان المستشار يصنّفه بعد مكالمة —
+ * وصاحب المطلب يعرفه قبلها: هو الذي يعيشه.
+ */
+export const PROBLEM_KINDS = [
+  'financing',
+  'land',
+  'documents',
+  'budget_gap',
+  'no_offer',
+  'other',
+] as const
+
+/** وين وصل مع البنك — نفس قيم financing_state */
+export const FINANCING_STATES = [
+  'not_started',
+  'studying',
+  'bank_submitted',
+  'approved',
+  'refused',
+  'self_funded',
+] as const
+
+/** المستويات: RDC · R+1 · R+2 · R+3 — نفس حدّ project_configs.levels */
+export const LEVELS = [1, 2, 3, 4] as const
 export const TITLE_STATUSES = ['titled', 'in_progress', 'undivided', 'other'] as const
 /**
  * رمز مستوى التشطيب. لا قائمة مغلقة هنا: المستويات سطور في
@@ -95,6 +125,15 @@ export const requestSchema = z.object({
   flexibility: multiEnum(FLEXIBILITIES),
   problemNote: z.string().max(1000).optional().transform((v) => v ?? ''),
 
+  // 2-bis — مواصفات البناء: مدخل العرض التقديري، وكان يعمّرها المستشار
+  levels: nullableNum(1, 4),
+  bathrooms: nullableNum(1, 6),
+  livingRooms: nullableNum(1, 4),
+  kitchens: nullableNum(1, 3),
+  garage: optionalFlag,
+  terrasse: optionalFlag,
+  jardin: optionalFlag,
+
   // 3 — الأرض (مسار البناء)
   landAreaM2: nullableNum(50, 5000),
   titleStatus: nullableEnum(TITLE_STATUSES),
@@ -122,6 +161,19 @@ export const requestSchema = z.object({
   hasSocialHousing: optionalFlag,
   cnssAffiliated: optionalFlag,
   cnssYears: nullableNum(0, 60),
+
+  // 4-ter — العائلة والوضع الحالي: كان المستشار يسألها في المكالمة
+  // ويكتبها في «المسار الاجتماعي». صاحبها يعرفها أحسن منه.
+  householdSize: nullableNum(1, 30),
+  dependents: nullableNum(0, 25),
+  hasDisability: optionalFlag,
+  housingCondition: nullableEnum(HOUSING_CONDITIONS),
+  incomeStability: nullableEnum(INCOME_STABILITY),
+  problemType: nullableEnum(PROBLEM_KINDS),
+  financingState: nullableEnum(FINANCING_STATES),
+
+  /** الوثائق التي يقول صاحب المطلب إنّها عنده — تصريح لا تثبّت */
+  documents: multiEnum(CLIENT_DOC_CODES as unknown as readonly [string, ...string[]]),
 
   // 5 — الاتصال والموافقة
   fullName: z.string().trim().min(3, 'الاسم الكامل مطلوب').max(120),
