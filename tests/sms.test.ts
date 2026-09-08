@@ -3,8 +3,11 @@ import {
   ONE_SEGMENT_AR,
   ONE_SEGMENT_PLAIN,
   isPlain,
+  NOTIFIABLE_STATUSES,
+  isNotifiableStatus,
   normalizeTnPhone,
   parseWinSmsReply,
+  statusUpdateText,
   propertyConfirmationText,
   requestConfirmationText,
   segmentCount,
@@ -91,5 +94,25 @@ describe('قراءة ردّ WinSMS', () => {
   it('ردّ غير JSON = فشل صريح لا «أُرسل» بالتخمين', () => {
     const r = parseWinSmsReply('<html>Bad Gateway</html>')
     expect(r.ok).toBe(false)
+  })
+})
+
+describe('إشعار تغيّر الحالة', () => {
+  it('كلّ حالة مستحقّة تدخل في جزء واحد بالعربية، وPLAIN بالفرنسية', () => {
+    for (const st of NOTIFIABLE_STATUSES) {
+      const ar = statusUpdateText('LB-2026-000089', st, 'ar')!
+      expect(segmentCount(ar)).toBe(1)
+      expect(ar).toContain('LB-2026-000089')
+      const fr = statusUpdateText('LB-2026-000089', st, 'fr')!
+      expect(isPlain(fr)).toBe(true)
+      expect(segmentCount(fr)).toBe(1)
+    }
+  })
+
+  it('«مرفوض» و«جديد» و«تمّ الاتصال» لا تُرسل آلياً', () => {
+    for (const st of ['rejected', 'new', 'contacted', 'nonsense']) {
+      expect(isNotifiableStatus(st)).toBe(false)
+      expect(statusUpdateText('LB-1', st, 'ar')).toBeNull()
+    }
   })
 })

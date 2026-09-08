@@ -97,6 +97,7 @@ export async function submitProperty(
       owner_note: d.ownerNote || null,
       consent_at: new Date().toISOString(),
       status: 'pending',
+      lang: isLocale(String(formData.get('locale') ?? '')) ? String(formData.get('locale')) : DEFAULT_LOCALE,
     })
     .select('id, ref_code')
     .single()

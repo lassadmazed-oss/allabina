@@ -6,6 +6,7 @@ import {
   propertyConfirmationText,
   requestConfirmationText,
   segmentCount,
+  statusUpdateText,
   type SmsTemplate,
 } from '@/lib/sms'
 import type { Locale } from '@/lib/i18n'
@@ -118,6 +119,26 @@ export async function sendRequestConfirmation(requestId: string, refCode: string
 export async function sendPropertyConfirmation(propertyId: string, refCode: string, phone: string, locale: Locale) {
   try {
     await sendAndLog({ propertyId }, 'property_confirmation', phone, propertyConfirmationText(refCode, locale))
+  } catch (e) {
+    console.warn('sms unexpected:', e instanceof Error ? e.message : e)
+  }
+}
+
+/** إعادة إرسال رمز المطلب — قرار إداري من صفحة المطلب، قالب مستقلّ فلا يصطدم بفهرس «مرّة واحدة» */
+export async function resendRequestConfirmation(requestId: string, refCode: string, phone: string, locale: Locale) {
+  try {
+    await sendAndLog({ requestId }, 'request_confirmation_resend', phone, requestConfirmationText(refCode, locale))
+  } catch (e) {
+    console.warn('sms unexpected:', e instanceof Error ? e.message : e)
+  }
+}
+
+/** إشعار بتغيّر الحالة — لا يُرسل إلّا للحالات المستحقّة (lib/sms.ts) */
+export async function sendStatusUpdate(requestId: string, refCode: string, phone: string, locale: Locale, status: string) {
+  const text = statusUpdateText(refCode, status, locale)
+  if (!text) return
+  try {
+    await sendAndLog({ requestId }, `status_${status}`, phone, text)
   } catch (e) {
     console.warn('sms unexpected:', e instanceof Error ? e.message : e)
   }

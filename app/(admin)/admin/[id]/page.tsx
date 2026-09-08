@@ -28,6 +28,7 @@ import {
   addInteractionAction,
   resolveInteractionAction,
   toggleDocumentAction,
+  resendConfirmationAction,
 } from '@/lib/actions/admin'
 
 export const dynamic = 'force-dynamic'
@@ -367,7 +368,7 @@ export default async function RequestDetail({ params }: { params: Promise<{ id: 
           <Row
             k="رسالة التأكيد (SMS)"
             v={(() => {
-              const sms = (smsRows ?? []).find((x) => x.template === 'request_confirmation')
+              const sms = (smsRows ?? []).find((x) => x.template.startsWith('request_confirmation'))
               if (!sms) return 'لم تُرسل — المطلب سُجّل قبل تفعيل الرسائل أو من البذرة'
               if (sms.status === 'sent') return `وصلت إلى ${sms.to_number} · ${new Date(sms.sent_at ?? sms.created_at).toLocaleString('fr-TN')}`
               if (sms.status === 'failed') return `فشلت — ${sms.error ?? 'بلا تفصيل'}`
@@ -497,9 +498,23 @@ export default async function RequestDetail({ params }: { params: Promise<{ id: 
                 placeholder="مثال: تمّ الاتصال، موعد يوم الخميس"
               />
             </label>
+            <label className="flex items-center gap-2 pb-2 text-xs text-muted">
+              <input type="checkbox" name="notify_sms" defaultChecked className="size-4 accent-[#1d3a5f]" />
+              أعلم الحريف برسالة قصيرة
+              <span className="text-faint">(مؤهّل · عرض · موعد · عقد · موقوف — لا «مرفوض»)</span>
+            </label>
             <button className="rounded bg-brand px-5 py-2 text-sm font-medium text-white hover:bg-brand-deep">
               حفظ
             </button>
+          </form>
+        )}
+        {canEdit && (
+          <form action={resendConfirmationAction} className="mt-3">
+            <input type="hidden" name="id" value={r.id} />
+            <button className="rounded border border-line px-3 py-1.5 text-xs text-muted hover:border-brand hover:text-brand">
+              أعد إرسال رسالة الرمز المرجعي
+            </button>
+            <span className="ms-2 text-xs text-faint">للحريف اللي يقول ما وصلتوش — تكلّف رسالة</span>
           </form>
         )}
       </div>

@@ -1,3 +1,4 @@
+import { checkSmsBalance } from '@/lib/sms/winsms'
 import Link from 'next/link'
 import { requireStaff } from '@/lib/auth'
 import { can } from '@/lib/permissions'
@@ -49,6 +50,7 @@ export default async function AdminPage({
   const { data: requestsRaw } = await query
   const requests = (requestsRaw ?? []) as Row[]
 
+  const smsBalancePromise = checkSmsBalance()
   const [{ data: delegs }, { data: openItems }, { data: dueActions }] = await Promise.all([
     db.from('delegations').select('id, name_ar').eq('gov_code', 'SFX'),
     db.from('request_interactions').select('id, request_id, kind, body').eq('resolved', false),
@@ -132,6 +134,8 @@ export default async function AdminPage({
         />
         <Kpi label="استفسارات مفتوحة" value={String((openItems ?? []).length)} />
       </div>
+
+      <SmsBalance promise={smsBalancePromise} />
 
       {topGovs.length > 0 && (
         <div className="mt-4 rounded border border-line bg-surface p-5">
@@ -341,5 +345,33 @@ function Filter({ active, href, label }: { active: boolean; href: string; label:
     >
       {label}
     </Link>
+  )
+}
+
+
+/** رصيد WinSMS — تنبيه تحت الحدّ المضبوط في الإعدادات */
+async function SmsBalance({ promise }: { promise: Promise<{ balance: number; licence: string } | null> }) {
+  const bal = await promise
+  if (!bal) {
+    return (
+      <p className="mt-4 rounded border border-line bg-surface px-4 py-3 text-xs text-faint">
+        رصيد الرسائل القصيرة: غير متاح الآن (المفتاح غير معرّف أو المزوّد لا يردّ).
+      </p>
+    )
+  }
+  const low = bal.balance < 100
+  return (
+    <div
+      className={`mt-4 flex flex-wrap items-baseline justify-between gap-3 rounded border px-4 py-3 text-sm ${
+        low ? 'border-gold/50 bg-gold-soft' : 'border-line bg-surface'
+      }`}
+    >
+      <span>
+        رسائل SMS (WinSMS · المُرسِل MAZED):{' '}
+        <b className={`num ${low ? 'text-gold' : ''}`}>{bal.balance}</b> رسالة باقية
+        {low && <span className="ms-2 text-gold">— الرصيد منخفض، أعد الشحن قبل ما تتوقّف رسائل التأكيد</span>}
+      </span>
+      <span className="num text-xs text-faint">الرخصة حتى {bal.licence}</span>
+    </div>
   )
 }

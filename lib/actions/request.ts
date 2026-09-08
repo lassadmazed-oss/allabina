@@ -141,6 +141,7 @@ export async function submitRequest(
       status: d.govCode === pilotGov ? 'new' : 'on_hold',
       consent_at: new Date().toISOString(),
       source: 'web',
+      lang: isLocale(String(formData.get('locale') ?? '')) ? String(formData.get('locale')) : DEFAULT_LOCALE,
     })
     .select('id, ref_code')
     .single()

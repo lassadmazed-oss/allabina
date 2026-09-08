@@ -3,6 +3,10 @@
 import { revalidatePath } from 'next/cache'
 import { staffWithPermission } from '@/lib/auth'
 import { db } from '@/lib/supabase/server'
+import { after } from 'next/server'
+import { resendRequestConfirmation, sendStatusUpdate } from '@/lib/sms/winsms'
+import { isNotifiableStatus } from '@/lib/sms'
+import type { Locale } from '@/lib/i18n'
 
 export async function updateStatusAction(formData: FormData) {
   const actor = await staffWithPermission('requests.update')
@@ -11,9 +15,11 @@ export async function updateStatusAction(formData: FormData) {
   const status = String(formData.get('status'))
   const note = String(formData.get('note') ?? '')
 
+  const notify = formData.get('notify_sms') === 'on'
+
   const { data: before } = await db
     .from('housing_requests')
-    .select('status')
+    .select('status, ref_code, phone, lang')
     .eq('id', id)
     .single()
 
@@ -32,7 +38,34 @@ export async function updateStatusAction(formData: FormData) {
     note: note || null,
   })
 
+  // رسالة للحريف: بطلب صريح من المستشار، وفقط إذا تغيّرت الحالة فعلاً
+  // إلى حالة تستحقّ خبراً. «مرفوض» لا يُرسل آلياً أبداً.
+  if (notify && before && before.status !== status && isNotifiableStatus(status)) {
+    const lang = (before.lang === 'fr' ? 'fr' : 'ar') as Locale
+    after(() => sendStatusUpdate(id, String(before.ref_code), String(before.phone), lang, status))
+  }
+
   revalidatePath('/admin')
+  revalidatePath(`/admin/${id}`)
+}
+
+/** إعادة إرسال رمز المطلب لحريف قال إنّه ما وصلوش */
+export async function resendConfirmationAction(formData: FormData) {
+  const actor = await staffWithPermission('requests.update')
+  if (!actor) return
+  const id = String(formData.get('id'))
+
+  const { data: r } = await db.from('housing_requests').select('ref_code, phone, lang').eq('id', id).single()
+  if (!r) return
+
+  await db.from('request_events').insert({
+    request_id: id,
+    event_type: 'note',
+    actor: actor.userId,
+    note: 'إعادة إرسال رسالة التأكيد',
+  })
+
+  await resendRequestConfirmation(id, String(r.ref_code), String(r.phone), (r.lang === 'fr' ? 'fr' : 'ar') as Locale)
   revalidatePath(`/admin/${id}`)
 }
 

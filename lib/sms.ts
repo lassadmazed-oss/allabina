@@ -64,7 +64,47 @@ export function propertyConfirmationText(refCode: string, locale: Locale): strin
   return `اللبنة: عرض عقارك ${refCode} تسجّل. الفريق يتّصل بيك بعد المراجعة.`
 }
 
-export type SmsTemplate = 'request_confirmation' | 'property_confirmation'
+export type SmsTemplate =
+  | 'request_confirmation'
+  | 'request_confirmation_resend'
+  | 'property_confirmation'
+  | `status_${string}`
+
+/**
+ * الحالات التي تستحقّ رسالة. «جديد» و«تمّ الاتصال» لا: الحريف يعرفهما.
+ * «مرفوض» لا تُرسل آلياً أبداً — خبر كهذا يُقال في مكالمة لا في 70 محرفاً.
+ */
+export const NOTIFIABLE_STATUSES = ['qualified', 'matched', 'appointment', 'contract', 'on_hold'] as const
+
+const STATUS_SMS_AR: Record<string, string> = {
+  qualified: 'ملفّك مؤهّل وبدينا نلقاو لك حلّ',
+  matched: 'فمّا عرض يناسبك، الفريق يتّصل بيك',
+  appointment: 'موعدك تحدّد، الفريق يأكّدو معاك',
+  contract: 'ملفّك وصل مرحلة العقد',
+  on_hold: 'ملفّك موقوف مؤقّتاً، نرجعولك',
+}
+const STATUS_SMS_FR: Record<string, string> = {
+  qualified: 'dossier qualifie, recherche en cours',
+  matched: 'une offre vous correspond, on vous appelle',
+  appointment: 'rendez-vous fixe, on vous confirme',
+  contract: 'votre dossier est au stade du contrat',
+  on_hold: 'dossier en attente, on revient vers vous',
+}
+
+export const isNotifiableStatus = (s: string) =>
+  (NOTIFIABLE_STATUSES as readonly string[]).includes(s)
+
+/**
+ * رسالة تغيّر الحالة. تقول «شنوّة صار» وتحيل على صفحة المتابعة —
+ * لا تفاصيل مالية ولا أسماء. العربية في جزء واحد (≤ 70).
+ */
+export function statusUpdateText(refCode: string, status: string, locale: Locale): string | null {
+  if (!isNotifiableStatus(status)) return null
+  if (locale === 'fr') {
+    return `AL-LUBNA ${refCode}: ${STATUS_SMS_FR[status]}. Suivi: allabina.tn/suivi`
+  }
+  return `اللبنة ${refCode}: ${STATUS_SMS_AR[status]}.`
+}
 
 /**
  * ردّ WinSMS كما شوهد فعلاً عند الإرسال:
