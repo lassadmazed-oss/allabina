@@ -145,6 +145,9 @@ const FLEX_LABELS: Record<string, string> = {
   budget: 'ميزانية أكبر',
 }
 
+import RequestFiles from '@/components/RequestFiles'
+import type { RequestFile } from '@/lib/documents'
+
 const LEDGER_EVENT_LABELS: Record<string, string> = {
   needed: 'مطلوب',
   pledged: 'تعهّد',
@@ -168,6 +171,7 @@ export default async function RequestDetail({ params }: { params: Promise<{ id: 
     { data: events },
     { data: interactions },
     { data: docs },
+    { data: requestFiles },
     { data: social },
     { data: config },
     { data: latestDevis },
@@ -203,6 +207,7 @@ export default async function RequestDetail({ params }: { params: Promise<{ id: 
       .eq('request_id', id)
       .order('created_at', { ascending: false }),
     db.from('request_documents').select('*').eq('request_id', id),
+    db.from('request_files').select('*').eq('request_id', id).order('created_at'),
     db.from('social_assessments').select('*').eq('request_id', id).maybeSingle(),
     db.from('project_configs').select('*').eq('request_id', id).maybeSingle(),
     db
@@ -1429,6 +1434,12 @@ export default async function RequestDetail({ params }: { params: Promise<{ id: 
             )
           })}
         </div>
+
+        <RequestFiles
+          requestId={r.id}
+          docTypes={DOC_TYPES}
+          files={(requestFiles ?? []) as RequestFile[]}
+        />
       </div>
 
       {/* السجلّ */}

@@ -17,3 +17,7 @@ Thumbs.db
 
 # سجلّ التطوير
 dev.log
+
+# Vercel
+.vercel
+.env*.local

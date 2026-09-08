@@ -1,6 +1,6 @@
 const nextConfig = {
   outputFileTracingRoot: import.meta.dirname,
-  // 10mb: صورة حالة واحدة حتى 8 MiB (حدّ المخزن) مع هامش لبقيّة الحقول
-  experimental: { serverActions: { bodySizeLimit: '10mb' } },
+  // 16mb: وثيقة حتى 15 MiB (حدّ مخزن الوثائق) مع هامش لبقيّة الحقول
+  experimental: { serverActions: { bodySizeLimit: '16mb' } },
 }
 export default nextConfig
