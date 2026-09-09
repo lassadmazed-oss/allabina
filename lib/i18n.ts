@@ -34,7 +34,7 @@ const ar = {
         cta: 'سجّل مطلبك'
     },
     footer: {
-        about: 'مبادرة خاصّة — موش تابعة لأيّ وزارة ولا مؤسّسة عمومية — لتنظيم طلبات السكن في تونس وربط المواطن بحلول البناء والعقار والتمويل المناسبة لقدرته. المرحلة التجريبية: ولاية صفاقس.',
+        about: 'مبادرة خاصّة — موش تابعة لأيّ وزارة ولا مؤسّسة عمومية — لتنظيم طلبات السكن في تونس وربط الحريف بحلول البناء والعقار والتمويل المناسبة لقدرته. المرحلة التجريبية: ولاية صفاقس.',
         request: 'تسجيل مطلب سكن',
         simulator: 'محاكي التمويل',
         track: 'تتبّع مطلب',
@@ -47,7 +47,7 @@ const ar = {
         lede: 'سجّل مطلب سكنك مرّة وحدة، ونحنا نلقاو لك الحلّ اللي يناسب ميزانيتك والمنطقة اللي تحبّها: بناء فوق أرضك، أرض ودار، ولا شقة — مع دراسة واضحة لقدرتك على التمويل.',
         cta1: 'سجّل مطلبك مجّاناً',
         cta2: 'احسب ميزانيتك',
-        heroNote: 'من طلب السكن إلى مفتاح الدار — بلا معاليم على المواطن.',
+        heroNote: 'من طلب السكن إلى مفتاح الدار — بلا معاليم على الحريف.',
         pathsTitle: 'شنوّة تحبّ تعمل؟',
         pathsLede: 'اختار المسار اللي يشبهلك، والاستمارة تتبدّل حسب اختيارك.',
         pathStart: 'ابدا ←',
@@ -81,7 +81,7 @@ const ar = {
         pricesNote: 'الأسعار دون احتساب الأداءات (HT) وما تشملش ثمن الأرض ولا مصاريف الدراسات والرخص. السعر المرجعي المعتمد في الدراسات:',
         audience: {
             citizen: {
-                title: 'للمواطن',
+                title: 'للحريف',
                 items: [
                     'تسجيل مطلب سكن ولا بناء فوق أرضك',
                     'اختيار المساحة: 60 · 80 · 100 م²',
@@ -127,6 +127,23 @@ const ar = {
         next: 'كمّل',
         submit: 'ابعث مطلبي',
         submitting: 'قاعد يتبعث…',
+        recapTitle: 'راجع مطلبك قبل ما يتبعث',
+        recapLede: 'هذا اللي باش يوصل للفريق. تفقّدو مليح — وإذا فمّا حاجة غالطة، ارجع وبدّلها.',
+        recapEdit: 'رجّعني نبدّل',
+        recapConfirm: 'صحيح، ابعث',
+        recapEmpty: 'ما عمّرتوش',
+        hasIt: 'إي',
+        recapJump: 'بدّل',
+        recapSections: {
+            request: 'المطلب',
+            place: 'المكان',
+            land: 'الأرض',
+            family: 'العائلة والسكن',
+            money: 'الدخل والتمويل',
+            contact: 'الاتصال',
+            docs: 'الوراق'
+        },
+        review: 'شوف الملخّص',
         saveEdit: 'سجّل التعديل',
         // مواصفات البناء — كان يعمّرها المستشار في اللوحة
         builtArea: 'مساحة الدار المغطات',
@@ -696,7 +713,7 @@ const ar = {
         principle: 'المبدأ',
         compare: 'مقارنة الطريقتين',
         catalog: 'كتالوج العناصر',
-        catalogLede: 'للمهنيّين: المعماري والمهندس المدني والتقني والـmétreur. المواطن ما يختارش هالعناصر.',
+        catalogLede: 'للمهنيّين: المعماري والمهندس المدني والتقني والـmétreur. الحريف ما يختارش هالعناصر.',
         spans: 'البحور القصوى',
         spansLede: 'هذا الجدول هو السبب في أنّ المنصة ما تختارش السقف وحدها: البحر والاستعمال يحدّدان التركيبة، والمهندس هو اللي يقرّر.',
         docs: 'الوثائق المرجعية',
@@ -1166,7 +1183,7 @@ const fr: Dictionary = {
         cta: 'Déposer ma demande'
     },
     footer: {
-        about: "Initiative privée — indépendante de tout ministère ou organisme public — qui structure la demande de logement en Tunisie et met le citoyen en relation avec les solutions de construction, d'immobilier et de financement adaptées à ses moyens. Phase pilote : gouvernorat de Sfax.",
+        about: "Initiative privée — indépendante de tout ministère ou organisme public — qui structure la demande de logement en Tunisie et met le client en relation avec les solutions de construction, d'immobilier et de financement adaptées à ses moyens. Phase pilote : gouvernorat de Sfax.",
         request: 'Déposer une demande',
         simulator: 'Simulateur de financement',
         track: 'Suivre une demande',
@@ -1179,7 +1196,7 @@ const fr: Dictionary = {
         lede: "Déposez votre demande une seule fois : nous cherchons la solution qui correspond à votre budget et à la zone que vous visez — construire sur votre terrain, un terrain avec maison, ou un appartement — avec une lecture claire de votre capacité de financement.",
         cta1: 'Déposer ma demande — gratuit',
         cta2: 'Calculer mon budget',
-        heroNote: "De la demande de logement aux clés de la maison — sans frais pour le citoyen.",
+        heroNote: "De la demande de logement aux clés de la maison — sans frais pour le client.",
         pathsTitle: 'Que souhaitez-vous faire ?',
         pathsLede: 'Choisissez votre parcours : le formulaire s’adapte à votre choix.',
         pathStart: 'Commencer →',
@@ -1213,7 +1230,7 @@ const fr: Dictionary = {
         pricesNote: "Prix hors taxes (HT), hors prix du terrain, études et autorisations. Prix de référence retenu dans les études :",
         audience: {
             citizen: {
-                title: 'Pour le citoyen',
+                title: 'Pour le client',
                 items: [
                     'Demande de logement ou de construction sur votre terrain',
                     'Surfaces : 60 · 80 · 100 m²',
@@ -1259,6 +1276,23 @@ const fr: Dictionary = {
         next: 'Suivant',
         submit: 'Envoyer ma demande',
         submitting: 'Envoi…',
+        recapTitle: 'Vérifiez votre demande avant l\'envoi',
+        recapLede: "Voici ce qui parviendra à l'équipe. Relisez — si quelque chose ne va pas, revenez le corriger.",
+        recapEdit: 'Revenir modifier',
+        recapConfirm: "C'est bon, envoyer",
+        recapEmpty: 'Non renseigné',
+        hasIt: 'Oui',
+        recapJump: 'Modifier',
+        recapSections: {
+            request: 'La demande',
+            place: 'Le lieu',
+            land: 'Le terrain',
+            family: 'Foyer et logement',
+            money: 'Revenus et financement',
+            contact: 'Contact',
+            docs: 'Documents'
+        },
+        review: 'Voir le récapitulatif',
         saveEdit: 'Enregistrer la modification',
 
         builtArea: 'Surface couverte',
@@ -1827,7 +1861,7 @@ const fr: Dictionary = {
         principle: 'Le principe',
         compare: 'Comparaison des deux méthodes',
         catalog: 'Catalogue des éléments',
-        catalogLede: "Pour les professionnels : architecte, ingénieur, technicien et métreur. Le citoyen ne choisit pas ces éléments.",
+        catalogLede: "Pour les professionnels : architecte, ingénieur, technicien et métreur. Le client ne choisit pas ces éléments.",
         spans: 'Portées maximales',
         spansLede: "Ce tableau explique pourquoi la plateforme ne choisit pas le plancher seule : la portée et l'usage déterminent la composition, et c'est l'ingénieur qui décide.",
         docs: 'Documents de référence',

@@ -1,7 +1,8 @@
 'use client'
 
 import VoiceRecorder from '@/components/VoiceRecorder'
-import { useActionState, useEffect, useMemo, useState } from 'react'
+import Modal from '@/components/Modal'
+import { useActionState, useEffect, useMemo, useRef, useState } from 'react'
 import { submitRequest, type SubmitState } from '@/lib/actions/request'
 import { updateOwnRequest, type EditState } from '@/lib/actions/request-edit'
 import ZoneInput, { type Zone } from '@/components/ZoneInput'
@@ -121,7 +122,7 @@ const FIELD_STEP: Record<string, number> = {
  *
  * كانت البطاقات السبع متطابقة: نفس الطوبة الحمراء فوق كلّ واحدة، والفرق
  * بينها سطر نصّ. فتُقرأ البطاقات واحدة واحدة بدل أن تُميَّز بنظرة —
- * وهذه أوّل شاشة يراها المواطن.
+ * وهذه أوّل شاشة يراها الحريف.
  */
 const TYPE_ICON: Record<string, string> = {
   // أرض وعليها بناء
@@ -237,6 +238,8 @@ export default function RequestForm({
     initial
   )
   const [step, setStep] = useState(1)
+  const [recapOpen, setRecapOpen] = useState(false)
+  const formRef = useRef<HTMLFormElement>(null)
   const [values, setValues] = useState<Record<string, string | boolean>>(
     isEdit && initialValues
       ? initialValues
@@ -355,6 +358,7 @@ export default function RequestForm({
     values.works,
   ])
 
+
   const docProgress = requiredProgress(
     docSections.flatMap((s) => s.docs),
     docs
@@ -432,6 +436,131 @@ export default function RequestForm({
   const order = flow.steps
   const stepIndex = order.indexOf(step)
 
+  /**
+   * ما سيُرسل، مقسَّماً بأقسامه.
+   *
+   * يُبنى من `values` لا من الـDOM: الحقول المخفيّة في خطوات لم تُفتح
+   * موجودة في الحالة، فيظهر الملخّص كاملاً مهما كانت الخطوة الحالية.
+   * وكلّ قسم يحمل رقم خطوته حتى يرجع إليها بضغطة واحدة.
+   */
+  const recapSections = useMemo(() => {
+    const pick = (list: readonly { code?: string; id?: number; name_ar?: string }[], id: unknown) => {
+      const key = String(id ?? '')
+      const hit = list.find((x) => String(x.id ?? x.code) === key)
+      return hit?.name_ar ?? ''
+    }
+    const val = (k: string) => String(values[k] ?? '').trim()
+    // القواميس مكتوبة بمفاتيح ثابتة؛ القراءة بمفتاح محسوب تحتاج تليين
+    const look = (m: Record<string, string> | object, k: unknown) =>
+      (m as Record<string, string>)[String(k ?? '')] ?? ''
+    const flag = (k: string) => (values[k] ? t.hasIt : '')
+    const money = (k: string) => (num(k) > 0 ? formatTND(num(k), locale) : '')
+    const list = (k: string, labels: Record<string, string>) =>
+      String(values[k] ?? '')
+        .split(',')
+        .filter(Boolean)
+        .map((x) => labels[x] ?? x)
+        .join(' · ')
+
+    const rows: { section: keyof typeof t.recapSections; step: number; items: [string, string][] }[] = [
+      {
+        section: 'request',
+        step: 1,
+        items: [
+          [t.s1Title, look(labels.requestType, values.requestType)],
+          [t.urgencyTitle, look(labels.urgency, values.urgency)],
+          [t.problemTitle, val('problemNote')],
+        ],
+      },
+      {
+        section: 'place',
+        step: 2,
+        items: [
+          [t.governorate, pick(governorates, values.govCode)],
+          [t.delegation, pick(delegations, values.delegationId)],
+          [t.landLocation, val('landLocation')],
+          [wantsLand ? t.builtArea : t.area, val('desiredAreaM2') ? `${val('desiredAreaM2')} ${m2}` : ''],
+          [t.desiredLandM2, val('desiredLandM2') ? `${val('desiredLandM2')} ${m2}` : ''],
+          [t.bedrooms, val('bedrooms')],
+          [t.horizon, look(labels.horizon, values.horizon)],
+          [t.standingTitle, selectedTier?.label ?? ''],
+          [t.flexTitle, list('flexibility', labels.flexibility)],
+        ],
+      },
+      {
+        section: 'land',
+        step: 3,
+        items: [
+          [t.landArea, val('landAreaM2') ? `${val('landAreaM2')} ${m2}` : ''],
+          [t.titleStatus, look(labels.titleStatus, values.titleStatus)],
+          [t.hasWater, flag('hasWater')],
+          [t.hasPower, flag('hasPower')],
+          [t.hasRoad, flag('hasRoad')],
+          [t.hasPermit, flag('hasPermit')],
+        ],
+      },
+      {
+        section: 'family',
+        step: 4,
+        items: [
+          [t.householdSize, val('householdSize')],
+          [t.dependents, val('dependents')],
+          [t.hasDisability, flag('hasDisability')],
+          [t.housingCondition, look(t.housingLabels, values.housingCondition)],
+          [t.rentTnd, money('rentTnd')],
+        ],
+      },
+      {
+        section: 'money',
+        step: 5,
+        items: [
+          [t.cashReadyTitle, flag('cashReady')],
+          [t.incomeStability, look(t.incomeLabels, values.incomeStability)],
+          [t.financingState, look(t.financingLabels, values.financingState)],
+          [t.problemType, look(t.problemLabels, values.problemType)],
+          [t.income, money('monthlyIncome')],
+          [t.spouseIncome, money('spouseIncome')],
+          [t.otherIncome, money('otherIncome')],
+          [t.existingLoans, money('existingLoans')],
+          [t.downPayment, money('downPayment')],
+          [t.maxMonthly, money('maxMonthly')],
+          [t.employment, look(labels.employment, values.employment)],
+          [t.seniority, val('seniorityYears')],
+          [t.foprolos, flag('foprolosInterest')],
+        ],
+      },
+      {
+        section: 'contact',
+        step: 6,
+        items: [
+          [t.fullName, val('fullName')],
+          [t.phone, val('phone')],
+          [t.email, val('email')],
+        ],
+      },
+      {
+        section: 'docs',
+        step: 6,
+        items: [
+          [
+            t.docsTitle,
+            docSections
+              .flatMap((sec) => sec.docs)
+              .filter((d) => docs.includes(d.code))
+              .map((d) => d.nameAr)
+              .join(' · '),
+          ],
+        ],
+      },
+    ]
+
+    // قسم بلا جواب واحد لا يُعرض: الملخّص يقول ما قاله، لا ما سكت عنه
+    return rows
+      .filter((r) => order.includes(r.step))
+      .map((r) => ({ ...r, items: r.items.filter(([, v]) => v) }))
+      .filter((r) => r.items.length > 0)
+  }, [values, docSections, docs, order, selectedTier, wantsLand, governorates, delegations, labels, t, m2, locale])
+
   const capacity = computeCapacity({
     monthlyIncome: num('monthlyIncome'),
     spouseIncome: num('spouseIncome'),
@@ -502,6 +631,10 @@ export default function RequestForm({
     state.error && (!isFieldError || badFields.length > 0 || elsewhereStep !== undefined)
   )
 
+  useEffect(() => {
+    if (state.error) setRecapOpen(false)
+  }, [state])
+
   // عند فشل التحقّق: نرجّعو الحريف للخطوة اللي فيها المشكل ونحطّو المؤشّر في الحقل
   useEffect(() => {
     // ردّ جديد من الخادم: ما اعتُبر مصلَّحاً سقط، والقائمة الجديدة هي الحقيقة
@@ -571,9 +704,23 @@ export default function RequestForm({
   )
 
   return (
+    <>
     <form
+      ref={formRef}
       action={formAction}
       noValidate
+      /**
+       * الزرّ يفتح الملخّص؛ الإرسال الحقيقي يجي من زرّ مخفيّ داخل
+       * النافذة وحده. في وضع التعديل لا ملخّص: صاحبه يرى ملفّه أمامه.
+       */
+      onSubmit={(e) => {
+        if (isEdit) return
+        const submitter = (e.nativeEvent as SubmitEvent).submitter
+        if (!submitter?.hasAttribute('data-confirm')) {
+          e.preventDefault()
+          setRecapOpen(true)
+        }
+      }}
       /**
        * Enter داخل أيّ حقل يُرسل الاستمارة كاملةً — ولو كنّا في الخطوة الأولى.
        * فيرجع الحريف بأخطاء حقول ما وصلهاش بعد. هنا Enter = «التالي».
@@ -1914,11 +2061,75 @@ export default function RequestForm({
             disabled={pending}
             className="min-h-12 flex-1 rounded bg-brand px-8 font-medium text-white transition hover:bg-brand-deep active:scale-[0.99] disabled:opacity-60 sm:flex-none"
           >
-            {pending ? t.submitting : isEdit ? t.saveEdit : t.submit}
+            {pending ? t.submitting : isEdit ? t.saveEdit : t.review}
           </button>
         )}
       </div>
+
+      {/* الإرسال الحقيقي — زرّ مخفيّ تضغطه نافذة الملخّص وحدها */}
+      {!isEdit && <button type="submit" data-confirm hidden aria-hidden="true" tabIndex={-1} />}
     </form>
+
+    {recapOpen && (
+      <Modal title={t.recapTitle} onClose={() => setRecapOpen(false)}>
+        <p className="text-sm leading-7 text-muted">{t.recapLede}</p>
+
+        <div className="mt-4 flex flex-col gap-4">
+          {recapSections.map((sec) => (
+            <div key={sec.section} className="rounded border border-line">
+              <div className="flex items-center justify-between gap-3 border-b border-line bg-ground px-3 py-2">
+                <span className="text-sm font-medium">{t.recapSections[sec.section]}</span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setRecapOpen(false)
+                    setStep(sec.step)
+                    if (typeof window !== 'undefined') window.scrollTo({ top: 0 })
+                  }}
+                  className="rounded border border-line px-2.5 py-1 text-xs text-muted transition hover:border-brand hover:text-brand"
+                >
+                  {t.recapJump}
+                </button>
+              </div>
+              <dl className="divide-y divide-line">
+                {sec.items.map(([k, v]) => (
+                  <div key={k} className="flex flex-wrap items-baseline justify-between gap-3 px-3 py-2 text-sm">
+                    <dt className="text-muted">{k}</dt>
+                    <dd className="max-w-[62%] text-end" dir="auto">
+                      {v}
+                    </dd>
+                  </div>
+                ))}
+              </dl>
+            </div>
+          ))}
+        </div>
+
+        <div className="mt-5 flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:justify-end sm:gap-3">
+          <button
+            type="button"
+            onClick={() => setRecapOpen(false)}
+            className="inline-flex min-h-11 items-center justify-center rounded border border-line px-5 text-sm transition hover:border-line-strong active:scale-[0.99]"
+          >
+            {t.recapEdit}
+          </button>
+          <button
+            type="button"
+            disabled={pending}
+            onClick={() => {
+              setRecapOpen(false)
+              formRef.current?.requestSubmit(
+                formRef.current.querySelector<HTMLButtonElement>('[data-confirm]') ?? undefined
+              )
+            }}
+            className="inline-flex min-h-11 items-center justify-center rounded bg-brand px-6 text-sm font-medium text-white transition hover:bg-brand-deep active:scale-[0.99] disabled:opacity-50"
+          >
+            {pending ? t.submitting : t.recapConfirm}
+          </button>
+        </div>
+      </Modal>
+    )}
+    </>
   )
 }
 
