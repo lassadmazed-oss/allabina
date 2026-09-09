@@ -7,6 +7,7 @@ import {
   requestConfirmationText,
   requestEditedText,
   segmentCount,
+  smsEnvAllows,
   networkConfirmationText,
   statusUpdateText,
   supportAcceptedText,
@@ -56,10 +57,22 @@ async function sendViaWinSms(to: string, text: string): Promise<SendResult> {
 /** المفتاح لا يظهر في السجلّ حتى لو ردّه المزوّد صدىً */
 const scrub = (s: string, key: string) => s.split(key).join('[api_key]')
 
-async function smsEnabled(): Promise<boolean> {
-  if (process.env.SMS_ENABLED === 'false') return false
+/**
+ * حاجزان قبل أيّ رسالة، ولا تكفي واحدة:
+ *   1. البيئة — الإنتاج وحده يرسل ما لم يُفتح الإرسال صراحةً.
+ *      كان مفتوحاً في كلّ مكان، فكانت كلّ استمارة تجريبية تحرق رصيداً.
+ *   2. مفتاح الإدارة `sms.enabled` — لإيقاف الإرسال في الإنتاج بلا نشر.
+ *
+ * الترتيب مقصود: فحص البيئة أوّلاً لأنّه لا يمسّ القاعدة، فالسكربت
+ * الذي لا بيئة له يُمنع قبل أن يقرأ شيئاً.
+ */
+async function smsEnabled(): Promise<{ ok: boolean; reason?: string }> {
+  if (!smsEnvAllows({ SMS_ENABLED: process.env.SMS_ENABLED, VERCEL_ENV: process.env.VERCEL_ENV })) {
+    return { ok: false, reason: 'الإرسال مغلق خارج الإنتاج (SMS_ENABLED)' }
+  }
   const { data } = await db.from('app_settings').select('value').eq('key', 'sms.enabled').maybeSingle()
-  return data?.value !== false
+  if (data?.value === false) return { ok: false, reason: 'الإرسال معطَّل (sms.enabled)' }
+  return { ok: true }
 }
 
 type Target = { requestId?: string; propertyId?: string; intervenantId?: string }
@@ -83,8 +96,12 @@ async function sendAndLog(target: Target, template: SmsTemplate, phone: string, 
     await db.from('sms_log').insert({ ...base, to_number: phone.slice(0, 20), status: 'skipped', error: 'رقم غير تونسي أو غير صالح' })
     return
   }
-  if (!(await smsEnabled())) {
-    await db.from('sms_log').insert({ ...base, to_number: to, status: 'skipped', error: 'الإرسال معطَّل (sms.enabled)' })
+  const allowed = await smsEnabled()
+  if (!allowed.ok) {
+    // يُسجَّل ما كان سيُرسَل: المنع لا يُخفي شيئاً عن الفريق
+    await db
+      .from('sms_log')
+      .insert({ ...base, to_number: to, status: 'skipped', error: allowed.reason })
     return
   }
 

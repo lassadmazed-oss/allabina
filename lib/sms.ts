@@ -177,3 +177,29 @@ export function parseWinSmsReply(raw: string): ProviderReply {
     balance: typeof j.balance === 'number' ? j.balance : null,
   }
 }
+
+/**
+ * هل يُسمح بالإرسال الفعلي في هذه البيئة؟
+ *
+ * كلّ رسالة تُكلّف رصيداً حقيقياً. وكان الإرسال مفتوحاً افتراضياً في كلّ
+ * بيئة، فكلّ استمارة تجريبية على الحاسوب — وكلّ سكربت — تبعث رسالة
+ * وتحرق رصيداً. سبعة عشر رسالة خرجت من التجريب وحده.
+ *
+ * فالقاعدة انقلبت: **الإرسال مغلق ما لم يُفتح صراحةً**، ويُفتح وحده على
+ * موقع الإنتاج. من أراد تجربة الإرسال محلّياً يضع `SMS_ENABLED=true`
+ * في `.env` — قرار واعٍ لا افتراض صامت.
+ *
+ * المنع لا يُخفي شيئاً: الرسالة تُسجَّل في `sms_log` بحالة `skipped`
+ * وبسببها، فيرى الفريق ما كان سيُرسَل.
+ */
+export function smsEnvAllows(env: {
+  SMS_ENABLED?: string
+  VERCEL_ENV?: string
+}): boolean {
+  const flag = (env.SMS_ENABLED ?? '').trim().toLowerCase()
+  // قرار صريح يسبق كلّ شيء — في الاتّجاهين
+  if (flag === 'true' || flag === '1') return true
+  if (flag === 'false' || flag === '0') return false
+  // بلا قرار: الإنتاج وحده يرسل
+  return env.VERCEL_ENV === 'production'
+}

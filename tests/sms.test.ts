@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import {
   ONE_SEGMENT_AR,
+  smsEnvAllows,
   ONE_SEGMENT_PLAIN,
   isPlain,
   NOTIFIABLE_STATUSES,
@@ -159,5 +160,34 @@ describe('تأكيد تسجيل مهني', () => {
     expect(isPlain(fr)).toBe(true)
     expect(segmentCount(fr)).toBe(1)
     expect(fr).toMatch(/Validation/)
+  })
+})
+
+describe('إذن الإرسال حسب البيئة', () => {
+  it('الإنتاج يرسل بلا إعداد', () => {
+    expect(smsEnvAllows({ VERCEL_ENV: 'production' })).toBe(true)
+  })
+
+  it('المعاينة والتطوير لا يرسلان — هنا كان يُحرق الرصيد', () => {
+    expect(smsEnvAllows({ VERCEL_ENV: 'preview' })).toBe(false)
+    expect(smsEnvAllows({})).toBe(false)
+  })
+
+  it('السكربتات وسطر الأوامر لا بيئة لها فلا ترسل', () => {
+    expect(smsEnvAllows({ VERCEL_ENV: undefined })).toBe(false)
+  })
+
+  it('الإذن الصريح يفتح الإرسال محلّياً', () => {
+    expect(smsEnvAllows({ SMS_ENABLED: 'true' })).toBe(true)
+    expect(smsEnvAllows({ SMS_ENABLED: '1' })).toBe(true)
+  })
+
+  it('المنع الصريح يغلب الإنتاج نفسه', () => {
+    expect(smsEnvAllows({ SMS_ENABLED: 'false', VERCEL_ENV: 'production' })).toBe(false)
+    expect(smsEnvAllows({ SMS_ENABLED: '0', VERCEL_ENV: 'production' })).toBe(false)
+  })
+
+  it('قيمة غير مفهومة لا تُقرأ إذناً', () => {
+    expect(smsEnvAllows({ SMS_ENABLED: 'yes', VERCEL_ENV: 'preview' })).toBe(false)
   })
 })
