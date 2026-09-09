@@ -154,3 +154,108 @@ describe('ترتيب العروض', () => {
     expect(best.blockers).toHaveLength(0)
   })
 })
+
+/* ---------- الاتجاه المعاكس والفرص ---------- */
+
+import { findOpportunities, rankRequests, type MatchRequestWithId } from '@/lib/matching'
+
+const landOffer = {
+  id: 'p-land',
+  kind: 'land',
+  govCode: 'SFX',
+  delegationId: 1,
+  imadaId: null,
+  areaM2: 400,
+  builtAreaM2: null,
+  priceTnd: 90_000,
+  status: 'approved',
+}
+
+const builder = (over: Partial<MatchRequestWithId> = {}): MatchRequestWithId => ({
+  id: 'r1',
+  requestType: 'build_on_land',
+  govCode: 'SFX',
+  delegationId: 1,
+  imadaId: null,
+  desiredAreaM2: 120,
+  maxBudget: 150_000,
+  ownsLand: false,
+  scoreBand: 'B',
+  ...over,
+})
+
+describe('من العرض إلى الحرفاء', () => {
+  it('يرجّع الحرفاء المناسبين مرتّبين', () => {
+    const near = builder({ id: 'near', delegationId: 1 })
+    const far = builder({ id: 'far', delegationId: 2 })
+    const out = rankRequests(landOffer, [far, near])
+    expect(out.map((m) => m.requestId)).toEqual(['near', 'far'])
+    expect(out[0].score).toBeGreaterThan(out[1].score)
+  })
+
+  it('نفس تنقيط الاتجاه الأصلي — لا محرّك ثانٍ', () => {
+    const r = builder()
+    const [reverse] = rankRequests(landOffer, [r])
+    const [forward] = rankProperties(r, [landOffer])
+    expect(reverse.score).toBe(forward.score)
+  })
+
+  it('يستبعد من فيه مانع قاطع: ولاية أخرى أو نوع لا يخدم', () => {
+    expect(rankRequests(landOffer, [builder({ govCode: 'TUN' })])).toHaveLength(0)
+    expect(rankRequests(landOffer, [builder({ requestType: 'apartment' })])).toHaveLength(0)
+  })
+
+  it('العرض غير المراجَع لا يطابق أحداً', () => {
+    expect(rankRequests({ ...landOffer, status: 'pending' }, [builder()])).toHaveLength(0)
+  })
+})
+
+describe('أين يلتقي الطلب بالعرض', () => {
+  it('يجمّع حسب المنطقة والنوع ويعدّ الجاهز منها', () => {
+    const out = findOpportunities(
+      [
+        builder({ id: 'a', scoreBand: 'A' }),
+        builder({ id: 'b', scoreBand: 'D' }),
+        builder({ id: 'c', delegationId: 2, scoreBand: 'B' }),
+      ],
+      [landOffer]
+    )
+    const first = out.find((o) => o.delegationId === 1)
+    expect(first?.demand).toBe(2)
+    expect(first?.readyDemand).toBe(1)
+    expect(first?.supply).toBe(1)
+  })
+
+  it('يرتّب حسب التقاطعات الحقيقية لا حسب عدد المطالب', () => {
+    const out = findOpportunities(
+      [
+        builder({ id: 'near1' }),
+        builder({ id: 'near2' }),
+        // منطقة أخرى: نفس الولاية فالعرض يطابق، لكن بتنقيط أقلّ
+        builder({ id: 'far1', delegationId: 9 }),
+        builder({ id: 'far2', delegationId: 9 }),
+        builder({ id: 'far3', delegationId: 9 }),
+      ],
+      [landOffer]
+    )
+    // ثلاثة تقاطعات في المعتمدية 9 مقابل اثنين في 1 — الترتيب بالتقاطعات
+    expect(out[0].delegationId).toBe(9)
+    expect(out[0].pairs).toBe(3)
+    // وأعلى تنقيط يبقى لمن هو في نفس المعتمدية
+    const near = out.find((o) => o.delegationId === 1)!
+    expect(near.bestScore).toBeGreaterThan(out[0].bestScore)
+  })
+
+  it('«العرض» يعني عروضاً طابقت فعلاً، لا جواراً جغرافياً', () => {
+    // مطلب بعيد عن العرض: يطابق (نفس الولاية) فيُعدّ العرض عرضاً حقيقياً
+    const out = findOpportunities([builder({ delegationId: 9 })], [landOffer])
+    expect(out[0].supply).toBe(1)
+    expect(out[0].pairs).toBe(1)
+  })
+
+  it('العرض المعدود هو المراجَع فقط', () => {
+    const out = findOpportunities([builder()], [{ ...landOffer, status: 'pending' }])
+    expect(out[0].supply).toBe(0)
+    expect(out[0].pairs).toBe(0)
+  })
+})

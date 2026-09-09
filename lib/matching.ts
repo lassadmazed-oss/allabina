@@ -198,3 +198,107 @@ export function rankProperties(
     .sort((a, b) => b.score - a.score)
     .slice(0, limit)
 }
+
+/* ============================================================
+ * الاتجاه المعاكس: من العرض إلى الحرفاء
+ * ============================================================
+ * نفس التنقيط بلا تغيير — يتبدّل اتجاه القراءة برك. الفريق كان مجبوراً
+ * يفتح كلّ ملفّ حريف وحده باش يعرف شكون يناسبو عرض معيّن. هذا يقلبها:
+ * العرض يقول بروحو شكون ينتظرو.
+ */
+
+export type MatchRequestWithId = MatchRequest & { id: string }
+
+export type RequestMatch = {
+  requestId: string
+  score: number
+  reasons: MatchReason[]
+}
+
+/** ترتيب الحرفاء المناسبين لعرض واحد، مع استبعاد ما فيه مانع قاطع */
+export function rankRequests(
+  property: MatchProperty,
+  requests: MatchRequestWithId[],
+  options: { minScore?: number; limit?: number } = {}
+): RequestMatch[] {
+  const minScore = options.minScore ?? 40
+  const limit = options.limit ?? 10
+
+  return requests
+    .map((r) => ({ requestId: r.id, ...matchScore(r, property) }))
+    .filter((m) => m.blockers.length === 0 && m.score >= minScore)
+    .sort((a, b) => b.score - a.score)
+    .slice(0, limit)
+    .map(({ requestId, score, reasons }) => ({ requestId, score, reasons }))
+}
+
+/* ============================================================
+ * الفرص: أين يلتقي الطلب بالعرض
+ * ============================================================
+ * «37 مواطناً يبحثون عن أرض في منطقة X، وعندنا 3 عروض مناسبة.»
+ * تجميع حسب المعتمدية ونوع المطلب، لا حسب السطور. الغرض أن تفتح
+ * الإدارة الشاشة فتعرف وين تحطّ يدّها اليوم، بلا ما تقلّب في القوائم.
+ */
+
+export type Opportunity = {
+  delegationId: number | null
+  requestType: string
+  /** عدد المطالب المفتوحة في هذه المنطقة وهذا النوع */
+  demand: number
+  /** منها ما هو جاهز فعلاً: صنف A أو B */
+  readyDemand: number
+  /** عدد العروض التي شكّلت تقاطعاً حقيقياً مع مطلب في هذه الخانة */
+  supply: number
+  /** أزواج (مطلب ← عرض) تجاوزت عتبة التنقيط — تقاطع حقيقي لا مجرّد جوار */
+  pairs: number
+  /** أعلى تنقيط في هذه الخانة */
+  bestScore: number
+}
+
+export function findOpportunities(
+  requests: MatchRequestWithId[],
+  properties: MatchProperty[],
+  options: { minScore?: number } = {}
+): Opportunity[] {
+  const minScore = options.minScore ?? 55
+  const buckets = new Map<string, Opportunity>()
+  // العروض التي طابقت فعلاً في كلّ خانة — لا نعدّ الجوار الجغرافي عرضاً
+  const matchedProps = new Map<string, Set<string>>()
+
+  for (const r of requests) {
+    const key = `${r.delegationId ?? 'none'}|${r.requestType}`
+    let b = buckets.get(key)
+    if (!b) {
+      b = {
+        delegationId: r.delegationId,
+        requestType: r.requestType,
+        demand: 0,
+        readyDemand: 0,
+        supply: 0,
+        pairs: 0,
+        bestScore: 0,
+      }
+      buckets.set(key, b)
+      matchedProps.set(key, new Set())
+    }
+    b.demand++
+    if (r.scoreBand === 'A' || r.scoreBand === 'B') b.readyDemand++
+
+    for (const p of properties) {
+      const m = matchScore(r, p)
+      if (m.blockers.length === 0 && m.score >= minScore) {
+        b.pairs++
+        matchedProps.get(key)!.add(p.id)
+        if (m.score > b.bestScore) b.bestScore = m.score
+      }
+    }
+  }
+
+  for (const [key, b] of buckets) {
+    b.supply = matchedProps.get(key)?.size ?? 0
+  }
+
+  return [...buckets.values()]
+    .filter((b) => b.demand > 0)
+    .sort((a, b) => b.pairs - a.pairs || b.demand - a.demand)
+}

@@ -1,16 +1,18 @@
 'use server'
 
 import { redirect } from 'next/navigation'
+import { attachVoiceNotes } from '@/lib/actions/voice-note'
 import { after } from 'next/server'
 import { sendPropertyConfirmation } from '@/lib/sms/winsms'
 import { headers } from 'next/headers'
 import { db } from '@/lib/supabase/server'
 import { propertySchema } from '@/lib/property-schema'
 import { DEFAULT_LOCALE, isLocale } from '@/lib/i18n'
+import { attachDraftMedia } from '@/lib/actions/property-media'
 
 export type PropertyState = {
   ok: boolean
-  error?: 'banner' | 'rateLimited' | 'server'
+  error?: 'banner' | 'rateLimited' | 'server' | 'mediaBusy'
   fields?: string[]
 }
 
@@ -32,6 +34,9 @@ export async function submitProperty(
   formData: FormData
 ): Promise<PropertyState> {
   if ((formData.get('website') as string)?.length) return { ok: false, error: 'server' }
+
+  // ملفّ ما زال يُرفع: نوقف الإرسال بدل أن يضيع من الاستمارة
+  if (formData.get('mediaBusy')) return { ok: false, error: 'mediaBusy' }
 
   const raw = Object.fromEntries(formData.entries())
   const parsed = propertySchema.safeParse({
@@ -105,6 +110,27 @@ export async function submitProperty(
   if (error || !inserted) {
     console.error('insert property', error)
     return { ok: false, error: 'server' }
+  }
+
+  // الصور والفيديو رُفعت إلى مسوّدة قبل وجود العقار — ننقلها إليه الآن.
+  // فشلها لا يُسقط العرض: عقار محفوظ بلا صور أهون من استمارة ضائعة.
+  const mediaToken = String(formData.get('mediaToken') ?? '')
+  if (mediaToken) {
+    let names: Record<string, string> = {}
+    try {
+      const raw = JSON.parse(String(formData.get('mediaNames') ?? '{}'))
+      if (raw && typeof raw === 'object') names = raw as Record<string, string>
+    } catch {
+      // أسماء العرض فقط — لا شيء يتوقّف إن وصلت مشوّهة
+    }
+    await attachDraftMedia(inserted.id as string, mediaToken, names)
+
+  // التسجيل الصوتي: رُفع إلى المسوّدة قبل وجود السطر، فيُنقل إليه الآن.
+  // لا يوقف شيئاً إن فشل — الملفّ محفوظ، والصوت خدمة فوقه.
+  const voiceToken = String(formData.get('voiceDescription') ?? '')
+  if (voiceToken) {
+    await attachVoiceNotes('property', String(inserted.id), voiceToken, 'description')
+  }
   }
 
   const locale = String(formData.get('locale') ?? '')

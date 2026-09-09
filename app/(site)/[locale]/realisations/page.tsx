@@ -3,7 +3,9 @@ import { db } from '@/lib/supabase/server'
 import { fmt, getDictionary, isLocale, path, type Locale } from '@/lib/i18n'
 import { formatNumber } from '@/lib/format'
 import DemoBadge from '@/components/DemoBadge'
-import { groupByStage, photoPublicUrl, type CasePhoto } from '@/lib/photos'
+import { type CasePhoto } from '@/lib/photos'
+import { coverFor, metaLine } from '@/lib/case-cover'
+import CaseCard from '@/components/CaseCard'
 
 export const dynamic = 'force-dynamic'
 
@@ -88,77 +90,81 @@ export default async function RealisationsPage({
       a.name_ar.localeCompare(b.name_ar)
   )
 
-  const maxActivity = Math.max(
-    1,
-    ...activity.map((a) => a.completed_cases + a.active_files + a.available_properties)
+  const delegationName = new Map(activity.map((a) => [a.delegation_id, a.name_ar]))
+  const totals = activity.reduce(
+    (acc, a) => ({
+      completed: acc.completed + a.completed_cases,
+      active: acc.active + a.active_files,
+      properties: acc.properties + a.available_properties,
+    }),
+    { completed: 0, active: 0, properties: 0 }
   )
   const selected = sp.delegation ? Number(sp.delegation) : null
 
   return (
-    <div className="mx-auto max-w-5xl px-4 py-8 sm:px-5 sm:py-12">
-      <h1 className="display text-3xl font-semibold">{t.cases.title}</h1>
-      <p className="mt-4 max-w-3xl leading-8 text-muted">{t.cases.lede}</p>
+    <div className="mx-auto max-w-6xl px-4 py-6 sm:px-5 sm:py-8">
+      <h1 className="display text-2xl font-semibold sm:text-3xl">{t.cases.title}</h1>
+      <p className="mt-2 max-w-3xl leading-7 text-muted">{t.cases.lede}</p>
 
-      {/* خريطة المعتمديات — Carte des délégations */}
-      <section className="mt-10">
-        <h2 className="text-lg font-semibold">{t.cases.mapTitle}</h2>
-        <p className="mt-1 text-sm text-muted">{t.cases.mapLede}</p>
+      {/* ---------- نبض الولاية — سطر واحد ثمّ شرائط فلترة ---------- */}
+      <section className="mt-6">
+        <div className="flex flex-wrap items-baseline gap-x-5 gap-y-1 text-sm">
+          <h2 className="font-semibold">{t.cases.mapTitle}</h2>
+          <span className="flex items-center gap-1.5 text-muted">
+            <span className="size-2 rounded-full bg-brand" aria-hidden="true" />
+            <b className="num text-ink">{formatNumber(totals.completed)}</b>
+            {t.cases.mapCompleted}
+          </span>
+          <span className="flex items-center gap-1.5 text-muted">
+            <span className="size-2 rounded-full bg-gold" aria-hidden="true" />
+            <b className="num text-ink">{formatNumber(totals.active)}</b>
+            {t.cases.mapActive}
+          </span>
+          <span className="flex items-center gap-1.5 text-muted">
+            <span className="size-2 rounded-full bg-line-strong" aria-hidden="true" />
+            <b className="num text-ink">{formatNumber(totals.properties)}</b>
+            {t.cases.mapProperties}
+          </span>
+        </div>
 
-        <div className="mt-5 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="mt-3 flex flex-wrap gap-1.5">
           {activity.map((a) => {
             const total = a.completed_cases + a.active_files + a.available_properties
             const active = selected === a.delegation_id
+            const pct = (v: number) => (total ? (v / total) * 100 : 0)
             return (
               <Link
                 key={a.delegation_id}
                 href={
                   active
-                    ? path(locale, '/realisations')
+                    ? path(locale, "/realisations")
                     : path(locale, `/realisations?delegation=${a.delegation_id}`)
                 }
-                className={`rounded border p-4 transition ${
+                aria-current={active ? "true" : undefined}
+                title={`${a.completed_cases} ${t.cases.mapCompleted} · ${a.active_files} ${t.cases.mapActive} · ${a.available_properties} ${t.cases.mapProperties}`}
+                className={`rounded-lg border px-2.5 py-1.5 text-xs transition ${
                   active
-                    ? 'border-brand bg-brand-soft'
-                    : 'border-line bg-surface hover:border-line-strong'
+                    ? "border-brand bg-brand-soft text-brand"
+                    : "border-line bg-surface text-muted hover:border-line-strong hover:text-ink"
                 }`}
               >
-                <div className="flex items-baseline justify-between gap-2">
-                  <span className="font-medium">{a.name_ar}</span>
-                  <span className="num text-xs text-faint">{formatNumber(total)}</span>
-                </div>
-                <div
-                  className="mt-2 h-1.5 rounded-full bg-surface-2"
-                  aria-hidden="true"
-                >
-                  <div
-                    className="h-1.5 rounded-full bg-brand"
-                    style={{ width: `${Math.round((total / maxActivity) * 100)}%` }}
+                <span className="flex items-center gap-1.5">
+                  {a.name_ar}
+                  <b className="num text-ink">{total}</b>
+                </span>
+                {/* شريط رفيع يقول تركيبة المعتمدية بلا كلمات */}
+                <span className="mt-1 flex h-1 overflow-hidden rounded-full bg-surface-2">
+                  <span className="bg-brand" style={{ width: `${pct(a.completed_cases)}%` }} />
+                  <span className="bg-gold" style={{ width: `${pct(a.active_files)}%` }} />
+                  <span
+                    className="bg-line-strong"
+                    style={{ width: `${pct(a.available_properties)}%` }}
                   />
-                </div>
-                <dl className="num mt-2 flex flex-wrap gap-x-3 gap-y-0.5 text-xs text-muted">
-                  <span>
-                    {a.completed_cases} {t.cases.mapCompleted}
-                  </span>
-                  <span>
-                    {a.active_files} {t.cases.mapActive}
-                  </span>
-                  <span>
-                    {a.available_properties} {t.cases.mapProperties}
-                  </span>
-                </dl>
+                </span>
               </Link>
             )
           })}
         </div>
-
-        {selected && (
-          <Link
-            href={path(locale, '/realisations')}
-            className="mt-4 inline-flex min-h-11 items-center text-sm text-brand hover:underline"
-          >
-            ← {t.cases.allDelegations}
-          </Link>
-        )}
       </section>
 
       {/* الحالات — Les cas */}
@@ -168,134 +174,32 @@ export default async function RealisationsPage({
         </p>
       )}
 
-      <section className="mt-12">
+      <section className="mt-6">
         {cases.length === 0 ? (
-          <p className="rounded border border-line bg-surface p-10 text-center leading-8 text-muted">
+          <p className="rounded-xl border border-line bg-surface p-10 text-center leading-8 text-muted">
             {t.cases.empty}
           </p>
         ) : (
-          <div className="flex flex-col gap-6">
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {cases.map((c) => {
-              const title = (isFr && c.title_fr) || c.title_ar
-              const problem = (isFr && c.problem_fr) || c.problem_ar
-              const solution = (isFr && c.solution_fr) || c.solution_ar
-              const result = (isFr && c.result_fr) || c.result_ar
+              const cover = coverFor(photosByCase.get(c.id) ?? [], c, baseUrl)
               return (
-                <article key={c.id} className="rounded border border-line bg-surface p-4 sm:p-8">
-                  <div className="flex flex-wrap items-baseline justify-between gap-3">
-                    <h3 className="display text-xl font-semibold">
-                      {title}
-                      {c.is_demo && <DemoBadge label={t.demoBadge} />}
-                    </h3>
-                    <span className="rounded bg-brand-soft px-3 py-1 text-xs font-medium text-brand">
-                      {t.cases.kinds[c.kind] ?? c.kind}
-                    </span>
-                  </div>
-
-                  {(() => {
-                    const groups = groupByStage(photosByCase.get(c.id) ?? [])
-                    if (groups.length === 0) {
-                      // حالة قديمة برابطين يدويين فقط
-                      if (!c.photo_before && !c.photo_after) return null
-                      return (
-                        <div className="-mx-4 mt-5 flex snap-x snap-mandatory gap-3 overflow-x-auto px-4 pb-2 sm:mx-0 sm:grid sm:grid-cols-2 sm:overflow-x-visible sm:px-0 sm:pb-0">
-                          {c.photo_before && (
-                            <figure className="w-60 shrink-0 snap-start sm:w-auto">
-                              <img src={c.photo_before} alt={t.cases.beforeLabel} className="w-full rounded border border-line object-cover" />
-                              <figcaption className="mt-1 text-xs text-faint">{t.cases.beforeLabel}</figcaption>
-                            </figure>
-                          )}
-                          {c.photo_after && (
-                            <figure className="w-60 shrink-0 snap-start sm:w-auto">
-                              <img src={c.photo_after} alt={t.cases.afterLabel} className="w-full rounded border border-line object-cover" />
-                              <figcaption className="mt-1 text-xs text-faint">{t.cases.afterLabel}</figcaption>
-                            </figure>
-                          )}
-                        </div>
-                      )
-                    }
-                    const total = groups.reduce((n, g) => n + g.photos.length, 0)
-                    return (
-                      <section className="mt-5">
-                        <div className="flex items-baseline justify-between gap-3">
-                          <h4 className="text-sm font-medium">{t.cases.albumTitle}</h4>
-                          <span className="num text-xs text-faint">
-                            {fmt(t.cases.photoCount, { n: total })}
-                          </span>
-                        </div>
-                        <p className="mt-0.5 text-xs text-faint">{t.cases.albumLede}</p>
-                        {/* على التليفون: المراحل كلّها شريط أفقي واحد يُسحب
-                            بالإبهام. كلّ مرحلة في سطر مستقلّ كانت تجعل صفحة
-                            إحدى وعشرين حالة ثلاثين ألف بكسل طولاً. فوق sm
-                            يعود التكديس العمودي والشبكة كما كانا. */}
-                        <ol className="-mx-4 mt-3 flex snap-x snap-mandatory gap-5 overflow-x-auto px-4 pb-2 sm:mx-0 sm:flex-col sm:gap-4 sm:overflow-x-visible sm:px-0 sm:pb-0">
-                          {groups.map((g) => (
-                            <li key={g.stage} className="shrink-0 snap-start sm:shrink">
-                              <div className="mb-2 flex items-center gap-2">
-                                <span className="h-2 w-2 rounded-full bg-gold" aria-hidden="true" />
-                                <span className="text-xs font-medium text-gold">
-                                  {t.cases.stage[g.stage]}
-                                </span>
-                              </div>
-                              <div className="flex gap-3 sm:grid sm:grid-cols-2 lg:grid-cols-3">
-                                {g.photos.map((ph) => {
-                                  const caption = (isFr && ph.caption_fr) || ph.caption_ar
-                                  return (
-                                    <figure key={ph.id} className="w-60 shrink-0 sm:w-auto">
-                                      <img
-                                        src={photoPublicUrl(baseUrl, ph.storage_path)}
-                                        alt={caption ?? t.cases.stage[g.stage]}
-                                        loading="lazy"
-                                        className="aspect-[4/3] w-full rounded border border-line object-cover"
-                                      />
-                                      {(caption || ph.taken_at) && (
-                                        <figcaption className="mt-1 flex justify-between gap-2 text-xs text-faint">
-                                          <span>{caption}</span>
-                                          {ph.taken_at && <span className="num">{ph.taken_at}</span>}
-                                        </figcaption>
-                                      )}
-                                    </figure>
-                                  )
-                                })}
-                              </div>
-                            </li>
-                          ))}
-                        </ol>
-                      </section>
-                    )
-                  })()}
-
-                  <dl className="mt-5 space-y-3 text-sm leading-7">
-                    <div>
-                      <dt className="font-medium text-gold">{t.cases.problemLabel}</dt>
-                      <dd className="text-muted">{problem}</dd>
-                    </div>
-                    <div>
-                      <dt className="font-medium text-brand">{t.cases.solutionLabel}</dt>
-                      <dd className="text-muted">{solution}</dd>
-                    </div>
-                    {result && (
-                      <div>
-                        <dt className="font-medium">{t.cases.resultLabel}</dt>
-                        <dd className="text-muted">{result}</dd>
-                      </div>
-                    )}
-                  </dl>
-
-                  <div className="num mt-5 flex flex-wrap gap-x-5 gap-y-1 border-t border-line pt-3 text-xs text-faint">
-                    {c.area_m2 && (
-                      <span>
-                        {t.cases.areaLabel}: {formatNumber(Number(c.area_m2))} m²
-                      </span>
-                    )}
-                    {c.duration_months && (
-                      <span>
-                        {t.cases.durationLabel}: {c.duration_months} {t.cases.months}
-                      </span>
-                    )}
-                    {c.completed_at && <span>{c.completed_at}</span>}
-                  </div>
-                </article>
+                <CaseCard
+                  key={c.id}
+                  href={path(locale, `/realisations/${c.id}`)}
+                  cover={cover?.url ?? null}
+                  photoCount={cover?.count ?? 0}
+                  kindLabel={t.cases.kinds[c.kind] ?? c.kind}
+                  title={(isFr && c.title_fr) || c.title_ar}
+                  meta={metaLine(
+                    { completedAt: c.completed_at, areaM2: c.area_m2, months: c.duration_months },
+                    { m2: t.cases.areaUnit, months: t.cases.months }
+                  )}
+                  place={c.delegation_id ? delegationName.get(c.delegation_id) ?? null : null}
+                  isDemo={c.is_demo}
+                  demoLabel={t.demoBadge}
+                  photosLabel={t.cases.photosShort}
+                />
               )
             })}
           </div>

@@ -49,6 +49,7 @@ export default async function ProprietairePage({
       </section>
 
       <PropertyForm
+        voice={t.voice}
         locale={locale}
         t={t.proprietaire}
         governorates={governorates}

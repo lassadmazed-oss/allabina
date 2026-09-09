@@ -1,5 +1,6 @@
 'use client'
 
+import VoiceRecorder from '@/components/VoiceRecorder'
 import { useActionState, useEffect, useRef, useState } from 'react'
 import CoordsField from '@/components/CoordsField'
 import Modal from '@/components/Modal'
@@ -98,6 +99,7 @@ export default function PropertyForm({
   delegations,
   imadas,
   zones,
+  voice,
 }: {
   locale: Locale
   t: Dictionary['proprietaire']
@@ -105,6 +107,8 @@ export default function PropertyForm({
   delegations: Deleg[]
   imadas: Imada[]
   zones: Zone[]
+  /** نصوص زرّ التسجيل — تُمرَّر صراحةً لا عبر القاموس كاملاً */
+  voice: Dictionary['voice']
 }) {
   const [state, formAction, pending] = useActionState(submitProperty, initial)
   const [v, setV] = useState<Values>(EMPTY)
@@ -515,6 +519,7 @@ export default function PropertyForm({
                 onChange={(e) => set('description', e.target.value)}
                 className={inputCls}
               />
+              <VoiceRecorder name="voiceDescription" t={voice} />
             </Field>
           </div>
 
