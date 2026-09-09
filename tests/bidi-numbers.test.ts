@@ -24,7 +24,9 @@ import { THIN_NBSP, formatMoney, formatNumber, formatRange, formatSignedMoney } 
  * جدول أيقونات. أوّل مرّة استثنينا الوسم وحده، فسقط الاختبار حين
  * انتقلت نفس المسارات إلى ثابت.
  */
-const SVG_PATH_LITERAL = /["'`]\s*[Mm][\d\s.,MmLlHhVvCcSsQqTtAaZz-]{12,}["'`]/
+// يبدأ بأيّ أمر رسم لا بـM وحدها: المسار الطويل يُقسَّم على أسطر، وسطره
+// التالي يبدأ بـL أو C — نفس الإحداثيات، نفس الاستثناء.
+const SVG_PATH_LITERAL = /["'`]\s*[MmLlHhVvCcSsQqTtAaZz][\d\s.,MmLlHhVvCcSsQqTtAaZz-]{12,}["'`]/
 
 /** رقم + فراغ عادي (أو غير قابل للكسر) + رقم = قنبلة موقوتة */
 const PLAIN_SPACE_BETWEEN_DIGITS = /[0-9][  ][0-9]/
