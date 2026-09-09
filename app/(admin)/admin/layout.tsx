@@ -2,6 +2,8 @@ import Link from 'next/link'
 import { getCurrentStaff } from '@/lib/auth'
 import { can, ROLE_LABELS } from '@/lib/permissions'
 import { logoutAction } from '@/lib/actions/auth'
+import { Suspense } from 'react'
+import SaveToast from '@/components/SaveToast'
 
 export const dynamic = 'force-dynamic'
 
@@ -23,6 +25,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     links.push({ href: '/admin/reseau', label: 'شبكة المتدخّلين' })
   }
   if (can(staff.role, 'reference.manage')) {
+    links.push({ href: '/admin/systemes', label: 'طرق البناء' })
     links.push({ href: '/admin/bordereau', label: 'البوردرو' })
     links.push({ href: '/admin/standing', label: 'مستويات التشطيب' })
     links.push({ href: '/admin/partners', label: 'الشركاء' })
@@ -92,6 +95,11 @@ export default async function AdminLayout({ children }: { children: React.ReactN
       )}
 
       {children}
+
+      {/* تأكيد الحفظ — يقرأ ?saved من العنوان ويختفي وحده */}
+      <Suspense fallback={null}>
+        <SaveToast />
+      </Suspense>
     </>
   )
 }

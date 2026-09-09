@@ -39,14 +39,14 @@ export default async function PartnersPage() {
       <Link href="/admin" className="text-sm text-muted hover:text-brand">
         ← لوحة القيادة
       </Link>
-      <h1 className="display mt-2 text-2xl font-semibold">الشركاء</h1>
+      <h1 className="display mt-1 text-lg font-semibold">الشركاء</h1>
       <p className="mt-1 max-w-2xl text-sm leading-7 text-muted">
         كلّ من ينجّم يساهم في حلّ: جهة عمومية، بنك، شركة، باعث، مقاول، مزوّد مواد، أو جمعية.
         الشريك يتسنّدله مهامّ داخل ملفّ الحريف، ويتّبع الفريق تقدّمها.
       </p>
 
       {/* شريك جديد */}
-      <section className="mt-8 rounded border border-line bg-surface p-4 sm:p-6">
+      <section className="mt-4 rounded border border-line bg-surface p-4">
         <h2 className="text-sm font-semibold">إضافة شريك</h2>
         <form action={upsertPartnerAction} className="mt-4 grid gap-4 sm:grid-cols-2">
           <label className="block">

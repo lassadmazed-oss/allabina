@@ -60,7 +60,7 @@ export default async function BordereauPage({
       <Link href="/admin" className="text-sm text-muted hover:text-brand">
         ← لوحة القيادة
       </Link>
-      <h1 className="display mt-2 text-2xl font-semibold">البوردرو وقاعدة الأسعار</h1>
+      <h1 className="display mt-1 text-lg font-semibold">البوردرو وقاعدة الأسعار</h1>
       <p className="mt-1 max-w-3xl text-sm leading-7 text-muted">
         عشرون <span dir="ltr">Lot</span> جاهزة. تزيد تحت كلّ واحد المقالات بأسعارها وصيغة كمّيتها،
         والعروض التقديرية تتولّد منها. <b>ما فمّاش سعر مكتوب في الكود</b> — كل شي من هنا.
@@ -72,7 +72,7 @@ export default async function BordereauPage({
       </div>
 
       {/* الـLots */}
-      <div className="mt-8 flex flex-wrap gap-2 text-sm">
+      <div className="mt-4 flex flex-wrap gap-2 text-sm">
         <Link
           href="/admin/bordereau"
           className={`rounded border px-3 py-1.5 transition ${
@@ -98,7 +98,7 @@ export default async function BordereauPage({
       </div>
 
       {/* مقال جديد */}
-      <section className="mt-8 rounded border border-line bg-surface p-4 sm:p-6">
+      <section className="mt-4 rounded border border-line bg-surface p-4">
         <h2 className="text-sm font-semibold">إضافة مقال</h2>
         <form action={upsertArticleAction} className="mt-4 grid gap-4 sm:grid-cols-3">
           <label className="block">
@@ -164,7 +164,7 @@ export default async function BordereauPage({
       </section>
 
       {/* القائمة */}
-      <div className="mt-8 overflow-x-auto rounded border border-line bg-surface">
+      <div className="mt-4 overflow-x-auto rounded border border-line bg-surface">
         <table className="w-full min-w-[900px] text-sm">
           <thead>
             <tr className="bg-surface-2">

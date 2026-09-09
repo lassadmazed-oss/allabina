@@ -1,6 +1,7 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
+import { savedRedirect } from '@/lib/actions/saved'
 import { staffWithPermission } from '@/lib/auth'
 import { db } from '@/lib/supabase/server'
 
@@ -30,6 +31,7 @@ export async function reviewPropertyAction(formData: FormData) {
 
   revalidatePath('/admin/properties')
   revalidatePath('/admin')
+  await savedRedirect('status')
 }
 
 /** حفظ مطابقة اقترحها المحرّك حتى يتابعها الفريق */

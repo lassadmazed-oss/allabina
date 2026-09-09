@@ -1,6 +1,7 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
+import { savedRedirect } from '@/lib/actions/saved'
 import { staffWithPermission } from '@/lib/auth'
 import { db } from '@/lib/supabase/server'
 import {
@@ -93,6 +94,7 @@ export async function uploadRequestFileAction(
   })
 
   revalidatePath(`/admin/${requestId}`)
+  await savedRedirect('upload')
   return { ok: true }
 }
 

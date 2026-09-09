@@ -1,6 +1,7 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
+import { savedRedirect } from '@/lib/actions/saved'
 import { staffWithPermission } from '@/lib/auth'
 import { db } from '@/lib/supabase/server'
 import { after } from 'next/server'
@@ -47,6 +48,7 @@ export async function updateStatusAction(formData: FormData) {
 
   revalidatePath('/admin')
   revalidatePath(`/admin/${id}`)
+  await savedRedirect('status')
 }
 
 /** إعادة إرسال رمز المطلب لحريف قال إنّه ما وصلوش */
@@ -101,6 +103,7 @@ export async function updateFollowUpAction(formData: FormData) {
 
   revalidatePath(`/admin/${id}`)
   revalidatePath('/admin')
+  await savedRedirect('followup')
 }
 
 /** سؤال، مشكل، اعتراض، طلب خاصّ، مكالمة، ملاحظة */
@@ -122,6 +125,7 @@ export async function addInteractionAction(formData: FormData) {
 
   revalidatePath(`/admin/${id}`)
   revalidatePath('/admin')
+  await savedRedirect('interaction')
 }
 
 export async function resolveInteractionAction(formData: FormData) {
@@ -138,6 +142,7 @@ export async function resolveInteractionAction(formData: FormData) {
 
   revalidatePath(`/admin/${requestId}`)
   revalidatePath('/admin')
+  await savedRedirect('interaction')
 }
 
 /** الوثائق المتوفّرة — تسجيل التوفّر فقط */
@@ -156,6 +161,7 @@ export async function toggleDocumentAction(formData: FormData) {
   if (error) console.error('toggle document', error)
 
   revalidatePath(`/admin/${requestId}`)
+  await savedRedirect('document')
 }
 
 /**

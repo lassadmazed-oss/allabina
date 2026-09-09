@@ -1,6 +1,8 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
+import { savedRedirect } from '@/lib/actions/saved'
+import { redirect } from 'next/navigation'
 import { staffWithPermission } from '@/lib/auth'
 import { db } from '@/lib/supabase/server'
 
@@ -32,6 +34,7 @@ export async function updateStudyTrackAction(formData: FormData) {
 
   revalidatePath(`/admin/${id}`)
   revalidatePath('/admin')
+  await savedRedirect('track')
 }
 
 /** Module 7 — مؤشّرات الحالة الاجتماعية. الأولوية قرار إنسان لا حساب آلي. */
@@ -73,6 +76,7 @@ export async function updateSocialAssessmentAction(formData: FormData) {
   }
 
   revalidatePath(`/admin/${id}`)
+  await savedRedirect('social')
 }
 
 /** Module 7 — عنصر من عناصر الحلّ: أرض، تمويل، مواد، يد عاملة… */
@@ -98,6 +102,7 @@ export async function addContributionAction(formData: FormData) {
 
   if (error) console.error('add contribution', error)
   revalidatePath(`/admin/${id}`)
+  await savedRedirect('solution')
 }
 
 export async function updateContributionAction(formData: FormData) {
@@ -112,6 +117,7 @@ export async function updateContributionAction(formData: FormData) {
 
   if (error) console.error('update contribution', error)
   revalidatePath(`/admin/${requestId}`)
+  await savedRedirect('solution')
 }
 
 /** Module 8 — مهمّة مُسنَدة لشريك أو لعضو فريق */
@@ -138,6 +144,7 @@ export async function addTaskAction(formData: FormData) {
 
   if (error) console.error('add task', error)
   revalidatePath(`/admin/${id}`)
+  await savedRedirect('task')
 }
 
 export async function updateTaskAction(formData: FormData) {
@@ -154,6 +161,7 @@ export async function updateTaskAction(formData: FormData) {
 
   if (error) console.error('update task', error)
   revalidatePath(`/admin/${requestId}`)
+  await savedRedirect('task')
 }
 
 /** Module 8 — إدارة الشركاء */
@@ -179,6 +187,7 @@ export async function upsertPartnerAction(formData: FormData) {
 
   if (error) console.error('upsert partner', error)
   revalidatePath('/admin/partners')
+  await savedRedirect('member')
 }
 
 /**
@@ -229,11 +238,11 @@ export async function upsertCaseStudyAction(formData: FormData) {
 
   if (!payload.title_ar || !payload.problem_ar || !payload.solution_ar) return
 
-  const { error } = id
-    ? await db.from('case_studies').update(payload).eq('id', id)
-    : await db.from('case_studies').insert(payload)
+  const { data: saved, error } = id
+    ? await db.from('case_studies').update(payload).eq('id', id).select('id').single()
+    : await db.from('case_studies').insert(payload).select('id').single()
 
-  if (error) {
+  if (error || !saved) {
     console.error('upsert case study', error)
     return
   }
@@ -241,4 +250,7 @@ export async function upsertCaseStudyAction(formData: FormData) {
   revalidatePath('/admin/cases')
   revalidatePath('/ar/realisations')
   revalidatePath('/fr/realisations')
+
+  // الحالة بلا صور نصف حكاية: نُنزل الفريق مباشرةً على ألبومها
+  redirect(`/admin/cases?case=${saved.id}`)
 }

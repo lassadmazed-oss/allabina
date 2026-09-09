@@ -10,12 +10,12 @@ export default async function AccountPage() {
 
   return (
     <div className="mx-auto max-w-2xl px-4 py-8 sm:px-5 sm:py-10">
-      <h1 className="display text-2xl font-semibold">حسابي</h1>
+      <h1 className="display text-lg font-semibold">حسابي</h1>
       <p className="mt-1 text-sm text-muted" dir="ltr">
         {staff.email}
       </p>
 
-      <div className="mt-6 rounded border border-line bg-surface p-5">
+      <div className="mt-4 rounded border border-line bg-surface p-4">
         <div className="flex items-center gap-2 text-sm">
           <span className="text-muted">الدور:</span>
           <span className="rounded-full bg-brand-soft px-2.5 py-0.5 text-xs text-brand">
@@ -30,14 +30,14 @@ export default async function AccountPage() {
         )}
       </div>
 
-      <div className="mt-4 rounded border border-line bg-surface p-5">
+      <div className="mt-4 rounded border border-line bg-surface p-4">
         <h2 className="text-base font-medium">الاسم</h2>
         <div className="mt-4">
           <NameForm fullName={staff.fullName} />
         </div>
       </div>
 
-      <div className="mt-4 rounded border border-line bg-surface p-5">
+      <div className="mt-4 rounded border border-line bg-surface p-4">
         <h2 className="text-base font-medium">كلمة السرّ</h2>
         {staff.mustChangePassword && (
           <p className="mt-2 rounded border border-[#ecdcb8] bg-gold-soft px-3 py-2 text-sm text-gold">

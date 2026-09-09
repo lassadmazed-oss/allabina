@@ -72,21 +72,21 @@ export default async function TeamPage() {
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8 sm:px-5 sm:py-10">
-      <h1 className="display text-2xl font-semibold">الفريق</h1>
+      <h1 className="display text-lg font-semibold">الفريق</h1>
       <p className="mt-1 text-sm text-muted">
         {members.filter((m) => m.active).length} عضو نشط من جملة {members.length}
       </p>
 
       {/* ---- الأعضاء ---- */}
-      <div className="mt-8 overflow-x-auto rounded border border-line bg-surface">
+      <div className="mt-4 overflow-x-auto rounded border border-line bg-surface">
         <table className="w-full min-w-[860px] text-sm">
           <thead className="border-b border-line bg-surface-2 text-right text-muted">
             <tr>
-              <th className="px-4 py-3 font-medium">العضو</th>
-              <th className="px-4 py-3 font-medium">الدور</th>
-              <th className="px-4 py-3 font-medium">آخر دخول</th>
-              <th className="px-4 py-3 font-medium">الحالة</th>
-              <th className="px-4 py-3 font-medium">إجراءات</th>
+              <th className="px-3 py-2 font-medium">العضو</th>
+              <th className="px-3 py-2 font-medium">الدور</th>
+              <th className="px-3 py-2 font-medium">آخر دخول</th>
+              <th className="px-3 py-2 font-medium">الحالة</th>
+              <th className="px-3 py-2 font-medium">إجراءات</th>
             </tr>
           </thead>
           <tbody>
@@ -97,7 +97,7 @@ export default async function TeamPage() {
 
               return (
                 <tr key={m.user_id} className="border-b border-line last:border-0">
-                  <td className="px-4 py-3">
+                  <td className="px-3 py-2">
                     <div className="font-medium">
                       {m.full_name ?? '—'}
                       {isMe && <span className="mr-2 text-xs text-faint">(أنت)</span>}
@@ -107,7 +107,7 @@ export default async function TeamPage() {
                     </div>
                   </td>
 
-                  <td className="px-4 py-3">
+                  <td className="px-3 py-2">
                     {editable && roles.length > 0 ? (
                       <form action={setRoleAction} className="flex items-center gap-2">
                         <input type="hidden" name="user_id" value={m.user_id} />
@@ -133,9 +133,9 @@ export default async function TeamPage() {
                     )}
                   </td>
 
-                  <td className="px-4 py-3 text-muted">{dt(m.last_login_at)}</td>
+                  <td className="px-3 py-2 text-muted">{dt(m.last_login_at)}</td>
 
-                  <td className="px-4 py-3">
+                  <td className="px-3 py-2">
                     {m.active ? (
                       <span className="text-brand">نشط</span>
                     ) : (
@@ -146,7 +146,7 @@ export default async function TeamPage() {
                     )}
                   </td>
 
-                  <td className="px-4 py-3">
+                  <td className="px-3 py-2">
                     {editable ? (
                       <div className="flex flex-wrap items-center gap-2">
                         <ResetPasswordForm userId={m.user_id} name={m.full_name ?? ''} />
@@ -177,7 +177,7 @@ export default async function TeamPage() {
 
       {/* ---- إضافة عضو ---- */}
       {roles.length > 0 && (
-        <div className="mt-4 rounded border border-line bg-surface p-5">
+        <div className="mt-4 rounded border border-line bg-surface p-4">
           <h2 className="text-base font-medium">إضافة عضو</h2>
           <p className="mt-1 text-sm text-muted">
             يُنشأ الحساب فوراً بكلمة سرّ مؤقّتة تسلّمها للعضو مباشرة — لا تُرسل أيّ رسالة بريد.
@@ -189,7 +189,7 @@ export default async function TeamPage() {
       )}
 
       {/* ---- سجلّ التدقيق ---- */}
-      <div className="mt-4 rounded border border-line bg-surface p-5">
+      <div className="mt-4 rounded border border-line bg-surface p-4">
         <h2 className="text-base font-medium">سجلّ النفاذ</h2>
         <p className="mt-1 text-sm text-muted">آخر {events.length} عملية.</p>
         <ul className="mt-4 space-y-2 text-sm">

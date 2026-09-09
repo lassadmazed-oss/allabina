@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import {
   THIN_NBSP,
+  countAr,
   formatMoney,
   formatNumber,
   formatRange,
@@ -75,5 +76,33 @@ describe('مبلغ بإشارة داخل نصّ عربي', () => {
 
   it('بالفرنسية نفس العزل والعملة DT', () => {
     expect(formatSignedMoney(-2160, 'fr')).toMatch(/⁦−2 160⁩ DT$/)
+  })
+})
+
+describe('العدّ العربي', () => {
+  const F = { one: 'عرض واحد', two: 'عرضان', few: 'عروض', many: 'عرضاً' }
+
+  it('المفرد والمثنى بلا رقم', () => {
+    expect(countAr(1, F)).toBe('عرض واحد')
+    expect(countAr(2, F)).toBe('عرضان')
+  })
+
+  it('جمع القلّة من 3 إلى 10', () => {
+    expect(countAr(5, F)).toContain('عروض')
+    expect(countAr(10, F)).toContain('عروض')
+  })
+
+  it('التمييز المفرد من 11 فما فوق', () => {
+    expect(countAr(11, F)).toContain('عرضاً')
+    expect(countAr(333, F)).toContain('عرضاً')
+  })
+
+  it('الصفر جمع لا مفرد', () => {
+    expect(countAr(0, F)).toContain('عروض')
+  })
+
+  it('المئات تتبع خانتيها: 105 جمع قلّة و112 تمييز مفرد', () => {
+    expect(countAr(105, F)).toContain('عروض')
+    expect(countAr(112, F)).toContain('عرضاً')
   })
 })

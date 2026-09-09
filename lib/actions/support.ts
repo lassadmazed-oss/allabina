@@ -1,6 +1,8 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
+import { attachVoiceNotes } from '@/lib/actions/voice-note'
+import { savedRedirect } from '@/lib/actions/saved'
 import { headers } from 'next/headers'
 import { staffWithPermission } from '@/lib/auth'
 import { db } from '@/lib/supabase/server'
@@ -52,6 +54,7 @@ export async function upsertSupportCaseAction(formData: FormData) {
   revalidatePath(`/admin/${requestId}`)
   revalidatePath('/ar/soutien')
   revalidatePath('/fr/soutien')
+  await savedRedirect('case')
 }
 
 /** قيد جديد في دفتر الشفافية — لا تعديل ولا حذف، التصحيح بقيد جديد */
@@ -90,6 +93,7 @@ export async function addLedgerEntryAction(formData: FormData) {
   revalidatePath('/admin/support')
   revalidatePath('/ar/soutien')
   revalidatePath('/fr/soutien')
+  await savedRedirect('ledger')
 }
 
 export type PledgeState = { ok: boolean; error?: 'banner' | 'rateLimited' | 'server' }
@@ -166,6 +170,7 @@ export async function updatePledgeAction(formData: FormData) {
 
   if (error) console.error('update pledge', error)
   revalidatePath('/admin/support')
+  await savedRedirect('note')
 }
 
 /* ============================================================
@@ -238,6 +243,13 @@ export async function submitSupportRequest(
     return { ok: false, error: 'server' }
   }
 
+
+  // التسجيل الصوتي: رُفع إلى المسوّدة قبل وجود السطر، فيُنقل إليه الآن.
+  // لا يوقف شيئاً إن فشل — الملفّ محفوظ، والصوت خدمة فوقه.
+  const voiceToken = String(formData.get('voiceNeedText') ?? '')
+  if (voiceToken) {
+    await attachVoiceNotes('request', String(inserted.id), voiceToken, 'needText')
+  }
   const { error: socialErr } = await db.from('social_assessments').insert({
     request_id: inserted.id,
     household_size: d.householdSize,

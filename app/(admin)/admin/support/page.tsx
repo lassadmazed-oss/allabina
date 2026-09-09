@@ -160,12 +160,16 @@ export default async function SupportAdminPage({
   })
   const undecided = inbox.filter((x) => !x.decision || x.decision === 'pending').length
 
+  // المطالب التي ما زالت بلا حالة مساندة — هي وحدها ما يُعرض في قائمة الفتح
+  const withCase = new Set(cases.map((c) => c.request_id))
+  const openInbox = inbox.filter((x) => !withCase.has(x.id))
+
   return (
-    <div className="mx-auto max-w-6xl px-5 py-10">
+    <div className="mx-auto max-w-6xl px-4 py-5">
       <Link href="/admin" className="text-sm text-muted hover:text-brand">
         ← لوحة القيادة
       </Link>
-      <h1 className="display mt-2 text-2xl font-semibold">المساندة ودفتر الشفافية</h1>
+      <h1 className="display mt-1 text-lg font-semibold">المساندة ودفتر الشفافية</h1>
       <p className="mt-1 max-w-3xl text-sm leading-7 text-muted">
         ملفّات ما كفاش فيها المسار التجاري وحده. <b>دفتر الشفافية سجلّ إضافي</b>: ما يتعدّلش وما
         يتحذفش — القاعدة نفسها ترفض. التصحيح يكون بقيد جديد. والصفحة العمومية تعرض{' '}
@@ -173,7 +177,7 @@ export default async function SupportAdminPage({
       </p>
 
       {/* قائمة عمل المساندة — طلبات «اطلب مساندة» بدرجتها وقرارها */}
-      <section className="mt-8 rounded border border-line bg-surface">
+      <section className="mt-4 rounded border border-line bg-surface">
         <div className="flex flex-wrap items-baseline justify-between gap-3 border-b border-line px-6 py-4">
           <h2 className="text-sm font-semibold">
             طلبات المساندة الواردة
@@ -189,7 +193,7 @@ export default async function SupportAdminPage({
           <p className="p-8 text-center text-sm text-muted">ما فمّاش طلب مساندة توّا.</p>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[900px] text-sm">
+            <table className="w-full min-w-[720px] text-sm">
               <thead>
                 <tr className="bg-surface-2">
                   <Th>الرمز</Th>
@@ -211,17 +215,28 @@ export default async function SupportAdminPage({
                       </Link>
                       {x.is_demo && <span className="ms-1 text-[10px] text-gold">تجريبي</span>}
                     </td>
-                    <td className="px-4 py-3">{x.full_name}</td>
-                    <td className="px-4 py-3 text-xs">{x.delegation_id ? delegName.get(x.delegation_id) ?? '—' : '—'}</td>
-                    <td className="px-4 py-3">
+                    <td className="px-3 py-2">{x.full_name}</td>
+                    <td className="px-3 py-2 text-xs">{x.delegation_id ? delegName.get(x.delegation_id) ?? '—' : '—'}</td>
+                    <td className="px-3 py-2">
                       <span className={`rounded px-2 py-0.5 text-xs ${x.urgency === 'critical' ? 'bg-[#fbeeeb] text-[#8c2f22]' : x.urgency === 'urgent' ? 'bg-gold-soft text-gold' : 'bg-surface-2 text-muted'}`}>
                         {URGENCY_AR[x.urgency ?? ''] ?? '—'}
                       </span>
                     </td>
-                    <td className="max-w-xs px-4 py-3 text-xs leading-5 text-muted">
-                      {x.problem_note ? (x.problem_note.length > 110 ? x.problem_note.slice(0, 110) + '…' : x.problem_note) : '—'}
+                    <td className="px-4 py-3 text-xs leading-5 text-muted">
+                      {x.problem_note ? (
+                        <span
+                          title={x.problem_note}
+                          className="block max-w-[22rem] [overflow-wrap:anywhere]"
+                        >
+                          {x.problem_note.length > 90
+                            ? x.problem_note.slice(0, 90) + '…'
+                            : x.problem_note}
+                        </span>
+                      ) : (
+                        '—'
+                      )}
                     </td>
-                    <td className="px-4 py-3">
+                    <td className="px-3 py-2">
                       {x.band ? (
                         <span className={`rounded px-2 py-0.5 text-xs ${BAND_CLS[x.band]}`}>
                           <span className="num">{x.total}</span> · {BAND_AR[x.band as Band]}
@@ -234,7 +249,7 @@ export default async function SupportAdminPage({
                       {x.checks_done ?? 0}/4
                       {x.inconsistencies_found && <span className="ms-1 text-[#8c2f22]" title="تناقض مرصود">⚠</span>}
                     </td>
-                    <td className="px-4 py-3 text-xs">
+                    <td className="px-3 py-2 text-xs">
                       {x.decision && x.decision !== 'pending' ? DECISION_AR[x.decision as Decision] : <span className="text-gold">بانتظار القرار</span>}
                     </td>
                   </tr>
@@ -246,7 +261,7 @@ export default async function SupportAdminPage({
       </section>
 
       {/* صندوق التعهّدات الواردة */}
-      <section className="mt-8 rounded border border-line bg-surface">
+      <section className="mt-4 rounded border border-line bg-surface">
         <div className="flex flex-wrap items-baseline justify-between gap-3 border-b border-line px-6 py-4">
           <h2 className="text-sm font-semibold">
             تعهّدات واردة من العموم
@@ -277,20 +292,20 @@ export default async function SupportAdminPage({
               <tbody>
                 {pledges.map((p) => (
                   <tr key={p.id} className="border-t border-line align-top">
-                    <td className="px-4 py-3 font-medium">{p.full_name}</td>
+                    <td className="px-3 py-2 font-medium">{p.full_name}</td>
                     <td className="num px-4 py-3 text-xs" dir="ltr">
                       {p.phone}
                       {p.email && <div className="text-faint">{p.email}</div>}
                     </td>
-                    <td className="px-4 py-3">{KIND_LABELS[p.kind] ?? p.kind}</td>
-                    <td className="px-4 py-3">
+                    <td className="px-3 py-2">{KIND_LABELS[p.kind] ?? p.kind}</td>
+                    <td className="px-3 py-2">
                       {p.label}
                       {p.note && <div className="mt-1 text-xs text-faint">{p.note}</div>}
                     </td>
-                    <td className="num px-4 py-3 text-xs text-faint">
+                    <td className="num px-3 py-2 text-xs text-faint">
                       {p.created_at.slice(0, 10)}
                     </td>
-                    <td className="px-4 py-3">
+                    <td className="px-3 py-2">
                       <form action={updatePledgeAction} className="flex items-center gap-2">
                         <input type="hidden" name="pledge_id" value={p.id} />
                         <select
@@ -318,21 +333,43 @@ export default async function SupportAdminPage({
       </section>
 
       {/* حالة جديدة */}
-      <section className="mt-8 rounded border border-line bg-surface p-6">
+      <section className="mt-4 rounded border border-line bg-surface p-4">
         <h2 className="text-sm font-semibold">فتح حالة تحتاج مساندة</h2>
         <p className="mt-1 text-xs leading-6 text-muted">
-          العنوان يوصف <b>الحاجة</b> لا الشخص. رقم المطلب تلقاه في صفحة المطلب.
+          العنوان يوصف <b>الحاجة</b> لا الشخص. اختار المطلب من القائمة — هي نفسها
+          الطلبات الواردة فوق، بلا تلك اللي تحوّلت لحالة.
         </p>
         <form action={upsertSupportCaseAction} className="mt-4 grid gap-4 sm:grid-cols-2">
           <label className="block sm:col-span-2">
-            <span className="mb-1.5 block text-xs text-muted">معرّف المطلب (UUID)</span>
-            <input
-              name="request_id"
-              required
-              dir="ltr"
-              defaultValue={prefillRequestId ?? ''}
-              className={inputCls}
-            />
+            <span className="mb-1.5 block text-xs text-muted">المطلب</span>
+            {openInbox.length === 0 ? (
+              <input
+                name="request_id"
+                required
+                dir="ltr"
+                defaultValue={prefillRequestId ?? ''}
+                placeholder="معرّف المطلب"
+                className={inputCls}
+              />
+            ) : (
+              <select
+                name="request_id"
+                required
+                defaultValue={prefillRequestId ?? ''}
+                className={inputCls}
+              >
+                <option value="" disabled>
+                  اختار مطلباً
+                </option>
+                {openInbox.map((x) => (
+                  <option key={x.id} value={x.id}>
+                    {x.ref_code} · {x.full_name}
+                    {x.delegation_id ? ` · ${delegName.get(x.delegation_id) ?? ''}` : ''}
+                    {x.urgency ? ` · ${URGENCY_AR[x.urgency] ?? ''}` : ''}
+                  </option>
+                ))}
+              </select>
+            )}
           </label>
           <label className="block sm:col-span-2">
             <span className="mb-1.5 block text-xs text-muted">العنوان (عربي)</span>
@@ -405,7 +442,20 @@ export default async function SupportAdminPage({
           </p>
         )}
 
-        {cases.map((c) => {
+        {[...cases]
+          .sort((a, b) => {
+            // ما بقيت فيه حاجيات مفتوحة أكثر يظهر أوّلاً — الشاشة ترتّب العمل
+            const open = (c: SupportCase) => {
+              const r = byRequest.get(c.request_id) ?? []
+              const needs = r.filter((x) => x.event === 'needed').length
+              const done = new Set(
+                r.filter((x) => x.event === 'delivered' && x.need_id).map((x) => x.need_id)
+              ).size
+              return needs - done
+            }
+            return open(b) - open(a)
+          })
+          .map((c) => {
           const rows = byRequest.get(c.request_id) ?? []
           const needs = rows.filter((r) => r.event === 'needed')
           const covered = new Set(
@@ -417,7 +467,7 @@ export default async function SupportAdminPage({
             .reduce((s, r) => s + Number(r.value_tnd ?? 0), 0)
 
           return (
-            <article key={c.id} className="rounded border border-line bg-surface p-6">
+            <article key={c.id} className="rounded border border-line bg-surface p-4">
               <div className="flex flex-wrap items-baseline justify-between gap-3">
                 <h3 className="font-semibold">{c.title_ar}</h3>
                 <div className="flex flex-wrap items-center gap-2 text-xs">
@@ -465,10 +515,14 @@ export default async function SupportAdminPage({
                 )}
               </div>
 
-              {/* قيد جديد */}
+              {/* قيد جديد — مطوي حتى لا تصير الصفحة جداراً من النماذج */}
+              <details className="mt-4 rounded border border-line bg-surface-2">
+                <summary className="cursor-pointer list-none px-4 py-2.5 text-sm font-medium text-brand hover:bg-surface">
+                  + زيد قيد في دفتر هالحالة
+                </summary>
               <form
                 action={addLedgerEntryAction}
-                className="mt-5 grid gap-3 rounded border border-line bg-surface-2 p-4 sm:grid-cols-6"
+                className="grid gap-3 border-t border-line p-4 sm:grid-cols-6"
               >
                 <input type="hidden" name="request_id" value={c.request_id} />
                 <label className="block sm:col-span-1">
@@ -555,6 +609,7 @@ export default async function SupportAdminPage({
                   زيد قيد في الدفتر
                 </button>
               </form>
+              </details>
 
               {/* الدفتر */}
               {rows.length > 0 && (
@@ -584,7 +639,7 @@ export default async function SupportAdminPage({
               )}
             </article>
           )
-        })}
+          })}
       </section>
     </div>
   )

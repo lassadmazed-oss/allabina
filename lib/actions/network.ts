@@ -1,10 +1,12 @@
 'use server'
 
 import { redirect } from 'next/navigation'
+import { attachVoiceNotes } from '@/lib/actions/voice-note'
 import { after } from 'next/server'
 import { sendNetworkConfirmation } from '@/lib/sms/winsms'
 import { headers } from 'next/headers'
 import { revalidatePath } from 'next/cache'
+import { savedRedirect } from '@/lib/actions/saved'
 import { db } from '@/lib/supabase/server'
 import { staffWithPermission } from '@/lib/auth'
 import { intervenantSchema } from '@/lib/network-schema'
@@ -106,6 +108,13 @@ export async function joinNetwork(
 
   const id = inserted.id
 
+  // التسجيل الصوتي: رُفع إلى المسوّدة قبل وجود السطر، فيُنقل إليه الآن.
+  // لا يوقف شيئاً إن فشل — الملفّ محفوظ، والصوت خدمة فوقه.
+  const voiceToken = String(formData.get('voiceBio') ?? '')
+  if (voiceToken) {
+    await attachVoiceNotes('intervenant', String(id), voiceToken, 'bio')
+  }
+
   // الروابط المتعدّدة — فشلها لا يُسقط التسجيل، الملفّ الأساسي محفوظ
   const links: PromiseLike<unknown>[] = []
   if (d.skillIds.length) {
@@ -189,6 +198,7 @@ export async function setIntervenantStatusAction(formData: FormData) {
 
   revalidatePath('/admin/reseau')
   revalidatePath(`/admin/reseau/${id}`)
+  await savedRedirect('net_status')
 }
 
 /** ملاحظة داخلية على الملفّ */
@@ -209,6 +219,7 @@ export async function addIntervenantNoteAction(formData: FormData) {
 
   revalidatePath('/admin/reseau')
   revalidatePath(`/admin/reseau/${id}`)
+  await savedRedirect('note')
 }
 
 /** تحديث التوفّر من طرف الفريق (المتدخّل يحدّثه بنفسه لاحقاً من لوحته) */
@@ -231,4 +242,5 @@ export async function setAvailabilityAction(formData: FormData) {
 
   revalidatePath('/admin/reseau')
   revalidatePath(`/admin/reseau/${id}`)
+  await savedRedirect('availability')
 }

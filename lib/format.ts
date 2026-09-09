@@ -86,3 +86,26 @@ export function formatSignedMoney(value: number, locale: Locale = 'ar'): string 
   const number = formatNumber(Math.abs(Math.round(value)))
   return `${LRI}${sign}${number}${PDI}${THIN_NBSP}${currencyLabel(locale)}`
 }
+
+/**
+ * عدّ عربي سليم: «عرض واحد» و«عرضان» و«5 عروض» و«12 عرضاً».
+ *
+ * الشاشات كانت تكتب «5 عرض» و«0 مقالاً» — تُفهم لكنّها تُقرأ ركيكة،
+ * وهذه شاشات يقرأها الفريق عشرات المرّات في اليوم. القاعدة العربية:
+ * 1 مفرد · 2 مثنى · 3–10 جمع · 11 فما فوق تمييز مفرد منصوب.
+ */
+export function countAr(
+  n: number,
+  forms: { one: string; two: string; few: string; many: string }
+): string {
+  if (!Number.isFinite(n)) return '—'
+  const count = Math.abs(Math.trunc(n))
+  if (count === 1) return forms.one
+  if (count === 2) return forms.two
+  const mod100 = count % 100
+  // الصفر يُكتب في الواجهات جمعاً: «0 عروض» أهون على القراءة من التمييز المفرد
+  if (count === 0) return `${formatNumber(0)}${THIN_NBSP}${forms.few}`
+  // 3–10 وكذلك 103–110 وأمثالها: جمع القلّة
+  if (mod100 >= 3 && mod100 <= 10) return `${formatNumber(count)}${THIN_NBSP}${forms.few}`
+  return `${formatNumber(count)}${THIN_NBSP}${forms.many}`
+}
