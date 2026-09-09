@@ -1,0 +1,22 @@
+# فحص كلّ دفعة على GitHub: tsc والاختبارات على الشفرة كما وصلت.
+# البناء الكامل يجري على Vercel؛ هنا الحارس الذي يحمرّ على الالتزام المكسور
+# حتّى لو تجاوز أحدهم خطّاف pre-push.
+name: checks
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npx tsc --noEmit
+      - run: npx vitest run

@@ -1,0 +1,16 @@
+#!/bin/sh
+# يمنع دفع التزام لا يمرّ tsc والاختبارات.
+# يُفحص الالتزام الذي يُدفع (شجرته المصدَّرة) لا مجلّد العمل، فعمل جلسة
+# أخرى غير ملتزَم لا يعطّل الدفع ولا يتسرّب إليه.
+# للتجاوز في حالة طوارئ: SKIP_TREE_CHECK=1 git push
+
+[ -n "$SKIP_TREE_CHECK" ] && exit 0
+
+zero=0000000000000000000000000000000000000000
+while read -r local_ref local_sha remote_ref remote_sha; do
+  [ "$local_sha" = "$zero" ] && continue
+  case "$local_ref" in
+    refs/heads/*) node scripts/check-tree.mjs "$local_sha" </dev/null || exit 1 ;;
+  esac
+done
+exit 0

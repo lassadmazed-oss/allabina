@@ -88,7 +88,9 @@ describe('المكوّنات والصفحات', () => {
         if (/viewBox|\bd="M|strokeWidth|<path|^\s*\*|^\s*\/\//.test(line)) return
         // ومسار SVG مخزّن في ثابت — نفس الأرقام، خارج الوسم
         if (SVG_PATH_LITERAL.test(line)) return
-        if (PLAIN_SPACE_BETWEEN_DIGITS.test(line)) {
+        // أصناف Tailwind (px-5 2xl:…) ليست نصّاً يُقرأ: تُفرَّغ قيمة className قبل الفحص
+        const visible = line.replace(/className=(?:"[^"]*"|'[^']*'|{`[^`]*`})/g, 'className=""')
+        if (PLAIN_SPACE_BETWEEN_DIGITS.test(visible)) {
           bad.push(`${f.replace(/\\/g, '/')}:${i + 1}  ${line.trim().slice(0, 90)}`)
         }
       })

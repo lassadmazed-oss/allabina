@@ -139,13 +139,39 @@ node scripts/create-owner.mjs allabina@gmail.com
 
 ## النشر
 
-المتغيّرات المطلوبة في بيئة الإنتاج:
+الإنتاج على Vercel (المشروع `app1`، الموقع www.allabina.site). **الدفع إلى GitHub وحده لا ينشر** ما دام
+المشروع غير مربوط بالمستودع؛ الطريق الوحيد هو سكربت النشر، وفيه صمّامات الأمان كلّها:
+
+```bash
+npm run release            # ينشر HEAD إلى الإنتاج
+npm run release:preview    # رابط معاينة مؤقّت، لا يمسّ الموقع
+npm run rollback           # يرجع إلى الدبّوس السابق (أو: npm run rollback -- prod/2026-09-09-2015)
+npm run release -- --status
+```
+
+ما يفعله `release` بالترتيب، ويتوقّف عند أوّل فشل دون أن يمسّ الموقع:
+
+1. يرفض إلّا من `main` ومن التزام موجود على GitHub — لا شفرة محلّية غير مدفوعة.
+2. يصدّر **شجرة الالتزام** إلى مجلّد مؤقّت ويعمل عليها، لا على مجلّد العمل (عمل جلسة أخرى نصف منتهٍ لا يتسرّب).
+3. يمرّر `tsc` والاختبارات على تلك الشجرة.
+4. يرفع الأرشيف إلى Vercel (`.vercelignore` يمنع `.env` وملفّات العمل).
+5. اختبار دخاني على الموقع الحيّ؛ إن فشل **يرجع تلقائياً** إلى الدبّوس السابق.
+6. يدقّ **دبّوساً**: وسم `prod/<تاريخ>` على الالتزام برابط النشر، يُدفع إلى GitHub. كلّ ما كان حيّاً يوماً له مسمار.
+
+قبل ذلك كلّه، خطّاف `pre-push` (يُفعَّل بـ `npm install`) يفحص كلّ التزام يُدفع بالطريقة نفسها، وGitHub Actions
+يعيد `tsc` والاختبارات على كلّ دفعة. للطوارئ فقط: `SKIP_TREE_CHECK=1 git push`.
+
+يحتاج السكربت جلسة `vercel login` على الجهاز (أو `VERCEL_TOKEN` في `.env` — لا يُلصق مفتاح في محادثة أبداً).
+
+المتغيّرات المطلوبة في بيئة الإنتاج (Vercel → Settings → Environment Variables):
 
 | المتغيّر | ملاحظة |
 |---|---|
 | `NEXT_PUBLIC_SUPABASE_URL` · `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | عامّة، تصل المتصفّح |
-| `SUPABASE_SECRET_KEY` | **خادم فقط** — لا يُوضع في متغيّر `NEXT_PUBLIC_` |
-| `NEXT_PUBLIC_SITE_URL` | مثال: `https://allabina.tn` |
+| `SUPABASE_URL` · `SUPABASE_SECRET_KEY` | **خادم فقط** — لا يُوضع في متغيّر `NEXT_PUBLIC_` |
+| `NEXT_PUBLIC_SITE_URL` | `https://www.allabina.site` |
+| `WINSMS_API_KEY` · `WINSMS_SENDER` | بدونهما لا تُرسل أيّ رسالة قصيرة (يفشل بهدوء) |
+| `SMS_ENABLED` | اتركه غير معرَّف في الإنتاج؛ `false` يغلق الإرسال كلّياً |
 | `DATABASE_PASSWORD` | للـmigrations فقط، ليس للتطبيق |
 
 ## نقاط تحتاج قراراً قبل الإطلاق
