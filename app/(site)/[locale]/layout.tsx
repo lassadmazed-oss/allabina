@@ -7,6 +7,7 @@ import '../../globals.css'
 import LangSwitch from '@/components/LangSwitch'
 import MobileNav from '@/components/MobileNav'
 import BackButton from '@/components/BackButton'
+import NumericFocusSelect from '@/components/NumericFocusSelect'
 import MobileCta from '@/components/MobileCta'
 import DesktopNav, { type DesktopNavItem } from '@/components/DesktopNav'
 import { IcArrow, IcTrack } from '@/components/landing/icons'
@@ -220,6 +221,7 @@ export default async function SiteLayout({
           </div>
         </header>
 
+        <NumericFocusSelect />
         <main>{children}</main>
 
         {/* التذييل: دعوة أخيرة، ثمّ الهوية وثلاث مجموعات روابط بعناوينها، ثمّ السطر القانوني */}

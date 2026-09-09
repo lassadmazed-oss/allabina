@@ -2,6 +2,8 @@
 
 import VoiceRecorder from '@/components/VoiceRecorder'
 import { Chip, Choice, Field, Group, Stepper } from '@/components/form-controls'
+import { isValidPhone, toAsciiDigits } from '@/lib/digits'
+import { FIELD_STEP } from '@/lib/request-flow'
 import Modal from '@/components/Modal'
 import { useActionState, useEffect, useMemo, useRef, useState } from 'react'
 import { submitRequest, type SubmitState } from '@/lib/actions/request'
@@ -59,63 +61,6 @@ const LAND_AREAS = [200, 300, 400, 500]
 /** الزيادات — كلّ واحدة عمود في project_configs ومتغيّر في صيغ البوردرو */
 const EXTRAS = ['garage', 'terrasse', 'jardin', 'cloture', 'majel', 'piscine', 'annexe', 'solar', 'ascenseur'] as const
 
-/** أيّ خطوة يقع فيها كلّ حقل — يستعملها الرجوع التلقائي عند الخطأ */
-const FIELD_STEP: Record<string, number> = {
-  requestType: 1,
-  govCode: 2,
-  delegationId: 2,
-  imadaId: 2,
-  landLocation: 2,
-  desiredAreaM2: 2,
-  desiredLandM2: 2,
-  bedrooms: 2,
-  horizon: 2,
-  standing: 2,
-  constructionSystem: 2,
-  apartmentState: 2,
-  floorPref: 2,
-  works: 2,
-  currentAreaM2: 2,
-  extensionAreaM2: 2,
-  inUrbanPlan: 3,
-  existingBuilding: 3,
-  hasPlans: 3,
-  ownership: 3,
-  buildingAge: 3,
-  homeTitleStatus: 3,
-  homePermit: 3,
-  landAreaM2: 3,
-  titleStatus: 3,
-  hasWater: 3,
-  hasPower: 3,
-  hasRoad: 3,
-  hasPermit: 3,
-  levels: 2,
-  bathrooms: 2,
-  livingRooms: 2,
-  kitchens: 2,
-  householdSize: 4,
-  dependents: 4,
-  housingCondition: 4,
-  rentTnd: 4,
-  incomeStability: 4,
-  problemType: 4,
-  financingState: 4,
-  monthlyIncome: 5,
-  spouseIncome: 5,
-  otherIncome: 5,
-  existingLoans: 5,
-  downPayment: 5,
-  maxMonthly: 5,
-  employment: 5,
-  seniorityYears: 5,
-  isExpat: 5,
-  expatCountry: 5,
-  fullName: 6,
-  phone: 6,
-  email: 6,
-  consent: 6,
-}
 
 
 /**
@@ -259,10 +204,16 @@ export default function RequestForm({
     try {
       const saved = localStorage.getItem(STORAGE_KEY)
       if (saved) {
+        const draft = JSON.parse(saved) as Record<string, string | boolean>
         setValues((v) => ({
-          ...JSON.parse(saved),
+          ...draft,
           ...(v.requestType ? { requestType: v.requestType } : {}),
         }))
+        // حقول الاتّصال غير مقيَّدة، فالمسوّدة تُكتب فيها بأيدينا
+        for (const k of UNCONTROLLED) {
+          const el = formRef.current?.elements.namedItem(k)
+          if (el instanceof HTMLInputElement && draft[k]) el.value = String(draft[k])
+        }
       }
     } catch {}
   }, [isEdit])
@@ -282,12 +233,50 @@ export default function RequestForm({
    * يقرأ شكوى كاذبة مرّة يكفّ عن قراءة اللافتة أصلاً.
    */
   const [fixedFields, setFixedFields] = useState<string[]>([])
+  /** مشاكل وجدناها نحن قبل الإرسال (الاتّصال) — لا من الخادم */
+  const [localFields, setLocalFields] = useState<string[]>([])
 
   const set = (k: string, v: string | boolean) => {
     setValues((s) => ({ ...s, [k]: v }))
     setFixedFields((f) => (f.includes(k) ? f : [...f, k]))
   }
   const num = (k: string) => Number(values[k] || 0)
+
+  /**
+   * يقرأ ما في الحقول فعلاً إلى الحالة.
+   *
+   * الملء التلقائي في بعض المتصفّحات (الهاتف خاصّة) يكتب الاسم والهاتف في
+   * الحقل ولا يخبر React، فتبقى الحالة فارغة: الملخّص لا يرى الاتّصال،
+   * ثمّ يُعاد الرسم فيُمحى المكتوب ويصل الخادم فارغاً — وقع فعلاً.
+   */
+  const syncFromDom = () => {
+    const form = formRef.current
+    if (!form) return values
+    const next = { ...values }
+    for (const el of Array.from(form.elements)) {
+      if (!(el instanceof HTMLInputElement) || !el.name) continue
+      if (el.type === 'checkbox') {
+        if (el.name === 'consent') next.consent = el.checked
+        continue
+      }
+      if (el.type === 'hidden' || el.type === 'radio' || el.type === 'file') continue
+      if (el.value !== String(next[el.name] ?? '')) next[el.name] = el.value
+    }
+    setValues(next)
+    return next
+  }
+
+  /** ما ينقص في الاتّصال — نفس شروط الخادم، قبل أن نزعجه */
+  const contactProblems = (v: Record<string, string | boolean>) => {
+    const bad: string[] = []
+    if (String(v.fullName ?? '').trim().length < 3) bad.push('fullName')
+    if (!isValidPhone(String(v.phone ?? ''))) bad.push('phone')
+    if (!v.consent) bad.push('consent')
+    return bad
+  }
+
+  const focusField = (name: string) =>
+    window.setTimeout(() => formRef.current?.querySelector<HTMLElement>(`[name="${name}"]`)?.focus(), 250)
   const perM2 = perM2Label(locale)
   const m2 = areaLabel(locale)
 
@@ -558,7 +547,14 @@ export default function RequestForm({
     // قسم بلا جواب واحد لا يُعرض: الملخّص يقول ما قاله، لا ما سكت عنه
     return rows
       .filter((r) => order.includes(r.step))
-      .map((r) => ({ ...r, items: r.items.filter(([, v]) => v) }))
+      // الاتّصال يُعرض دائماً — مطلوب، وغيابه يُقال بشرطة لا بالصمت
+      .map((r) => ({
+        ...r,
+        items:
+          r.section === 'contact'
+            ? r.items.map(([k, v]): [string, string] => [k, v || '—'])
+            : r.items.filter(([, v]) => v),
+      }))
       .filter((r) => r.items.length > 0)
   }, [values, docSections, docs, order, selectedTier, wantsLand, governorates, delegations, labels, t, m2, locale])
 
@@ -596,7 +592,9 @@ export default function RequestForm({
   }
 
   /** خطأ ما زال قائماً: من القاعدة، ولم يمسّه الحريف بعد */
-  const openFields = (state.fields ?? []).filter((f) => !fixedFields.includes(f))
+  const openFields = [...new Set([...(state.fields ?? []), ...localFields])].filter(
+    (f) => !fixedFields.includes(f)
+  )
 
   const err = (k: string) =>
     openFields.includes(k)
@@ -627,9 +625,10 @@ export default function RequestForm({
    * حتّى الإرسال التالي، فتبقى اللافتة قائمة بعد أن يزول سببها.
    * أمّا أخطاء الخادم والحدّ الزمني فتُعرض دائماً — ليست عن حقل.
    */
-  const isFieldError = state.error === 'banner'
+  const isFieldError = state.error === 'banner' || localFields.length > 0
   const showBanner = Boolean(
-    state.error && (!isFieldError || badFields.length > 0 || elsewhereStep !== undefined)
+    (state.error || localFields.length > 0) &&
+      (!isFieldError || badFields.length > 0 || elsewhereStep !== undefined)
   )
 
   useEffect(() => {
@@ -719,6 +718,17 @@ export default function RequestForm({
         const submitter = (e.nativeEvent as SubmitEvent).submitter
         if (!submitter?.hasAttribute('data-confirm')) {
           e.preventDefault()
+          // ما في الحقول فعلاً، ثمّ الاتّصال قبل الملخّص: الخادم آخر من يكتشف نقصاً
+          const synced = syncFromDom()
+          const missing = contactProblems(synced)
+          if (missing.length) {
+            setLocalFields(missing)
+            setStep(6)
+            window.scrollTo({ top: 0, behavior: 'smooth' })
+            focusField(missing[0])
+            return
+          }
+          setLocalFields([])
           setRecapOpen(true)
         }
       }}
@@ -779,7 +789,7 @@ export default function RequestForm({
         >
           {isFieldError && badFields.length === 0 && elsewhereStep !== undefined
             ? fmt(t.errors.elsewhere, { step: steps[order.indexOf(elsewhereStep)] ?? '' })
-            : t.errors[state.error!] ?? t.genericError}
+            : t.errors[state.error ?? 'banner'] ?? t.genericError}
           {badFields.length > 0 && (
             <ul className="mt-2 flex flex-wrap gap-x-2 gap-y-1">
               {badFields.map((f) => (
@@ -1165,7 +1175,7 @@ export default function RequestForm({
 
             {flow.has('bedrooms') && (
               <div className="mt-5 grid gap-4 sm:grid-cols-2">
-                <Field label={t.bedrooms} hint={t.optional} error={err('bedrooms')}>
+                <Field as="div" label={t.bedrooms} hint={t.optional} error={err('bedrooms')}>
                   <Stepper name="bedrooms" min={1} max={6} value={values.bedrooms} onChange={(v) => set('bedrooms', v)} />
                 </Field>
               </div>
@@ -1272,17 +1282,17 @@ export default function RequestForm({
             {(flow.has('bathrooms') || flow.has('livingRooms') || flow.has('kitchens')) && (
               <div className="mt-5 grid gap-4 sm:grid-cols-3">
                 {flow.has('bathrooms') && (
-                  <Field label={t.bathrooms} hint={t.optional} error={err('bathrooms')}>
+                  <Field as="div" label={t.bathrooms} hint={t.optional} error={err('bathrooms')}>
                     <Stepper name="bathrooms" min={1} max={6} value={values.bathrooms} onChange={(v) => set('bathrooms', v)} />
                   </Field>
                 )}
                 {flow.has('livingRooms') && (
-                  <Field label={t.livingRooms} hint={t.optional} error={err('livingRooms')}>
+                  <Field as="div" label={t.livingRooms} hint={t.optional} error={err('livingRooms')}>
                     <Stepper name="livingRooms" min={1} max={4} value={values.livingRooms} onChange={(v) => set('livingRooms', v)} />
                   </Field>
                 )}
                 {flow.has('kitchens') && (
-                  <Field label={t.kitchens} hint={t.optional} error={err('kitchens')}>
+                  <Field as="div" label={t.kitchens} hint={t.optional} error={err('kitchens')}>
                     <Stepper name="kitchens" min={1} max={3} value={values.kitchens} onChange={(v) => set('kitchens', v)} />
                   </Field>
                 )}
@@ -1809,7 +1819,7 @@ export default function RequestForm({
           {err('employment') && <p className="mt-2 text-sm text-[#8c2f22]">{err('employment')}</p>}
 
           <div className="mt-4 grid gap-4 sm:grid-cols-2">
-            <Field label={t.seniority} hint={t.optional}>
+            <Field as="div" label={t.seniority} hint={t.optional}>
               <Stepper name="seniorityYears" min={0} max={50} value={values.seniorityYears} onChange={(v) => set('seniorityYears', v)} />
             </Field>
             <div>
@@ -1867,7 +1877,7 @@ export default function RequestForm({
           ))}
           {values.cnssAffiliated === true && (
             <div className="mt-3">
-              <Field label={t.cnssYears} hint={t.optional}>
+              <Field as="div" label={t.cnssYears} hint={t.optional}>
                 <Stepper name="cnssYears" min={0} max={60} value={values.cnssYears} onChange={(v) => set('cnssYears', v)} />
               </Field>
             </div>
@@ -1882,13 +1892,17 @@ export default function RequestForm({
       <fieldset className={step === 6 ? 'block' : 'hidden'}>
         <legend className="display mb-1 text-xl font-semibold">{t.s5Title}</legend>
         <p className="mb-4 text-sm text-muted">{t.s5Lede}</p>
+        {/* حقول الاتّصال غير مقيَّدة (defaultValue): الملء التلقائي على الهاتف يكتب
+            فيها ولا يخبر React، وأيّ إعادة رسم بعده — نقرة الموافقة مثلاً — كانت
+            تمحو المكتوب. هكذا يبقى في الحقل، ويُقرأ منه قبل الملخّص وعند الإرسال. */}
         <Group title={t.grpContact}>
         <div className="grid gap-4 sm:grid-cols-2">
           <Field label={t.fullName} required error={err('fullName')}>
             <input
               type="text"
               name="fullName"
-              value={String(values.fullName ?? '')}
+              autoComplete="name"
+              defaultValue={String(values.fullName ?? '')}
               onChange={(e) => set('fullName', e.target.value)}
               className={inputCls}
             />
@@ -1898,9 +1912,10 @@ export default function RequestForm({
               type="tel"
               inputMode="tel"
               name="phone"
+              autoComplete="tel"
               dir="ltr"
-              value={String(values.phone ?? '')}
-              onChange={(e) => set('phone', e.target.value)}
+              defaultValue={String(values.phone ?? '')}
+              onChange={(e) => set('phone', toAsciiDigits(e.target.value))}
               className={inputCls}
             />
           </Field>
@@ -1909,8 +1924,9 @@ export default function RequestForm({
               <input
                 type="email"
                 name="email"
+                autoComplete="email"
                 dir="ltr"
-                value={String(values.email ?? '')}
+                defaultValue={String(values.email ?? '')}
                 onChange={(e) => set('email', e.target.value)}
                 className={inputCls}
               />
@@ -2116,7 +2132,7 @@ export default function RequestForm({
           </button>
           <button
             type="button"
-            disabled={pending}
+            disabled={pending || contactProblems(values).length > 0}
             onClick={() => {
               setRecapOpen(false)
               formRef.current?.requestSubmit(
@@ -2136,6 +2152,9 @@ export default function RequestForm({
 
 const inputCls =
   'w-full rounded-lg border border-line bg-surface px-3 py-2 text-[15px] outline-none transition focus:border-brand'
+
+/** الحقول التي يملؤها المتصفّح تلقائياً — تُترك غير مقيَّدة */
+const UNCONTROLLED = ['fullName', 'phone', 'email'] as const
 
 
 function Stat({ label, value }: { label: string; value: string }) {

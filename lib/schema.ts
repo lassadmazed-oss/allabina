@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { normalizePhone, toAsciiDigits } from '@/lib/digits'
 import { HOUSING_CONDITIONS, INCOME_STABILITY } from '@/lib/support-schema'
 import {
   APARTMENT_STATES,
@@ -98,21 +99,29 @@ export const TITLE_STATUSES = ['titled', 'in_progress', 'undivided', 'other'] as
  */
 export const STANDING_CODE = /^[A-Za-z0-9_-]{1,20}$/
 
-const num = (min: number, max: number) => z.coerce.number().min(min).max(max)
+/** أرقام هندية من لوحة عربية → لاتينية قبل أيّ تحويل رقمي */
+const digits = (v: unknown) => (typeof v === 'string' ? toAsciiDigits(v) : v)
+const num = (min: number, max: number) => z.preprocess(digits, z.coerce.number().min(min).max(max))
 
 /** حقل رقمي اختياري: غائب أو فارغ → 0 */
 const optionalNum = (min: number, max: number) =>
-  z
-    .union([z.literal(''), z.coerce.number().min(min).max(max)])
-    .optional()
-    .transform((v) => (v === '' || v === undefined ? 0 : Number(v)))
+  z.preprocess(
+    digits,
+    z
+      .union([z.literal(''), z.coerce.number().min(min).max(max)])
+      .optional()
+      .transform((v) => (v === '' || v === undefined ? 0 : Number(v)))
+  )
 
 /** حقل رقمي اختياري: غائب أو فارغ → null (الخطوات المخفية ما تُرسلش حقولها) */
 const nullableNum = (min: number, max: number) =>
-  z
-    .union([z.literal(''), z.coerce.number().min(min).max(max)])
-    .optional()
-    .transform((v) => (v === '' || v === undefined ? null : Number(v)))
+  z.preprocess(
+    digits,
+    z
+      .union([z.literal(''), z.coerce.number().min(min).max(max)])
+      .optional()
+      .transform((v) => (v === '' || v === undefined ? null : Number(v)))
+  )
 
 /** قائمة اختيارية: غائبة أو فارغة → null */
 const nullableEnum = <T extends readonly [string, ...string[]]>(values: T) =>
@@ -281,7 +290,8 @@ export const requestSchema = z.object({
   phone: z
     .string()
     .trim()
-    .transform((v) => v.replace(/[\s-]/g, ''))
+    // فراغات وشرطات ونقاط وأقواس و00 و«٠١٢٣» — كلّها تصير رقماً واحداً مفهوماً
+    .transform((v) => normalizePhone(v))
     .refine((v) => /^\+?\d{8,15}$/.test(v), 'رقم هاتف غير صحيح'),
   email: z
     .union([z.literal(''), z.string().email('بريد غير صحيح')])

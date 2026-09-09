@@ -5,6 +5,7 @@ import { formatTND } from '@/lib/finance'
 import { buildCostRange, tierByKey } from '@/lib/pricing'
 import { fmt, getDictionary, isLocale, path, type Locale } from '@/lib/i18n'
 import { areaLabel, currencyLabel, formatNumber, formatRange } from '@/lib/format'
+import ScrollTop from '@/components/ScrollTop'
 
 export const dynamic = 'force-dynamic'
 
@@ -42,6 +43,7 @@ export default async function MerciPage({
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-10 sm:px-5 sm:py-16">
+      <ScrollTop />
       <div className="rounded border border-line bg-surface p-5 sm:p-8">
         <span className="brick mb-5 block" aria-hidden="true" />
         <h1 className="display text-2xl font-semibold sm:text-3xl">

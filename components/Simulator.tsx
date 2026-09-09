@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { toAsciiDigits } from '@/lib/digits'
 import Link from 'next/link'
 import { computeCapacity, formatTND, monthlyPayment, type FinanceSettings } from '@/lib/finance'
 import { buildableArea, type TierPrice } from '@/lib/pricing'
@@ -77,10 +78,10 @@ export default function Simulator({
         <div className="rounded border border-line bg-surface p-4 sm:p-8">
           <h2 className="text-lg font-semibold">{t.yourData}</h2>
           <div className="mt-6 grid gap-6 sm:grid-cols-2">
-            <Num label={t.income} unit={t.tnd} value={income} onChange={setIncome} step={50} />
-            <Num label={t.spouse} unit={t.tnd} value={spouse} onChange={setSpouse} step={50} />
-            <Num label={t.loans} unit={t.perMonth} value={loans} onChange={setLoans} step={25} />
-            <Num label={t.down} unit={t.tnd} value={down} onChange={setDown} step={1000} />
+            <Num label={t.income} unit={t.tnd} value={income} onChange={setIncome} />
+            <Num label={t.spouse} unit={t.tnd} value={spouse} onChange={setSpouse} />
+            <Num label={t.loans} unit={t.perMonth} value={loans} onChange={setLoans} />
+            <Num label={t.down} unit={t.tnd} value={down} onChange={setDown} />
           </div>
 
           <h2 className="mt-10 text-lg font-semibold">{t.assumptionsTitle}</h2>
@@ -243,13 +244,11 @@ function Num({
   unit,
   value,
   onChange,
-  step,
 }: {
   label: string
   unit: string
   value: number
   onChange: (v: number) => void
-  step: number
 }) {
   return (
     <label className="block">
@@ -257,13 +256,14 @@ function Num({
         {label}
         <span className="text-xs font-normal text-faint">{unit}</span>
       </span>
+      {/* نصّ لا number: مع number يُبقي React «0200» في الحقل وهو يحسب 200؛
+          والصفر يُعرض خانةً فارغة فلا يُكتب قبله شيء */}
       <input
-        type="number"
+        type="text"
         inputMode="numeric"
-        step={step}
-        min={0}
-        value={value}
-        onChange={(e) => onChange(Math.max(0, Number(e.target.value)))}
+        value={value === 0 ? '' : String(value)}
+        placeholder="0"
+        onChange={(e) => onChange(Math.max(0, Number(toAsciiDigits(e.target.value).replace(/\D/g, '')) || 0))}
         className="num w-full rounded border border-line bg-surface px-3.5 py-2.5 outline-none transition focus:border-brand"
       />
     </label>

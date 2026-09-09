@@ -4,6 +4,7 @@ import { can, ROLE_LABELS } from '@/lib/permissions'
 import { logoutAction } from '@/lib/actions/auth'
 import { Suspense } from 'react'
 import SaveToast from '@/components/SaveToast'
+import NumericFocusSelect from '@/components/NumericFocusSelect'
 
 export const dynamic = 'force-dynamic'
 
@@ -94,6 +95,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
         </div>
       )}
 
+      <NumericFocusSelect />
       {children}
 
       {/* تأكيد الحفظ — يقرأ ?saved من العنوان ويختفي وحده */}

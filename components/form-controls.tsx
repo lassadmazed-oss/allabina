@@ -1,3 +1,5 @@
+import { toAsciiDigits } from '@/lib/digits'
+
 /**
  * عناصر الاستمارات المشتركة: مجموعة، رقيقة، بطاقة اختيار، عدّاد، حقل.
  *
@@ -196,7 +198,7 @@ export function Stepper({
         min={min}
         max={max}
         value={value ? String(value) : ''}
-        onChange={(e) => onChange(e.target.value)}
+        onChange={(e) => onChange(toAsciiDigits(e.target.value))}
         className="num w-14 border-x border-line bg-transparent text-center text-[15px] outline-none [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
         placeholder="—"
       />
@@ -218,6 +220,7 @@ export function Field({
   hint,
   error,
   required = false,
+  as = 'label',
   children,
 }: {
   label: string
@@ -225,10 +228,16 @@ export function Field({
   error?: string
   /** نجمة حمراء: «لازم». كلّ ما عداها اختياري بلا أن نكرّر الكلمة */
   required?: boolean
+  /**
+   * div حين يكون المحتوى أزراراً (العدّاد): زرّ داخل label يُطلق في Safari
+   * نقرة ثانية على أوّل عنصر قابل للوسم — زرّ «−» — فتلغي «+» نفسها.
+   */
+  as?: 'label' | 'div'
   children: React.ReactNode
 }) {
+  const Tag = as
   return (
-    <label
+    <Tag
       className={`block ${
         error
           ? '[&_input]:border-[#c0796b] [&_select]:border-[#c0796b] [&_textarea]:border-[#c0796b]'
@@ -242,6 +251,6 @@ export function Field({
       </span>
       {children}
       {error && <span className="mt-1 block text-sm text-[#8c2f22]">{error}</span>}
-    </label>
+    </Tag>
   )
 }

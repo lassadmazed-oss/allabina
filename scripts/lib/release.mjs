@@ -82,7 +82,15 @@ export function removeExport(dir) {
   try {
     git(['worktree', 'prune'], { stdio: 'ignore' })
   } catch {}
-  if (fs.existsSync(dir) && !isLink(link)) fs.rmSync(dir, { recursive: true, force: true })
+  if (fs.existsSync(dir) && !isLink(link)) {
+    // ويندوز يمسك المجلّد لحظةً بعد أن يفرغه git — محاولات متباعدة، والفشل
+    // تحذير لا سقوط: التنظيف لا يُسقط نشراً نجح
+    try {
+      fs.rmSync(dir, { recursive: true, force: true, maxRetries: 8, retryDelay: 400 })
+    } catch {
+      console.log(`  (بقي مجلّد مؤقّت فارغ لم يُحذف: ${dir} — لا يضرّ، واحذفه متى شئت)`)
+    }
+  }
 }
 
 /** tsc ثمّ vitest داخل الشجرة المصدَّرة. يعيد اسم الخطوة الفاشلة أو null */
@@ -151,17 +159,23 @@ export async function smoke(base = SITE, tries = 6) {
 
 /** الدبابيس من الأحدث إلى الأقدم: {tag, date, commit, url, note} */
 export function pins() {
+  // الرسالة أسطر: الرابط، رابط المتابعة، الملاحظة — فالفاصل بين الوسوم NUL لا سطر
   const raw = git([
     'for-each-ref',
     '--sort=-taggerdate',
-    '--format=%(refname:short)\t%(taggerdate:iso8601)\t%(*objectname:short)\t%(contents:lines=1)\t%(contents:lines=3)',
+    '--format=%(refname:short)\t%(taggerdate:iso8601)\t%(*objectname:short)\t%(contents:subject)\t%(contents:body)%00',
     `refs/tags/${PIN_PREFIX}`,
   ])
   if (!raw) return []
-  return raw.split('\n').map((l) => {
-    const [tag, date, commit, url, body] = l.split('\t')
-    return { tag, date, commit, url, note: (body || '').split('\n')[2] || '' }
-  })
+  return raw
+    .split('\0')
+    .map((r) => r.trim())
+    .filter(Boolean)
+    .map((r) => {
+      const [tag, date, commit, url, body] = r.split('\t')
+      const lines = (body || '').trim().split('\n')
+      return { tag, date, commit, url, inspector: lines[0] || '', note: lines[1] || '' }
+    })
 }
 
 export function stamp(d = new Date()) {
