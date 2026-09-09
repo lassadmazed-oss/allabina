@@ -234,7 +234,16 @@ export default async function SupportCasePage({
             {t.pledgeLede}
           </p>
           <div style={{ marginTop: 18 }}>
-            <PledgeForm t={t} cases={[{ id: c.id, title }]} />
+            <PledgeForm
+              t={t}
+              cases={[
+                {
+                  id: c.id,
+                  title,
+                  needs: open.map((n) => ({ id: String(n.id), kind: String(n.kind ?? 'other'), label: n.label })),
+                },
+              ]}
+            />
           </div>
         </section>
 

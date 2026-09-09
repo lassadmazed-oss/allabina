@@ -6,7 +6,7 @@ import { savedRedirect } from '@/lib/actions/saved'
 import { headers } from 'next/headers'
 import { staffWithPermission } from '@/lib/auth'
 import { db } from '@/lib/supabase/server'
-import { isPublicPledgeKind } from '@/lib/support'
+import { composePledgeLabel, isPublicPledgeKind } from '@/lib/support'
 import { after } from 'next/server'
 import { sendRequestConfirmation } from '@/lib/sms/winsms'
 import { isLocale } from '@/lib/i18n'
@@ -119,9 +119,38 @@ export async function submitPledgeAction(
 
   const name = String(formData.get('full_name') ?? '').trim()
   const phone = String(formData.get('phone') ?? '').replace(/[\s-]/g, '')
-  const label = String(formData.get('label') ?? '').trim()
-  const kind = String(formData.get('kind') ?? '').trim()
   const consent = formData.get('consent') === 'on'
+  const caseId = String(formData.get('support_case_id') ?? '').trim()
+
+  /**
+   * الحاجيات المختارة تُتحقَّق من القاعدة لا من النموذج: معرّف من المتصفّح
+   * لا قيمة له حتى نجده بين حاجيات هذه الحالة المفتوحة فعلاً.
+   */
+  const wanted = formData.getAll('need_ids').map(String).filter((v) => /^\d+$/.test(v))
+  let needs: { id: number; kind: string; label: string }[] = []
+  if (caseId && wanted.length) {
+    const { data: sc } = await db.from('support_cases').select('request_id').eq('id', caseId).maybeSingle()
+    if (sc?.request_id) {
+      const { data: rows } = await db
+        .from('support_ledger')
+        .select('id, kind, label')
+        .eq('request_id', sc.request_id)
+        .eq('event', 'needed')
+        .in('id', wanted.map(Number))
+      needs = ((rows ?? []) as { id: number; kind: string | null; label: string }[]).map((r) => ({
+        id: Number(r.id),
+        kind: String(r.kind ?? 'other'),
+        label: r.label,
+      }))
+    }
+  }
+
+  // النوع من أوّل حاجة مختارة، وإلّا ما اختاره؛ والنصّ يجمع الحاجيات وما زاده بيده
+  const kind = needs[0]?.kind ?? String(formData.get('kind') ?? '').trim()
+  const label = composePledgeLabel(
+    needs.map((n) => n.label),
+    String(formData.get('label') ?? '')
+  )
 
   // عيني فقط: القاعدة ترفض 'funding' بقيد، ونرفضه هنا برسالة مفهومة
   if (
@@ -137,9 +166,9 @@ export async function submitPledgeAction(
   const ip = (await headers()).get('x-forwarded-for')?.split(',')[0] ?? 'local'
   if (rateLimited(ip) || rateLimited(phone)) return { ok: false, error: 'rateLimited' }
 
-  const caseId = String(formData.get('support_case_id') ?? '').trim()
   const { error } = await db.from('support_pledges').insert({
     support_case_id: caseId || null,
+    need_ids: needs.length ? needs.map((n) => n.id) : null,
     full_name: name,
     phone,
     email: String(formData.get('email') ?? '').trim() || null,

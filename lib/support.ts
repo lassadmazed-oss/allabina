@@ -40,3 +40,13 @@ export function needsProgress(needs: number, covered: number) {
   const done = Math.min(Math.max(0, covered), total)
   return { total, done, percent: total === 0 ? 0 : Math.round((done / total) * 100) }
 }
+
+/**
+ * نصّ التعهّد كما يقرأه الفريق: الحاجيات المختارة ثمّ ما زاده المساهم.
+ * حاجة مختارة تُذكر باسمها في الدفتر لا بصياغة المساهم لها — الاسم
+ * الموحّد هو ما يطابق به الفريق التعهّد بالحاجة.
+ */
+export function composePledgeLabel(needLabels: readonly string[], free: string): string {
+  const parts = [...needLabels.map((l) => l.trim()).filter(Boolean), free.trim()].filter(Boolean)
+  return parts.join(' · ')
+}

@@ -37,6 +37,7 @@ type LedgerRow = {
   event: string
   label: string
   need_id: number | null
+  kind: string | null
 }
 
 type SupportPhoto = {
@@ -73,7 +74,7 @@ export default async function SoutienPage({ params }: { params: Promise<{ locale
     requestIds.length
       ? db
           .from('support_ledger')
-          .select('id, request_id, event, label, need_id')
+          .select('id, request_id, event, label, need_id, kind')
           .in('request_id', requestIds)
       : Promise.resolve({ data: [] }),
     db.from('delegations').select('id, name_ar').eq('gov_code', 'SFX'),
@@ -109,6 +110,17 @@ export default async function SoutienPage({ params }: { params: Promise<{ locale
         <span className="eyebrow">{t.navLink}</span>
         <h1>{t.title}</h1>
         <p className="lead">{t.lede}</p>
+        {/* البابان في أوّل الشاشة: من يحتاج ومن يعطي — لا أحد يمرّر ليجد مدخله */}
+        <div className="flex flex-wrap gap-3" style={{ marginTop: 18 }}>
+          <Link href={path(locale, '/soutien/demande')} className="btn btn--navy">
+            {t.askHelp.cardCta}
+            <IcArrow className="arr" />
+          </Link>
+          <a href="#pledge" className="btn btn--gold">
+            {t.contributeCta} ↓
+          </a>
+        </div>
+        <p className="fine" style={{ marginTop: 8 }}>{t.contributeCtaHint}</p>
         {cases.some((c) => c.is_demo) && <p className="note">{dict.demoNotice}</p>}
         <ul className="principles">
           {t.principles.map((line) => (
@@ -217,7 +229,18 @@ export default async function SoutienPage({ params }: { params: Promise<{ locale
           <div style={{ marginTop: 18 }}>
             <PledgeForm
               t={t}
-              cases={cases.map((c) => ({ id: c.id, title: (isFr && c.title_fr) || c.title_ar }))}
+              cases={cases.map((c) => {
+                const rows = byRequest.get(c.request_id) ?? []
+                const covered = new Set(rows.filter((r) => r.event === 'delivered' && r.need_id).map((r) => String(r.need_id)))
+                return {
+                  id: c.id,
+                  title: (isFr && c.title_fr) || c.title_ar,
+                  // الحاجيات التي لم تُغطَّ بعد — هي ما يُعرض على المساهم
+                  needs: rows
+                    .filter((r) => r.event === 'needed' && !covered.has(String(r.id)))
+                    .map((r) => ({ id: String(r.id), kind: String(r.kind ?? 'other'), label: r.label })),
+                }
+              })}
             />
           </div>
         </section>

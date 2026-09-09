@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import {
   CONTRIBUTION_KINDS,
+  composePledgeLabel,
   LEDGER_EVENTS,
   PUBLIC_PLEDGE_KINDS,
   isPublicPledgeKind,
@@ -78,5 +79,22 @@ describe('ترجمة وحدة المساندة', () => {
   it('الصفحة العمومية تعلن أنّ المنصة لا تجمع أموالاً', () => {
     expect(ar.soutien.noMoneyNote).toBeTruthy()
     expect(fr.soutien.noMoneyNote).toBeTruthy()
+  })
+})
+
+describe('نصّ التعهّد', () => {
+  it('الحاجيات المختارة ثمّ ما زاده المساهم، بفاصل واحد', () => {
+    expect(composePledgeLabel(['200 كيس إسمنت', 'حديد تسليح للسقف'], 'ونقل مجّاني')).toBe(
+      '200 كيس إسمنت · حديد تسليح للسقف · ونقل مجّاني'
+    )
+  })
+
+  it('بلا حاجيات يبقى النصّ الحرّ وحده — والعكس', () => {
+    expect(composePledgeLabel([], '  50 كيس  ')).toBe('50 كيس')
+    expect(composePledgeLabel(['يد عاملة لصبّ السقف'], '')).toBe('يد عاملة لصبّ السقف')
+  })
+
+  it('لا شيء يعطي فراغاً — والفعل يرفض التعهّد الفارغ', () => {
+    expect(composePledgeLabel([], '   ')).toBe('')
   })
 })
