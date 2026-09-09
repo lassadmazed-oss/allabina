@@ -130,7 +130,7 @@ const ar = {
         saveEdit: 'سجّل التعديل',
 
         // مواصفات البناء — كان يعمّرها المستشار في اللوحة
-        builtArea: 'مساحة الدار المطلوبة',
+        builtArea: 'مساحة الدار المغطات',
         desiredLandM2: 'مساحة الأرض اللي تحبّها',
         desiredLandHint: 'الأرض اللي باش تشريها — موش مساحة الدار',
         specsTitle: 'مواصفات الدار',
@@ -149,6 +149,14 @@ const ar = {
         garage: 'جراج',
         terrasse: 'تراس',
         jardin: 'حديقة',
+        cloture: 'سور الأرض',
+        majel: 'ماجل (خزّان ماء المطر)',
+        piscine: 'مسبح',
+        annexe: 'بيت خارجي / ملحق',
+        solar: 'ألواح شمسية',
+        ascenseur: 'مصعد',
+        extrasLede: 'أشّر على اللي تحبّه — كلّ زيادة تدخل في العرض التقديري.',
+        ascenseurHint: 'من طابقين فما فوق',
 
         // العائلة والوضع الحالي — كان المستشار يسألها في المكالمة
         s6Title: 'عائلتك ووضعك الحالي',
@@ -162,6 +170,8 @@ const ar = {
         cashReadyBadge: 'بلا بنك',
         cashReadyNote: 'اخترت «فلوسي حاضرة»: ما نسألوكش على البنك ولا على القسط. قلّنا برك قدّاش الميزانية المتوفّرة.',
         budgetReady: 'الميزانية المتوفّرة عندك',
+        grpPlace: 'وين؟',
+        grpHome: 'الدار',
         grpFamily: 'العائلة',
         grpFamilyLede: 'باش نفهمو حجم الدار ومن يعوّل عليك.',
         grpHousing: 'وين تسكن اليوم',
@@ -953,6 +963,15 @@ const ar = {
         failed: 'ما نجحش الإرسال. عاود، ولا اكتب في الخانة فوق.'
     },
     labels: {
+        requestTypeHint: {
+            build_on_land: 'عندك أرض وتحبّ تبني فوقها.',
+            land_and_house: 'ما عندكش أرض — نلوّجو معاك وتبني.',
+            apartment: 'شقة جاهزة ولا في طور البناء.',
+            economic: 'برنامج سكن مدعّم.',
+            rent_to_own: 'تكري وتملّك بالتدريج.',
+            renovation: 'دار موجودة تحبّ تصلّحها ولا تكبّرها.',
+            other: 'حالتك ما تدخلش في اللي فوق — احكيلنا.'
+        } as Record<string, string>,
         requestType: {
             build_on_land: 'نحبّ نبني فوق أرضي',
             land_and_house: 'نحبّ أرض ودار',
@@ -974,7 +993,19 @@ const ar = {
             standing: 'تشطيب أبسط',
             timing: 'أجل أطول',
             type: 'نوع سكن آخر',
-            budget: 'ميزانية أكبر شويّة'
+            budget: 'ميزانية أكبر شويّة',
+            levels: 'طابق أقلّ',
+            phased: 'بناء على مراحل'
+        } as Record<string, string>,
+        flexibilityHint: {
+            area: 'دار أصغر شويّة من اللي طلبت.',
+            zone: 'في معتمدية ولا حومة قريبة.',
+            standing: 'نفس الدار بتشطيب أرخص توّا، وتزيّنها من بعد.',
+            timing: 'نستنّاو شويّة أكثر باش نلقاو الأحسن.',
+            type: 'شقّة عوض دار، ولا العكس.',
+            budget: 'نزيد شويّة على اللي حسبت إذا الفرق يستاهل.',
+            levels: 'أرضي توّا، وطابق من بعد.',
+            phased: 'الهيكل والضروري أوّلاً، والباقي كي تتيسّر.'
         } as Record<string, string>,
         employment: {
             public: 'وظيفة عمومية',
@@ -1143,7 +1174,7 @@ const fr: Dictionary = {
         submitting: 'Envoi…',
         saveEdit: 'Enregistrer la modification',
 
-        builtArea: 'Surface habitable souhaitée',
+        builtArea: 'Surface couverte',
         desiredLandM2: 'Surface du terrain souhaitée',
         desiredLandHint: 'Le terrain à acheter — pas la surface habitable',
         specsTitle: 'Caractéristiques de la maison',
@@ -1162,6 +1193,14 @@ const fr: Dictionary = {
         garage: 'Garage',
         terrasse: 'Terrasse',
         jardin: 'Jardin',
+        cloture: 'Clôture du terrain',
+        majel: 'Majel (citerne d’eau de pluie)',
+        piscine: 'Piscine',
+        annexe: 'Dépendance',
+        solar: 'Panneaux solaires',
+        ascenseur: 'Ascenseur',
+        extrasLede: 'Cochez ce que vous souhaitez — chaque option entre dans le devis estimatif.',
+        ascenseurHint: 'À partir de deux étages',
 
         s6Title: 'Votre foyer et votre situation',
         s6Lede: "Ces informations servent à classer les priorités et à comprendre votre besoin réel. Tout est facultatif : plus vous en donnez, mieux nous lisons votre dossier.",
@@ -1174,6 +1213,8 @@ const fr: Dictionary = {
         cashReadyBadge: 'Sans banque',
         cashReadyNote: "Vous avez choisi « financement prêt » : pas de questions sur la banque ni sur la mensualité. Indiquez seulement le budget disponible.",
         budgetReady: 'Budget disponible',
+        grpPlace: 'Où ?',
+        grpHome: 'Le logement',
         grpFamily: 'Le foyer',
         grpFamilyLede: 'Pour comprendre la taille du ménage et les personnes à charge.',
         grpHousing: 'Où vous habitez aujourd’hui',
@@ -1961,6 +2002,15 @@ const fr: Dictionary = {
         failed: 'L’envoi a échoué. Réessayez, ou écrivez ci-dessus.'
     },
     labels: {
+        requestTypeHint: {
+            build_on_land: 'Vous avez un terrain et souhaitez y bâtir.',
+            land_and_house: 'Pas de terrain — nous cherchons avec vous.',
+            apartment: 'Appartement livré ou en cours de construction.',
+            economic: 'Programme de logement aidé.',
+            rent_to_own: 'Louer puis devenir propriétaire.',
+            renovation: 'Un logement existant à rénover ou agrandir.',
+            other: 'Votre cas ne rentre dans aucun des choix — racontez-nous.'
+        } as Record<string, string>,
         requestType: {
             build_on_land: 'Construire sur mon terrain',
             land_and_house: 'Terrain + maison',
@@ -1982,7 +2032,19 @@ const fr: Dictionary = {
             standing: 'Une finition plus simple',
             timing: 'Un délai plus long',
             type: 'Un autre type de logement',
-            budget: 'Un budget un peu supérieur'
+            budget: 'Un budget un peu supérieur',
+            levels: 'Un étage de moins',
+            phased: 'Construire par étapes'
+        } as Record<string, string>,
+        flexibilityHint: {
+            area: 'Une maison un peu plus petite que demandé.',
+            zone: 'Dans une délégation ou un quartier voisin.',
+            standing: 'La même maison, finition plus simple maintenant, embellie plus tard.',
+            timing: 'Attendre un peu plus pour trouver mieux.',
+            type: 'Un appartement au lieu d’une maison, ou l’inverse.',
+            budget: 'Un peu au-dessus du calcul si l’écart en vaut la peine.',
+            levels: 'Le rez-de-chaussée maintenant, un étage plus tard.',
+            phased: 'Le gros œuvre et l’essentiel d’abord, le reste quand c’est possible.'
         } as Record<string, string>,
         employment: {
             public: 'Fonction publique',

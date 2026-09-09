@@ -466,7 +466,7 @@ export default async function RequestDetail({ params }: { params: Promise<{ id: 
           <Row k="العمادة" v={(geo as GeoRow | null)?.imadas?.name_ar ?? '—'} />
           <Row k="موقع الأرض" v={r.land_location || '—'} />
           <Row
-            k={r.request_type === 'land_and_house' ? 'مساحة الدار المطلوبة' : 'المساحة'}
+            k={r.request_type === 'land_and_house' ? 'مساحة الدار المغطات' : 'المساحة'}
             v={r.desired_area_m2 ? `${r.desired_area_m2} م²` : '—'}
           />
           {/* مقاس أرض يدوّر عليه — لا قطعة يملكها. المملوكة في بطاقة «الأرض» */}
