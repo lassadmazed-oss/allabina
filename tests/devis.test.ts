@@ -17,6 +17,12 @@ const config: ProjectConfig = {
   garage: true,
   terrasse: false,
   jardin: false,
+  cloture: false,
+  majel: false,
+  piscine: false,
+  annexe: false,
+  solar: false,
+  ascenseur: false,
   landArea: 400,
 }
 

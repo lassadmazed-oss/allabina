@@ -1,6 +1,7 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
+import { savedRedirect } from '@/lib/actions/saved'
 import { staffWithPermission } from '@/lib/auth'
 import { db } from '@/lib/supabase/server'
 import {
@@ -78,6 +79,7 @@ export async function updateProjectConfigAction(formData: FormData) {
 
   if (error) console.error('project config', error)
   revalidatePath(`/admin/${id}`)
+  await savedRedirect('config')
 }
 
 /**
@@ -117,6 +119,12 @@ export async function generateDevisAction(formData: FormData) {
     garage: Boolean(config?.garage),
     terrasse: Boolean(config?.terrasse),
     jardin: Boolean(config?.jardin),
+    cloture: Boolean(config?.cloture),
+    majel: Boolean(config?.majel),
+    piscine: Boolean(config?.piscine),
+    annexe: Boolean(config?.annexe),
+    solar: Boolean(config?.solar),
+    ascenseur: Boolean(config?.ascenseur),
     landArea: Number(land?.area_m2 ?? 0),
   }
 
@@ -231,6 +239,7 @@ export async function generateDevisAction(formData: FormData) {
   })
 
   revalidatePath(`/admin/${requestId}`)
+  await savedRedirect('devis')
 }
 
 /** تجربة صيغة كمّية قبل حفظها */
@@ -252,6 +261,12 @@ export async function testFormulaAction(
     garage: true,
     terrasse: false,
     jardin: false,
+    cloture: false,
+    majel: false,
+    piscine: false,
+    annexe: false,
+    solar: false,
+    ascenseur: false,
     landArea: 400,
   }
 

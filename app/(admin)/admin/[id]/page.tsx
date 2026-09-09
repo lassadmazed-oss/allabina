@@ -199,7 +199,7 @@ const LEDGER_EVENT_LABELS: Record<string, string> = {
   cancelled: 'ملغى',
 }
 
-/** نصوص الخريطة حسب المسار — نفس ما يقرأه المواطن، بالعربية */
+/** نصوص الخريطة حسب المسار — نفس ما يقرأه الحريف، بالعربية */
 const F = getDictionary('ar').form
 
 export default async function RequestDetail({ params }: { params: Promise<{ id: string }> }) {

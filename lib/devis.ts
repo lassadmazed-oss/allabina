@@ -18,6 +18,12 @@ export type ProjectConfig = {
   garage: boolean
   terrasse: boolean
   jardin: boolean
+  cloture: boolean
+  majel: boolean
+  piscine: boolean
+  annexe: boolean
+  solar: boolean
+  ascenseur: boolean
   landArea: number
 }
 
@@ -71,6 +77,12 @@ export const FORMULA_VARS = [
   'garage',
   'terrasse',
   'jardin',
+  'cloture',
+  'majel',
+  'piscine',
+  'annexe',
+  'solar',
+  'ascenseur',
   'land_area',
 ] as const
 
@@ -85,6 +97,12 @@ function variables(config: ProjectConfig): Record<string, number> {
     garage: config.garage ? 1 : 0,
     terrasse: config.terrasse ? 1 : 0,
     jardin: config.jardin ? 1 : 0,
+    cloture: config.cloture ? 1 : 0,
+    majel: config.majel ? 1 : 0,
+    piscine: config.piscine ? 1 : 0,
+    annexe: config.annexe ? 1 : 0,
+    solar: config.solar ? 1 : 0,
+    ascenseur: config.ascenseur ? 1 : 0,
     land_area: config.landArea || 0,
   }
 }
