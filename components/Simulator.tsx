@@ -144,6 +144,9 @@ export default function Simulator({
                 </div>
               ))}
             </div>
+            {/* البنوك المسجّلة هي ما وثّقناه لا ما نوصي به: قائمة قصيرة
+                تُقرأ حصريةً إن لم يُقَل العكس صراحةً. */}
+            <p className="mt-4 text-xs leading-6 text-faint">{t.productsNotExclusive}</p>
           </div>
         )}
 

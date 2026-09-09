@@ -68,7 +68,7 @@ export default async function StandingAdminPage({
       <h1 className="display mt-1 text-lg font-semibold">مستويات التشطيب</h1>
       <p className="mt-1 max-w-3xl text-sm leading-7 text-muted">
         سعر المتر المربّع لكلّ مستوى، وتوزيعه على العشرين Lot.{' '}
-        <b>تزيد مستوى جديد من هنا بلا مطوّر</b> — يظهر في استمارة المواطن مباشرةً. الأرقام تحت
+        <b>تزيد مستوى جديد من هنا بلا مطوّر</b> — يظهر في استمارة الحريف مباشرةً. الأرقام تحت
         محسوبة على مشروع مرجعي <span className="num">{REFERENCE_SURFACE}</span> م².
       </p>
 

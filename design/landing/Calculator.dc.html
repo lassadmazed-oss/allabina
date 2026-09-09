@@ -1,0 +1,264 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Reem+Kufi:wght@500;600;700&amp;family=IBM+Plex+Sans+Arabic:wght@300;400;500;600&amp;family=IBM+Plex+Mono:wght@400;500&amp;display=swap">
+  <style>
+    body{margin:0;background:#fff;color:#12202f;font-family:'IBM Plex Sans Arabic','Segoe UI',system-ui,sans-serif;line-height:1.8;-webkit-font-smoothing:antialiased;direction:rtl}
+    h1,h2,h3,.display{font-family:'Reem Kufi','IBM Plex Sans Arabic','Segoe UI',sans-serif;line-height:1.45;margin:0;font-weight:600;text-wrap:balance}
+    p{margin:0}
+    a{color:#1d3a5f;text-decoration:none}a:hover{color:#12243c}
+    .num{font-family:'IBM Plex Mono',ui-monospace,monospace;font-variant-numeric:tabular-nums;direction:ltr;unicode-bidi:isolate;display:inline-block}
+    .brick{display:inline-block;width:26px;height:13px;border-radius:2px;background:#c79a3d}
+    .il{stroke:currentColor;fill:none;stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round}
+    .fg{fill:#c79a3d;stroke:none}.fs{fill:#e4eaf2;stroke:none}.fgs{fill:#f7efdf;stroke:none}.fw{fill:#fff}.fl{fill:#dbe1ea;stroke:none}
+    .ico{width:20px;height:20px;flex:0 0 auto}
+    .bp{position:absolute;inset:0;background-image:linear-gradient(#f3f5f8 1px,transparent 1px),linear-gradient(90deg,#f3f5f8 1px,transparent 1px);background-size:64px 26px;opacity:.16;-webkit-mask-image:linear-gradient(to bottom left,#000,transparent 72%);mask-image:linear-gradient(to bottom left,#000,transparent 72%)}
+    .scroller{display:flex;gap:8px;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;padding:0 16px 4px}
+    .scroller::-webkit-scrollbar{display:none}
+    .snap{scroll-snap-align:start;flex:0 0 auto}
+    .card{background:#fff;border:1px solid #dbe1ea;border-radius:16px;box-shadow:0 1px 2px rgba(18,32,47,.04),0 10px 30px rgba(18,32,47,.06)}
+    .stepper{display:flex;align-items:center;justify-content:center;width:44px;height:44px;border-radius:10px;border:1px solid #bcc7d6;background:#fff;color:#1d3a5f;flex:0 0 auto}
+    .chip{display:inline-flex;align-items:center;height:30px;padding:0 10px;border-radius:999px;background:#fff;border:1px solid #dbe1ea;font-size:12px;color:#2c3d50;white-space:nowrap}
+  </style>
+</helmet>
+<div dir="rtl" lang="ar" style="position:relative;width:390px;background:#f3f5f8;overflow:hidden;box-sizing:border-box">
+
+  <!-- Header (dark) -->
+  <div style="display:flex;align-items:center;justify-content:space-between;height:56px;padding:0 16px;box-sizing:border-box;background:#12243c;color:#fff">
+    <div style="display:flex;align-items:center;gap:10px">
+      <span class="brick"></span>
+      <span class="display" style="font-size:19px;color:#fff">اللَّبنة</span>
+    </div>
+    <div style="display:flex;align-items:center;gap:6px">
+      <a href="#" style="display:flex;align-items:center;gap:6px;height:40px;padding:0 12px;border-radius:999px;border:1px solid rgba(255,255,255,.28);color:#fff;font-size:13px;font-weight:500"><svg class="ico" viewBox="0 0 24 24" style="width:16px;height:16px;color:#c79a3d"><path d="M4 8a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v2a2 2 0 0 0 0 4v2a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-2a2 2 0 0 0 0-4z" class="il"></path></svg>تتبّع مطلبي</a>
+      <span class="num" style="display:flex;align-items:center;justify-content:center;width:44px;height:44px;border-radius:12px;font-size:13px;font-weight:500;color:#BFD3C6">FR</span>
+    </div>
+  </div>
+
+  <!-- Hero (dark) -->
+  <section style="position:relative;overflow:hidden;background:#12243c;color:#fff;padding:18px 24px 104px">
+    <div class="bp"></div>
+    <div style="position:relative">
+      <div style="font-size:12px;color:#BFD3C6;display:flex;align-items:center;gap:8px"><span class="brick" style="width:14px;height:7px"></span>مبادرة خاصّة لطلبات السكن · المرحلة التجريبية: صفاقس</div>
+      <h1 style="font-size:32px;color:#fff;margin-top:12px">قدّاش تنجّم تبني؟</h1>
+      <p style="font-size:15px;color:#B9CDBF;margin-top:8px;line-height:1.8">عمّر رقمين وشوف ميزانيتك في التوّ. بلا حساب، بلا معاليم، والأرقام تمشي معاك للاستمارة.</p>
+    </div>
+  </section>
+
+  <!-- Tool card -->
+  <section style="padding:0 16px;margin-top:-80px;position:relative;z-index:2">
+    <div class="card" style="padding:18px 16px 16px">
+      <div style="display:flex;align-items:center;justify-content:space-between">
+        <h2 style="font-size:18px;color:#12202f">محاكي التمويل</h2>
+        <span style="font-size:11px;color:#a8781f;background:#f7efdf;border-radius:999px;padding:3px 10px">يتحسب في التوّ</span>
+      </div>
+
+      <!-- Field 1 -->
+      <div style="margin-top:14px">
+        <div style="display:flex;align-items:center;justify-content:space-between"><span style="font-size:13px;font-weight:500;color:#2c3d50">الدخل الشهري الصافي</span><span style="font-size:12px;color:#7d8da0">د.ت/شهر</span></div>
+        <div style="display:flex;align-items:center;gap:8px;margin-top:6px">
+          <span class="stepper"><svg width="20" height="20" viewBox="0 0 24 24"><path d="M5 12h14" class="il"></path></svg></span>
+          <div style="flex:1;display:flex;align-items:center;justify-content:center;height:48px;border:1px solid #bcc7d6;border-radius:12px;background:#fff"><span class="num" style="font-size:20px;font-weight:500;color:#12202f">1 800</span></div>
+          <span class="stepper"><svg width="20" height="20" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" class="il"></path></svg></span>
+        </div>
+        <div style="position:relative;height:24px;margin-top:8px">
+          <div style="position:absolute;top:9px;left:0;right:0;height:6px;border-radius:999px;background:#e8ecf2"></div>
+          <div style="position:absolute;top:9px;right:0;width:36%;height:6px;border-radius:999px;background:#1d3a5f"></div>
+          <div style="position:absolute;top:0;right:calc(36% - 12px);width:24px;height:24px;border-radius:999px;background:#1d3a5f;border:3px solid #fff;box-sizing:border-box;box-shadow:0 1px 4px rgba(18,32,47,.28)"></div>
+        </div>
+      </div>
+
+      <!-- Field 2 -->
+      <div style="margin-top:10px">
+        <div style="display:flex;align-items:center;justify-content:space-between"><span style="font-size:13px;font-weight:500;color:#2c3d50">المساهمة الذاتية</span><span style="font-size:12px;color:#7d8da0">د.ت</span></div>
+        <div style="display:flex;align-items:center;gap:8px;margin-top:6px">
+          <span class="stepper"><svg width="20" height="20" viewBox="0 0 24 24"><path d="M5 12h14" class="il"></path></svg></span>
+          <div style="flex:1;display:flex;align-items:center;justify-content:center;height:48px;border:1px solid #bcc7d6;border-radius:12px;background:#fff"><span class="num" style="font-size:20px;font-weight:500;color:#12202f">20 000</span></div>
+          <span class="stepper"><svg width="20" height="20" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" class="il"></path></svg></span>
+        </div>
+        <div style="position:relative;height:24px;margin-top:8px">
+          <div style="position:absolute;top:9px;left:0;right:0;height:6px;border-radius:999px;background:#e8ecf2"></div>
+          <div style="position:absolute;top:9px;right:0;width:20%;height:6px;border-radius:999px;background:#1d3a5f"></div>
+          <div style="position:absolute;top:0;right:calc(20% - 12px);width:24px;height:24px;border-radius:999px;background:#1d3a5f;border:3px solid #fff;box-sizing:border-box;box-shadow:0 1px 4px rgba(18,32,47,.28)"></div>
+        </div>
+      </div>
+
+      <!-- Field 3 (compact) -->
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:8px;padding:10px 0;border-top:1px solid #dbe1ea">
+        <div><div style="font-size:13px;font-weight:500;color:#2c3d50">أقساط جارية؟</div><div style="font-size:12px;color:#7d8da0">قرض سيارة، تقسيط…</div></div>
+        <div style="display:flex;align-items:center;gap:8px"><span class="num" style="font-size:16px;color:#12202f">0</span><span style="font-size:12px;color:#7d8da0">د.ت/شهر</span><span class="stepper" style="width:40px;height:40px"><svg width="18" height="18" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" class="il"></path></svg></span></div>
+      </div>
+
+      <!-- Result -->
+      <div style="background:#12243c;border-radius:14px;padding:16px;color:#fff;margin-top:6px">
+        <div style="font-size:13px;color:#BFD3C6">ميزانيتك التقديرية</div>
+        <div style="display:flex;align-items:baseline;gap:8px;margin-top:2px"><span class="num" style="font-size:34px;font-weight:500;line-height:1.2">≈ 106 000</span><span style="font-size:14px;color:#BFD3C6">د.ت</span></div>
+        <div style="display:grid;grid-template-columns:repeat(3, minmax(0, 1fr));gap:8px;margin-top:14px">
+          <div style="background:rgba(255,255,255,.08);border-radius:10px;padding:8px 10px"><div style="font-size:11px;color:#BFD3C6">القسط الشهري</div><div class="num" style="font-size:15px;font-weight:500">720</div></div>
+          <div style="background:rgba(255,255,255,.08);border-radius:10px;padding:8px 10px"><div style="font-size:11px;color:#BFD3C6">المدّة</div><div class="num" style="font-size:15px;font-weight:500">25 <span style="font-size:11px;font-family:'IBM Plex Sans Arabic','Segoe UI',sans-serif">سنة</span></div></div>
+          <div style="background:rgba(255,255,255,.08);border-radius:10px;padding:8px 10px"><div style="font-size:11px;color:#BFD3C6">من الدخل</div><div class="num" style="font-size:15px;font-weight:500">40%</div></div>
+        </div>
+        <div style="margin-top:12px;height:6px;border-radius:999px;background:rgba(255,255,255,.12);position:relative"><div style="position:absolute;top:0;right:0;height:6px;width:40%;border-radius:999px;background:#c79a3d"></div></div>
+        <div style="font-size:11px;color:#8FAB9C;margin-top:8px;line-height:1.6">هذا سيناريو، موش عرض تمويل. النسبة والمدّة فرضيات تبدّلها كيما تحبّ، والشروط الحقيقية تجي من البنك.</div>
+      </div>
+
+      <!-- What it buys -->
+      <div style="margin-top:16px">
+        <div style="font-size:14px;font-weight:600;color:#12202f">بهالميزانية تنجّم:</div>
+        <div style="display:flex;flex-direction:column;gap:8px;margin-top:10px">
+          <a href="#" style="display:flex;align-items:center;gap:12px;min-height:56px;padding:8px 12px;border-radius:12px;background:#f3f5f8">
+            <span style="display:flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:10px;background:#fff;color:#1d3a5f;flex:0 0 auto"><svg width="20" height="20" viewBox="0 0 24 24"><path d="M3 11l9-7 9 7" class="il"></path><path d="M5 10v10h14V10" class="il"></path><rect x="10" y="14" width="4" height="6" class="fg"></rect></svg></span>
+            <span style="flex:1;min-width:0"><span style="display:block;font-size:15px;font-weight:600;color:#12202f">دار ≈ <span class="num">66</span> م²</span><span style="display:block;font-size:12px;color:#55677d">مستوى محسّن · <span class="num">1 600</span> د/م² HT</span></span>
+            <svg class="ico" viewBox="0 0 24 24" style="color:#7d8da0"><path d="M14 6l-6 6 6 6" class="il"></path></svg>
+          </a>
+          <a href="#" style="display:flex;align-items:center;gap:12px;min-height:56px;padding:8px 12px;border-radius:12px;background:#f3f5f8">
+            <span style="display:flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:10px;background:#fff;color:#1d3a5f;flex:0 0 auto"><svg width="20" height="20" viewBox="0 0 24 24"><path d="M3 11l9-7 9 7" class="il"></path><path d="M5 10v10h14V10" class="il"></path><rect x="10" y="14" width="4" height="6" class="fg"></rect></svg></span>
+            <span style="flex:1;min-width:0"><span style="display:block;font-size:15px;font-weight:600;color:#12202f">دار ≈ <span class="num">88</span> م²</span><span style="display:block;font-size:12px;color:#55677d">مستوى اقتصادي · <span class="num">1 200</span> د/م² HT</span></span>
+            <svg class="ico" viewBox="0 0 24 24" style="color:#7d8da0"><path d="M14 6l-6 6 6 6" class="il"></path></svg>
+          </a>
+          <a href="#" style="display:flex;align-items:center;gap:12px;min-height:56px;padding:8px 12px;border-radius:12px;background:#f3f5f8">
+            <span style="display:flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:10px;background:#fff;color:#1d3a5f;flex:0 0 auto"><svg width="20" height="20" viewBox="0 0 24 24"><rect x="6" y="3" width="12" height="18" rx="1" class="il"></rect><path d="M9 7h2M13 7h2M9 11h2M13 11h2M9 15h2M13 15h2" class="il"></path></svg></span>
+            <span style="flex:1;min-width:0"><span style="display:block;font-size:15px;font-weight:600;color:#12202f">شقة في مشروع</span><span style="display:block;font-size:12px;color:#55677d">نطابقو مطلبك مع المشاريع القانونية في منطقتك</span></span>
+            <svg class="ico" viewBox="0 0 24 24" style="color:#7d8da0"><path d="M14 6l-6 6 6 6" class="il"></path></svg>
+          </a>
+        </div>
+      </div>
+
+      <a href="#" style="display:flex;align-items:center;justify-content:center;height:52px;margin-top:16px;border-radius:12px;background:#1d3a5f;color:#fff;font-weight:600;font-size:16px">سجّل مطلبك بهالأرقام</a>
+      <p style="font-size:12px;color:#7d8da0;text-align:center;margin-top:8px">الأرقام تتعمّر وحدها في الاستمارة. ما يلزمك حساب.</p>
+    </div>
+  </section>
+
+  <!-- Sticky result bar (pinned in the real page) + fold marker -->
+  <div style="position:absolute;left:0;right:0;top:772px;height:72px;z-index:5;box-sizing:border-box;padding:12px 16px;background:rgba(255,255,255,.94);backdrop-filter:blur(12px);border-top:1px solid #dbe1ea;display:flex;gap:12px;align-items:center">
+    <div style="flex:1;min-width:0"><div style="font-size:11px;color:#7d8da0;line-height:1.3">ميزانيتك التقديرية</div><div class="num" style="font-size:18px;font-weight:500;color:#12243c;line-height:1.4">≈ 106 000 د.ت</div></div>
+    <a href="#" style="display:flex;align-items:center;justify-content:center;height:48px;padding:0 22px;border-radius:12px;background:#c79a3d;color:#12243c;font-weight:600;font-size:15px">سجّل مطلبك</a>
+  </div>
+  <div style="position:absolute;left:0;right:0;top:844px;border-top:1px dashed #bcc7d6;z-index:4;pointer-events:none"></div>
+  <div class="num" style="position:absolute;left:8px;top:846px;font-size:10px;color:#7d8da0;z-index:4">fold · 844</div>
+
+  <!-- Standing level -->
+  <section style="padding:28px 0 8px">
+    <div style="padding:0 16px">
+      <h2 style="font-size:22px;color:#12243c">اختار مستوى التشطيب</h2>
+      <p style="font-size:14px;color:#55677d;margin-top:6px">الهيكل واحد. الفرق في الفرش، الألمنيوم، المطبخ، التكييف والواجهة.</p>
+    </div>
+    <div class="scroller" style="margin-top:14px">
+      <div class="snap" style="display:flex;flex-direction:column;align-items:center;justify-content:center;width:96px;height:64px;border-radius:12px;border:1px solid #dbe1ea;background:#fff"><span style="font-size:13px;font-weight:600;color:#12202f">اقتصادي</span><span class="num" style="font-size:12px;color:#55677d">1 200</span></div>
+      <div class="snap" style="display:flex;flex-direction:column;align-items:center;justify-content:center;width:96px;height:64px;border-radius:12px;border:1px solid #dbe1ea;background:#fff"><span style="font-size:13px;font-weight:600;color:#12202f">عادي</span><span class="num" style="font-size:12px;color:#55677d">1 400</span></div>
+      <div class="snap" style="display:flex;flex-direction:column;align-items:center;justify-content:center;width:96px;height:64px;border-radius:12px;border:1px solid #12243c;background:#12243c;color:#fff"><span style="font-size:13px;font-weight:600">محسّن</span><span class="num" style="font-size:12px;color:#c79a3d">1 600</span></div>
+      <div class="snap" style="display:flex;flex-direction:column;align-items:center;justify-content:center;width:96px;height:64px;border-radius:12px;border:1px solid #dbe1ea;background:#fff"><span style="font-size:13px;font-weight:600;color:#12202f">راقٍ</span><span class="num" style="font-size:12px;color:#55677d">1 800</span></div>
+      <div class="snap" style="display:flex;flex-direction:column;align-items:center;justify-content:center;width:96px;height:64px;border-radius:12px;border:1px solid #dbe1ea;background:#fff"><span style="font-size:13px;font-weight:600;color:#12202f">فاخر</span><span class="num" style="font-size:12px;color:#55677d">2 000</span></div>
+    </div>
+    <div style="padding:0 16px">
+      <div class="card" style="padding:14px 16px;margin-top:12px;box-shadow:none">
+        <div style="display:flex;align-items:center;justify-content:space-between"><span style="font-size:14px;font-weight:600;color:#12202f">مستوى محسّن · <span class="num">1 600</span> د/م² HT</span><span style="font-size:11px;color:#a8781f;background:#f7efdf;border-radius:999px;padding:2px 10px">المستوى المرجعي</span></div>
+        <p style="font-size:13px;color:#55677d;margin-top:4px">مطبخ مركّب وسقف مستعار. يشمل السعر <span class="num">20</span> مرحلة، من الدراسات إلى التسليم:</p>
+        <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:10px">
+          <span class="chip">الأساسات</span><span class="chip">الهيكل</span><span class="chip">البناء</span><span class="chip">التلبيس</span><span class="chip">العزل</span><span class="chip">السباكة</span><span class="chip">الكهرباء</span><span class="chip">الفرش</span><span class="chip">الألمنيوم</span><span class="chip">المطبخ</span><span class="chip">الدهن</span><span class="chip" style="color:#a8781f;border-color:#f7efdf;background:#f7efdf">+9</span>
+        </div>
+        <a href="#" style="display:flex;align-items:center;gap:6px;min-height:44px;margin-top:4px;font-size:14px;font-weight:500;color:#1d3a5f">وين يمشي الدينار؟<svg class="ico" viewBox="0 0 24 24" style="width:18px;height:18px"><path d="M19 12H5M11 6l-6 6 6 6" class="il"></path></svg></a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Paths grid -->
+  <section style="padding:24px 16px 8px">
+    <h2 style="font-size:22px;color:#12243c">شنوّة تحبّ تعمل؟</h2>
+    <div style="display:grid;grid-template-columns:repeat(2, minmax(0, 1fr));gap:10px;margin-top:14px">
+      <a href="#" style="display:flex;flex-direction:column;gap:10px;padding:14px;min-height:112px;box-sizing:border-box;border-radius:14px;background:#fff;border:1px solid #dbe1ea">
+        <span style="display:flex;align-items:center;justify-content:center;width:40px;height:40px;border-radius:10px;background:#e4eaf2;color:#1d3a5f"><svg width="22" height="22" viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="13" rx="1" class="il" style="stroke-dasharray:3 2"></rect><path d="M8 15v-4l4-3 4 3v4z" class="il"></path></svg></span>
+        <span style="font-size:15px;font-weight:600;color:#12202f;line-height:1.4">نحبّ نبني فوق أرضي</span>
+      </a>
+      <a href="#" style="display:flex;flex-direction:column;gap:10px;padding:14px;min-height:112px;box-sizing:border-box;border-radius:14px;background:#fff;border:1px solid #dbe1ea">
+        <span style="display:flex;align-items:center;justify-content:center;width:40px;height:40px;border-radius:10px;background:#e4eaf2;color:#1d3a5f"><svg width="22" height="22" viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="13" rx="1" class="il"></rect><path d="M7 16v-5l5-4 5 4v5z" class="il"></path><rect x="11" y="13" width="2" height="3" class="fg"></rect></svg></span>
+        <span style="font-size:15px;font-weight:600;color:#12202f;line-height:1.4">نحبّ أرض ودار</span>
+      </a>
+      <a href="#" style="display:flex;flex-direction:column;gap:10px;padding:14px;min-height:112px;box-sizing:border-box;border-radius:14px;background:#fff;border:1px solid #dbe1ea">
+        <span style="display:flex;align-items:center;justify-content:center;width:40px;height:40px;border-radius:10px;background:#e4eaf2;color:#1d3a5f"><svg width="22" height="22" viewBox="0 0 24 24"><rect x="6" y="3" width="12" height="18" rx="1" class="il"></rect><path d="M9 7h2M13 7h2M9 11h2M13 11h2M9 15h2M13 15h2" class="il"></path></svg></span>
+        <span style="font-size:15px;font-weight:600;color:#12202f;line-height:1.4">نحبّ شقة</span>
+      </a>
+      <a href="#" style="display:flex;flex-direction:column;gap:10px;padding:14px;min-height:112px;box-sizing:border-box;border-radius:14px;background:#fff;border:1px solid #dbe1ea">
+        <span style="display:flex;align-items:center;justify-content:center;width:40px;height:40px;border-radius:10px;background:#e4eaf2;color:#1d3a5f"><svg width="22" height="22" viewBox="0 0 24 24"><circle cx="8" cy="12" r="4" class="il"></circle><path d="M12 12h9M18 12v3M21 12v2" class="il"></path></svg></span>
+        <span style="font-size:15px;font-weight:600;color:#12202f;line-height:1.4">كراء مملّك</span>
+      </a>
+    </div>
+  </section>
+
+  <!-- Tracking -->
+  <section style="padding:24px 16px 8px">
+    <div class="card" style="padding:18px 16px">
+      <div style="display:flex;align-items:center;gap:10px">
+        <span style="display:flex;align-items:center;justify-content:center;width:40px;height:40px;border-radius:10px;background:#f7efdf;color:#a8781f"><svg width="22" height="22" viewBox="0 0 24 24"><path d="M4 8a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v2a2 2 0 0 0 0 4v2a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-2a2 2 0 0 0 0-4z" class="il"></path></svg></span>
+        <div><h2 style="font-size:18px;color:#12202f">وين وصل مطلبك؟</h2><p style="font-size:12px;color:#55677d">الرمز مع رقم التلفون اللي سجّلت بيه.</p></div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:8px;margin-top:14px">
+        <div style="display:flex;align-items:center;height:48px;padding:0 14px;border:1px solid #bcc7d6;border-radius:12px;background:#fff;color:#7d8da0;font-size:15px">رمز المطلب</div>
+        <div style="display:flex;align-items:center;height:48px;padding:0 14px;border:1px solid #bcc7d6;border-radius:12px;background:#fff;color:#7d8da0;font-size:15px">رقم الهاتف</div>
+      </div>
+      <a href="#" style="display:flex;align-items:center;justify-content:center;height:48px;margin-top:10px;border-radius:12px;border:1px solid #1d3a5f;color:#1d3a5f;font-weight:600;font-size:15px">شوف وضعية ملفّي</a>
+      <div style="display:flex;flex-wrap:wrap;gap:6px 14px;margin-top:14px;font-size:12px;color:#55677d">
+        <span style="display:inline-flex;align-items:center;gap:6px"><span style="width:8px;height:8px;border-radius:999px;background:#3f8f5f"></span>تمّ الحلّ</span>
+        <span style="display:inline-flex;align-items:center;gap:6px"><span style="width:8px;height:8px;border-radius:999px;background:#c79a3d"></span>بصدد المعالجة</span>
+        <span style="display:inline-flex;align-items:center;gap:6px"><span style="width:8px;height:8px;border-radius:999px;background:#1d3a5f"></span>في انتظار وثائق</span>
+        <span style="display:inline-flex;align-items:center;gap:6px"><span style="width:8px;height:8px;border-radius:999px;background:#bcc7d6"></span>مغلق حالياً</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- How it works (compact) -->
+  <section style="padding:24px 16px 8px">
+    <h2 style="font-size:22px;color:#12243c">كيفاش تخدم اللَّبنة</h2>
+    <div class="card" style="margin-top:14px;box-shadow:none;padding:4px 16px">
+      <div style="display:flex;align-items:center;gap:14px;min-height:64px;border-bottom:1px solid #dbe1ea"><span class="num" style="width:32px;height:32px;border-radius:999px;background:#c79a3d;color:#12243c;font-size:13px;font-weight:500;display:flex;align-items:center;justify-content:center;flex:0 0 auto">01</span><span style="flex:1"><span style="display:block;font-size:15px;font-weight:600;color:#12202f">سجّل مطلبك</span><span style="display:block;font-size:12px;color:#55677d">خمس خطوات، أقلّ من ثلاث دقائق، من التلفون.</span></span></div>
+      <div style="display:flex;align-items:center;gap:14px;min-height:64px;border-bottom:1px solid #dbe1ea"><span class="num" style="width:32px;height:32px;border-radius:999px;background:#c79a3d;color:#12243c;font-size:13px;font-weight:500;display:flex;align-items:center;justify-content:center;flex:0 0 auto">02</span><span style="flex:1"><span style="display:block;font-size:15px;font-weight:600;color:#12202f">ندرسو قدرتك</span><span style="display:block;font-size:12px;color:#55677d">نحسبو ميزانيتك التقديرية والقسط الشهري الممكن.</span></span></div>
+      <div style="display:flex;align-items:center;gap:14px;min-height:64px;border-bottom:1px solid #dbe1ea"><span class="num" style="width:32px;height:32px;border-radius:999px;background:#c79a3d;color:#12243c;font-size:13px;font-weight:500;display:flex;align-items:center;justify-content:center;flex:0 0 auto">03</span><span style="flex:1"><span style="display:block;font-size:15px;font-weight:600;color:#12202f">نلقاو لك العرض</span><span style="display:block;font-size:12px;color:#55677d">مشروع ولا شركة بناء تناسب منطقتك وقدرتك.</span></span></div>
+      <div style="display:flex;align-items:center;gap:14px;min-height:64px"><span class="num" style="width:32px;height:32px;border-radius:999px;background:#12243c;color:#fff;font-size:13px;font-weight:500;display:flex;align-items:center;justify-content:center;flex:0 0 auto">04</span><span style="flex:1"><span style="display:block;font-size:15px;font-weight:600;color:#12202f">نتابعو معاك</span><span style="display:block;font-size:12px;color:#55677d">من الموعد الأوّل إلى مفتاح الدار.</span></span></div>
+    </div>
+  </section>
+
+  <!-- Facts -->
+  <section style="padding:24px 16px 8px">
+    <div style="display:grid;grid-template-columns:repeat(2, minmax(0, 1fr));gap:10px">
+      <div style="padding:14px;border-radius:14px;background:#fff;border:1px solid #dbe1ea"><div class="num" style="font-size:26px;font-weight:500;color:#12243c;line-height:1.2">16</div><div style="font-size:13px;color:#55677d;margin-top:4px">معتمدية في صفاقس</div></div>
+      <div style="padding:14px;border-radius:14px;background:#fff;border:1px solid #dbe1ea"><div class="num" style="font-size:26px;font-weight:500;color:#12243c;line-height:1.2">5</div><div style="font-size:13px;color:#55677d;margin-top:4px">مستويات تشطيب</div></div>
+      <div style="padding:14px;border-radius:14px;background:#fff;border:1px solid #dbe1ea"><div class="num" style="font-size:26px;font-weight:500;color:#12243c;line-height:1.2">20</div><div style="font-size:13px;color:#55677d;margin-top:4px">مرحلة بناء في البوردرو</div></div>
+      <div style="padding:14px;border-radius:14px;background:#12243c;border:1px solid #12243c;color:#fff"><div class="num" style="font-size:26px;font-weight:500;color:#c79a3d;line-height:1.2">0</div><div style="font-size:13px;color:#BFD3C6;margin-top:4px">معاليم على المواطن</div></div>
+    </div>
+  </section>
+
+  <!-- Final CTA -->
+  <section style="padding:24px 16px 8px">
+    <div style="border-radius:16px;background:#f7efdf;padding:20px">
+      <h2 style="font-size:20px;color:#12243c">مطلبك يبدا اليوم</h2>
+      <p style="font-size:14px;color:#2c3d50;line-height:1.75;margin-top:6px">التسجيل مجّاني وما يلزمكش حساب. تعمّر الاستمارة، تاخو رمز مطلبك، ونحنا نتّصلو بيك.</p>
+      <a href="#" style="display:flex;align-items:center;justify-content:center;height:52px;margin-top:16px;border-radius:12px;background:#1d3a5f;color:#fff;font-weight:600;font-size:16px">سجّل مطلبك</a>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer style="margin-top:20px;padding:22px 16px 26px;background:#fff;border-top:1px solid #dbe1ea;font-size:13px;color:#55677d">
+    <div class="display" style="font-size:16px;color:#12202f">اللَّبنة للبناء والإعمار</div>
+    <div style="color:#a8781f;font-size:13px">معاً… نبني حلول السكن</div>
+    <div style="display:grid;grid-template-columns:repeat(2, minmax(0, 1fr));gap:0 16px;margin-top:12px">
+      <a href="#" style="display:flex;align-items:center;min-height:40px;color:#55677d">تسجيل مطلب سكن</a>
+      <a href="#" style="display:flex;align-items:center;min-height:40px;color:#55677d">طرق البناء</a>
+      <a href="#" style="display:flex;align-items:center;min-height:40px;color:#55677d">محاكي التمويل</a>
+      <a href="#" style="display:flex;align-items:center;min-height:40px;color:#55677d">مستويات التشطيب</a>
+      <a href="#" style="display:flex;align-items:center;min-height:40px;color:#55677d">تتبّع مطلب</a>
+      <a href="#" style="display:flex;align-items:center;min-height:40px;color:#55677d">حالات تمّ إنجازها</a>
+      <a href="#" style="display:flex;align-items:center;min-height:40px;color:#55677d">عندك عقار؟</a>
+      <a href="#" style="display:flex;align-items:center;min-height:40px;color:#55677d">مهني في البناء؟</a>
+    </div>
+    <div style="margin-top:12px;padding-top:12px;border-top:1px solid #dbe1ea;font-size:11px;color:#7d8da0">اللَّبنة للبناء والإعمار · AL-LUBNA — نسخة تجريبية</div>
+  </footer>
+</div>
+</x-dc>
+</body>
+</html>

@@ -1,0 +1,18 @@
+{
+  "artboards": [
+    { "file": "Main.dc.html", "title": "1 · الرحلة — Journey (recommended)", "x": 0, "y": 0, "w": 390, "h": 4760 },
+    { "file": "Calculator.dc.html", "title": "2 · الحاسبة أوّلاً — Tool-first", "x": 490, "y": 0, "w": 390, "h": 3640 },
+    { "file": "Gallery.dc.html", "title": "3 · بالصور — Visual explainer", "x": 980, "y": 0, "w": 390, "h": 5000 },
+    { "file": "Editorial.dc.html", "title": "4 · الوضوح — Editorial", "x": 1470, "y": 0, "w": 390, "h": 3780 },
+    { "file": "Vision.dc.html", "title": "5 · الرؤية — Vision", "x": 1960, "y": 0, "w": 390, "h": 3700 }
+  ],
+  "annotations": [
+    { "id": "ux-rules", "x": -540, "y": -340, "w": 460, "text": "Mobile UX rules applied to all five (390px phone, Arabic RTL)\n\n• One primary action, repeated: a pinned bottom bar keeps «سجّل مطلبك» under the thumb on every screen. The dashed line marks the end of the first screen (844px) — the bar drawn there is the pinned one.\n• Touch targets 44–52px, body text 16px, line-height 1.8 for Arabic, high contrast.\n• Every doubt answered where it appears: free, no account, not a bank, data stays private.\n• Only real product facts: 5 finishing levels (1 200–2 000 TND/m² HT), 20 construction lots, 16 Sfax delegations, 2 construction methods, 4 paths. Photos are labelled placeholders; case cards are marked as examples.\n• No fake status bar or keyboard. All illustrations are vector, in brand navy + gold, so they stay crisp and recolorable." },
+    { "id": "n1-journey", "x": 0, "y": -340, "w": 390, "text": "1 · Journey — story-first explainer (recommended)\n\nWhy: a first-time visitor needs to see the whole road before committing. Each of the 4 stations says what happens, how long it takes, what you need, plus one reassurance (voice note, private code, no bank tie-in). FAQ answers the four objections.\n\nTrade-off: the longest page; the calculator is one tap away rather than on the page." },
+    { "id": "n2-tool", "x": 490, "y": -340, "w": 390, "text": "2 · Tool-first — the page does something in the first second\n\nWhy: useful before persuasive. Income + down payment → budget, monthly payment and what it buys; the result rides in the bottom bar and pre-fills the request form. Request tracking sits on the landing page too.\n\nTrade-off: the numbers shown are a sample scenario and must stay labelled as such; the heaviest first screen to build." },
+    { "id": "n3-visual", "x": 980, "y": -340, "w": 390, "text": "3 · Visual explainer — many images, each one explains something\n\nWhy: diagrams do the explaining: a plot plan for ‘build on my land’, a bundle + contract for ‘land and house’, a building elevation, a rent-to-own timeline; brick vs block walls; a room that lights up what each finishing level adds.\n\nTrade-off: needs real photos of Sfax cases to replace the placeholders; heaviest to keep up to date." },
+    { "id": "n4-editorial", "x": 1470, "y": -340, "w": 390, "text": "4 · Editorial — clarity through restraint\n\nWhy: trust comes from saying plainly what the platform does and does not do, with a few precise numbers and a lot of air. Fastest to load, easiest to translate to French.\n\nTrade-off: the least visual; leans on copy quality and gives less guidance to someone who only skims." },
+    { "id": "n5-vision", "x": 1960, "y": -340, "w": 390, "text": "5 · Vision — the platform as an ecosystem\n\nWhy: positions اللَّبنة as national infrastructure: citizen, builders, craftsmen, owners and banks around one platform, Sfax delegation by delegation. Dark hero, glass cards, gold accents; the light block at the end keeps the paths readable.\n\nTrade-off: more ‘brand’ than ‘help’; the per-delegation counts are illustrative and need real data behind them." }
+  ],
+  "launch": { "view": "canvas" }
+}

@@ -1,0 +1,260 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Reem+Kufi:wght@500;600;700&amp;family=IBM+Plex+Sans+Arabic:wght@300;400;500;600&amp;family=IBM+Plex+Mono:wght@400;500&amp;display=swap">
+  <style>
+    body{margin:0;background:#0d1a2c;color:#fff;font-family:'IBM Plex Sans Arabic','Segoe UI',system-ui,sans-serif;line-height:1.8;-webkit-font-smoothing:antialiased;direction:rtl}
+    h1,h2,h3,.display{font-family:'Reem Kufi','IBM Plex Sans Arabic','Segoe UI',sans-serif;line-height:1.45;margin:0;font-weight:600;text-wrap:balance}
+    p{margin:0}
+    a{color:#fff;text-decoration:none}a:hover{color:#c79a3d}
+    .num{font-family:'IBM Plex Mono',ui-monospace,monospace;font-variant-numeric:tabular-nums;direction:ltr;unicode-bidi:isolate;display:inline-block}
+    .brick{display:inline-block;width:26px;height:13px;border-radius:2px;background:#c79a3d}
+    .il{stroke:currentColor;fill:none;stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round}
+    .fg{fill:#c79a3d;stroke:none}
+    .ico{width:20px;height:20px;flex:0 0 auto}
+    .bp{position:absolute;inset:0;background-image:linear-gradient(#f3f5f8 1px,transparent 1px),linear-gradient(90deg,#f3f5f8 1px,transparent 1px);background-size:64px 26px;opacity:.16;-webkit-mask-image:linear-gradient(to bottom left,#000,transparent 72%);mask-image:linear-gradient(to bottom left,#000,transparent 72%)}
+    .glass{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:20px}
+    .svgt{font-family:'IBM Plex Sans Arabic','Segoe UI',sans-serif;font-size:12px;fill:#fff;text-anchor:middle}
+    .node{fill:rgba(255,255,255,.06);stroke:rgba(255,255,255,.3);stroke-width:1.25}
+    .link{stroke:rgba(199,154,61,.55);stroke-width:1.25;stroke-dasharray:3 4;fill:none}
+    .scroller{display:flex;gap:12px;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;padding:0 20px 4px}
+    .scroller::-webkit-scrollbar{display:none}
+    .snap{scroll-snap-align:start;flex:0 0 auto}
+    .tile{display:flex;flex-direction:column;gap:4px;padding:8px 6px;border-radius:12px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);min-height:58px;box-sizing:border-box}
+    .dots{display:flex;gap:6px;font-size:10px;color:rgba(255,255,255,.75);align-items:center}
+    .d{display:inline-flex;align-items:center;gap:3px}
+    .d span{width:6px;height:6px;border-radius:999px;display:inline-block}
+  </style>
+</helmet>
+<div dir="rtl" lang="ar" style="position:relative;width:390px;background:#12243c;overflow:hidden;box-sizing:border-box">
+
+  <!-- Header -->
+  <div style="display:flex;align-items:center;justify-content:space-between;height:56px;padding:0 20px;box-sizing:border-box;background:#12243c;border-bottom:1px solid rgba(255,255,255,.1)">
+    <div style="display:flex;align-items:center;gap:10px">
+      <span class="brick"></span>
+      <span class="display" style="font-size:19px;color:#fff">اللَّبنة</span>
+      <span style="font-size:11px;color:#8FAB9C">للبناء والإعمار</span>
+    </div>
+    <div style="display:flex;align-items:center;gap:4px">
+      <span class="num" style="display:flex;align-items:center;justify-content:center;width:44px;height:44px;font-size:13px;font-weight:500;color:#BFD3C6">FR</span>
+      <span style="display:flex;align-items:center;justify-content:center;width:44px;height:44px;color:#fff"><svg width="22" height="22" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16" class="il"></path></svg></span>
+    </div>
+  </div>
+
+  <!-- Hero -->
+  <section style="position:relative;overflow:hidden;padding:28px 20px 8px">
+    <div class="bp"></div>
+    <div style="position:relative">
+      <div style="display:inline-flex;align-items:center;gap:8px;height:30px;padding:0 12px;border-radius:999px;border:1px solid rgba(199,154,61,.5);color:#c79a3d;font-size:12px;font-weight:500"><span style="width:6px;height:6px;border-radius:999px;background:#c79a3d"></span>مبادرة خاصّة لطلبات السكن · صفاقس أوّلاً</div>
+      <h1 style="font-size:38px;color:#fff;margin-top:18px;line-height:1.4">معاً… نبني حلول السكن</h1>
+      <p style="font-size:16px;color:#B9CDBF;margin-top:12px;line-height:1.85">منصّة وحدة تجمع المواطن، شركات البناء، الحرفيّين، أصحاب العقارات والبنوك، باش الدار تولّي ممكنة على قدّ كلّ واحد.</p>
+      <div style="display:grid;gap:10px;margin-top:22px">
+        <a href="#" style="display:flex;align-items:center;justify-content:center;height:52px;border-radius:14px;background:#c79a3d;color:#12243c;font-weight:600;font-size:16px">سجّل مطلبك مجّاناً</a>
+        <a href="#" style="display:flex;align-items:center;justify-content:center;height:52px;border-radius:14px;border:1px solid rgba(255,255,255,.28);color:#EAF2EC;font-weight:500;font-size:16px">احسب ميزانيتك</a>
+      </div>
+      <p style="font-size:13px;color:#8FAB9C;margin-top:12px">من طلب السكن إلى مفتاح الدار، بلا معاليم على المواطن.</p>
+    </div>
+  </section>
+
+  <!-- Sticky bottom bar (pinned in the real page) + fold marker -->
+  <div style="position:absolute;left:0;right:0;top:772px;height:72px;z-index:5;box-sizing:border-box;padding:12px 20px;background:rgba(18,36,60,.9);backdrop-filter:blur(12px);border-top:1px solid rgba(255,255,255,.12);display:flex;gap:10px;align-items:center">
+    <a href="#" style="flex:1;display:flex;align-items:center;justify-content:center;height:48px;border-radius:14px;background:#c79a3d;color:#12243c;font-weight:600;font-size:16px">سجّل مطلبك مجّاناً</a>
+    <a href="#" style="display:flex;align-items:center;justify-content:center;width:48px;height:48px;border-radius:14px;border:1px solid rgba(255,255,255,.28);color:#fff"><svg width="22" height="22" viewBox="0 0 24 24"><rect x="5" y="3" width="14" height="18" rx="2" class="il"></rect><path d="M8 7h8M8 12h2M12 12h4M8 16h2M12 16h4" class="il"></path></svg></a>
+  </div>
+  <div style="position:absolute;left:0;right:0;top:844px;border-top:1px dashed rgba(255,255,255,.35);z-index:4;pointer-events:none"></div>
+  <div class="num" style="position:absolute;left:8px;top:846px;font-size:10px;color:rgba(255,255,255,.55);z-index:4">fold · 844</div>
+
+  <!-- Ecosystem network -->
+  <section style="padding:16px 20px 8px">
+    <svg width="350" height="310" viewBox="0 0 350 310" style="display:block">
+      <path d="M175 160L175 55M175 160L275 128M175 160L234 245M175 160L116 245M175 160L75 128" class="link"></path>
+      <circle cx="175" cy="160" r="46" style="fill:#1d3a5f;stroke:#c79a3d;stroke-width:1.5"></circle>
+      <rect x="162" y="140" width="26" height="13" rx="2" class="fg"></rect>
+      <text x="175" y="176" class="svgt" style="font-size:15px;font-family:'Reem Kufi','IBM Plex Sans Arabic',sans-serif;font-weight:600">اللَّبنة</text>
+      <circle cx="175" cy="55" r="28" class="node"></circle>
+      <g transform="translate(163 43)" style="color:#fff"><circle cx="12" cy="8" r="4" class="il"></circle><path d="M4 21a8 8 0 0 1 16 0" class="il"></path></g>
+      <text x="175" y="16" class="svgt">المواطن</text>
+      <circle cx="275" cy="128" r="28" class="node"></circle>
+      <g transform="translate(263 116)" style="color:#fff"><path d="M4 15a8 8 0 0 1 16 0M2 15h20M12 7V4" class="il"></path></g>
+      <text x="275" y="176" class="svgt">شركات البناء</text>
+      <circle cx="234" cy="245" r="28" class="node"></circle>
+      <g transform="translate(222 233)" style="color:#fff"><path d="M14 4l6 6-9 9-6-6zM5 13l-2 6 6-2M17 7l2-2" class="il"></path></g>
+      <text x="234" y="293" class="svgt">شبكة الحرفيّين</text>
+      <circle cx="116" cy="245" r="28" class="node"></circle>
+      <g transform="translate(104 233)" style="color:#fff"><path d="M3 11l9-7 9 7M5 10v10h14V10" class="il"></path><rect x="10" y="14" width="4" height="6" class="fg"></rect></g>
+      <text x="116" y="293" class="svgt">أصحاب العقارات</text>
+      <circle cx="75" cy="128" r="28" class="node"></circle>
+      <g transform="translate(63 116)" style="color:#fff"><path d="M3 10l9-6 9 6M5 10v8M9 10v8M15 10v8M19 10v8M3 20h18" class="il"></path></g>
+      <text x="75" y="176" class="svgt">البنوك والممولون</text>
+    </svg>
+  </section>
+
+  <!-- Counters -->
+  <section style="padding:8px 20px 8px">
+    <div style="display:grid;grid-template-columns:repeat(2, minmax(0, 1fr));gap:10px">
+      <div class="glass" style="padding:14px 16px"><div class="num" style="font-size:28px;font-weight:500;color:#c79a3d;line-height:1.2">16</div><div style="font-size:13px;color:#BFD3C6;margin-top:4px">معتمدية في صفاقس</div></div>
+      <div class="glass" style="padding:14px 16px"><div class="num" style="font-size:28px;font-weight:500;color:#c79a3d;line-height:1.2">20</div><div style="font-size:13px;color:#BFD3C6;margin-top:4px">مرحلة بناء في البوردرو</div></div>
+      <div class="glass" style="padding:14px 16px"><div class="num" style="font-size:28px;font-weight:500;color:#c79a3d;line-height:1.2">5</div><div style="font-size:13px;color:#BFD3C6;margin-top:4px">مستويات تشطيب</div></div>
+      <div class="glass" style="padding:14px 16px"><div class="num" style="font-size:28px;font-weight:500;color:#c79a3d;line-height:1.2">0</div><div style="font-size:13px;color:#BFD3C6;margin-top:4px">معاليم على المواطن</div></div>
+    </div>
+  </section>
+
+  <!-- Sfax by delegation -->
+  <section style="padding:28px 20px 8px">
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:10px">
+      <h2 style="font-size:24px;color:#fff">صفاقس، معتمدية بمعتمدية</h2>
+      <span style="font-size:11px;color:#c79a3d;border:1px solid rgba(199,154,61,.5);border-radius:999px;padding:2px 10px;white-space:nowrap">أرقام توضيحية</span>
+    </div>
+    <p style="font-size:14px;color:#B9CDBF;margin-top:8px">أعداد فقط، بلا أيّ معطى شخصي: حالات منجزة، ملفّات في الطريق، وعروض عقارية متاحة.</p>
+    <div style="display:grid;grid-template-columns:repeat(4, minmax(0, 1fr));gap:6px;margin-top:16px">
+      <div class="tile"><span style="font-size:11px;line-height:1.4">صفاقس المدينة</span><span class="dots"><span class="d"><span style="background:#c79a3d"></span>2</span><span class="d"><span style="background:#8fb8e8"></span>5</span><span class="d"><span style="background:#9ccfae"></span>3</span></span></div>
+      <div class="tile"><span style="font-size:11px;line-height:1.4">صفاقس الغربية</span><span class="dots"><span class="d"><span style="background:#c79a3d"></span>1</span><span class="d"><span style="background:#8fb8e8"></span>4</span><span class="d"><span style="background:#9ccfae"></span>2</span></span></div>
+      <div class="tile"><span style="font-size:11px;line-height:1.4">صفاقس الجنوبية</span><span class="dots"><span class="d"><span style="background:#c79a3d"></span>3</span><span class="d"><span style="background:#8fb8e8"></span>6</span><span class="d"><span style="background:#9ccfae"></span>1</span></span></div>
+      <div class="tile"><span style="font-size:11px;line-height:1.4">ساقية الزيت</span><span class="dots"><span class="d"><span style="background:#c79a3d"></span>2</span><span class="d"><span style="background:#8fb8e8"></span>3</span><span class="d"><span style="background:#9ccfae"></span>4</span></span></div>
+      <div class="tile"><span style="font-size:11px;line-height:1.4">ساقية الداير</span><span class="dots"><span class="d"><span style="background:#c79a3d"></span>0</span><span class="d"><span style="background:#8fb8e8"></span>2</span><span class="d"><span style="background:#9ccfae"></span>1</span></span></div>
+      <div class="tile"><span style="font-size:11px;line-height:1.4">طينة</span><span class="dots"><span class="d"><span style="background:#c79a3d"></span>1</span><span class="d"><span style="background:#8fb8e8"></span>3</span><span class="d"><span style="background:#9ccfae"></span>2</span></span></div>
+      <div class="tile"><span style="font-size:11px;line-height:1.4">عقارب</span><span class="dots"><span class="d"><span style="background:#c79a3d"></span>0</span><span class="d"><span style="background:#8fb8e8"></span>1</span><span class="d"><span style="background:#9ccfae"></span>0</span></span></div>
+      <div class="tile"><span style="font-size:11px;line-height:1.4">جبنيانة</span><span class="dots"><span class="d"><span style="background:#c79a3d"></span>1</span><span class="d"><span style="background:#8fb8e8"></span>2</span><span class="d"><span style="background:#9ccfae"></span>1</span></span></div>
+      <div class="tile"><span style="font-size:11px;line-height:1.4">العامرة</span><span class="dots"><span class="d"><span style="background:#c79a3d"></span>0</span><span class="d"><span style="background:#8fb8e8"></span>1</span><span class="d"><span style="background:#9ccfae"></span>1</span></span></div>
+      <div class="tile"><span style="font-size:11px;line-height:1.4">الحنشة</span><span class="dots"><span class="d"><span style="background:#c79a3d"></span>0</span><span class="d"><span style="background:#8fb8e8"></span>1</span><span class="d"><span style="background:#9ccfae"></span>0</span></span></div>
+      <div class="tile"><span style="font-size:11px;line-height:1.4">منزل شاكر</span><span class="dots"><span class="d"><span style="background:#c79a3d"></span>0</span><span class="d"><span style="background:#8fb8e8"></span>2</span><span class="d"><span style="background:#9ccfae"></span>0</span></span></div>
+      <div class="tile"><span style="font-size:11px;line-height:1.4">الغريبة</span><span class="dots"><span class="d"><span style="background:#c79a3d"></span>0</span><span class="d"><span style="background:#8fb8e8"></span>1</span><span class="d"><span style="background:#9ccfae"></span>1</span></span></div>
+      <div class="tile"><span style="font-size:11px;line-height:1.4">بئر علي بن خليفة</span><span class="dots"><span class="d"><span style="background:#c79a3d"></span>0</span><span class="d"><span style="background:#8fb8e8"></span>0</span><span class="d"><span style="background:#9ccfae"></span>1</span></span></div>
+      <div class="tile"><span style="font-size:11px;line-height:1.4">الصخيرة</span><span class="dots"><span class="d"><span style="background:#c79a3d"></span>0</span><span class="d"><span style="background:#8fb8e8"></span>1</span><span class="d"><span style="background:#9ccfae"></span>0</span></span></div>
+      <div class="tile"><span style="font-size:11px;line-height:1.4">المحرس</span><span class="dots"><span class="d"><span style="background:#c79a3d"></span>1</span><span class="d"><span style="background:#8fb8e8"></span>2</span><span class="d"><span style="background:#9ccfae"></span>1</span></span></div>
+      <div class="tile"><span style="font-size:11px;line-height:1.4">قرقنة</span><span class="dots"><span class="d"><span style="background:#c79a3d"></span>0</span><span class="d"><span style="background:#8fb8e8"></span>1</span><span class="d"><span style="background:#9ccfae"></span>0</span></span></div>
+    </div>
+    <div style="display:flex;flex-wrap:wrap;gap:6px 14px;margin-top:12px;font-size:12px;color:#BFD3C6">
+      <span class="d"><span style="width:8px;height:8px;background:#c79a3d"></span>منجزة</span>
+      <span class="d"><span style="width:8px;height:8px;background:#8fb8e8"></span>في الطريق</span>
+      <span class="d"><span style="width:8px;height:8px;background:#9ccfae"></span>عروض متاحة</span>
+    </div>
+  </section>
+
+  <!-- How it works -->
+  <section style="padding:28px 20px 8px">
+    <h2 style="font-size:24px;color:#fff">كيفاش تخدم اللَّبنة</h2>
+    <div style="display:grid;grid-template-columns:repeat(2, minmax(0, 1fr));gap:10px;margin-top:16px">
+      <div class="glass" style="padding:16px 14px"><div class="num" style="font-size:26px;color:#c79a3d;font-weight:500;line-height:1.2">01</div><div style="font-size:15px;font-weight:600;color:#fff;margin-top:8px">سجّل مطلبك</div><p style="font-size:12px;color:#B9CDBF;line-height:1.6;margin-top:4px">خمس خطوات، أقلّ من ثلاث دقائق، من التلفون.</p></div>
+      <div class="glass" style="padding:16px 14px"><div class="num" style="font-size:26px;color:#c79a3d;font-weight:500;line-height:1.2">02</div><div style="font-size:15px;font-weight:600;color:#fff;margin-top:8px">ندرسو قدرتك</div><p style="font-size:12px;color:#B9CDBF;line-height:1.6;margin-top:4px">نحسبو ميزانيتك التقديرية والقسط الشهري الممكن.</p></div>
+      <div class="glass" style="padding:16px 14px"><div class="num" style="font-size:26px;color:#c79a3d;font-weight:500;line-height:1.2">03</div><div style="font-size:15px;font-weight:600;color:#fff;margin-top:8px">نلقاو لك العرض</div><p style="font-size:12px;color:#B9CDBF;line-height:1.6;margin-top:4px">مشروع ولا شركة بناء تناسب منطقتك وقدرتك.</p></div>
+      <div class="glass" style="padding:16px 14px"><div class="num" style="font-size:26px;color:#c79a3d;font-weight:500;line-height:1.2">04</div><div style="font-size:15px;font-weight:600;color:#fff;margin-top:8px">نتابعو معاك</div><p style="font-size:12px;color:#B9CDBF;line-height:1.6;margin-top:4px">من الموعد الأوّل إلى مفتاح الدار.</p></div>
+    </div>
+  </section>
+
+  <!-- Roles -->
+  <section style="padding:28px 0 8px">
+    <div style="padding:0 20px">
+      <h2 style="font-size:24px;color:#fff">لكلّ طرف مكانه</h2>
+      <p style="font-size:14px;color:#B9CDBF;margin-top:8px">اللَّبنة موش شريكة مع بنك معيّن ولا مقاول معيّن. الشبكة مفتوحة، والاختيار للمواطن.</p>
+    </div>
+    <div class="scroller" style="margin-top:16px">
+      <div class="snap glass" style="width:230px;padding:16px">
+        <span style="display:flex;align-items:center;justify-content:center;width:40px;height:40px;border-radius:12px;background:rgba(199,154,61,.18);color:#c79a3d"><svg width="22" height="22" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4" class="il"></circle><path d="M4 21a8 8 0 0 1 16 0" class="il"></path></svg></span>
+        <div style="font-size:16px;font-weight:600;color:#fff;margin-top:12px">المواطن</div>
+        <p style="font-size:13px;color:#B9CDBF;line-height:1.65;margin-top:4px">سجّل مطلبك مرّة وحدة، وتابعو برمز خاصّ بيك.</p>
+        <a href="#" style="display:flex;align-items:center;gap:6px;min-height:44px;margin-top:6px;font-size:14px;font-weight:500;color:#c79a3d">سجّل مطلبك<svg class="ico" viewBox="0 0 24 24" style="width:18px;height:18px"><path d="M19 12H5M11 6l-6 6 6 6" class="il"></path></svg></a>
+      </div>
+      <div class="snap glass" style="width:230px;padding:16px">
+        <span style="display:flex;align-items:center;justify-content:center;width:40px;height:40px;border-radius:12px;background:rgba(199,154,61,.18);color:#c79a3d"><svg width="22" height="22" viewBox="0 0 24 24"><path d="M14 4l6 6-9 9-6-6zM5 13l-2 6 6-2M17 7l2-2" class="il"></path></svg></span>
+        <div style="font-size:16px;font-weight:600;color:#fff;margin-top:12px">مهني في البناء؟</div>
+        <p style="font-size:13px;color:#B9CDBF;line-height:1.65;margin-top:4px">حرفي، مقاول، مهندس، مكتب دراسات ولا مزوّد: سجّل نشاطك ومناطق تدخّلك.</p>
+        <a href="#" style="display:flex;align-items:center;gap:6px;min-height:44px;margin-top:6px;font-size:14px;font-weight:500;color:#c79a3d">انضمّ للشبكة<svg class="ico" viewBox="0 0 24 24" style="width:18px;height:18px"><path d="M19 12H5M11 6l-6 6 6 6" class="il"></path></svg></a>
+      </div>
+      <div class="snap glass" style="width:230px;padding:16px">
+        <span style="display:flex;align-items:center;justify-content:center;width:40px;height:40px;border-radius:12px;background:rgba(199,154,61,.18);color:#c79a3d"><svg width="22" height="22" viewBox="0 0 24 24"><path d="M3 11l9-7 9 7M5 10v10h14V10" class="il"></path><rect x="10" y="14" width="4" height="6" class="fg"></rect></svg></span>
+        <div style="font-size:16px;font-weight:600;color:#fff;margin-top:12px">عندك عقار؟</div>
+        <p style="font-size:13px;color:#B9CDBF;line-height:1.65;margin-top:4px">سجّلو عندنا. ما يتنشرش، ويُعرض على الحرفاء المعنيين وحدهم.</p>
+        <a href="#" style="display:flex;align-items:center;gap:6px;min-height:44px;margin-top:6px;font-size:14px;font-weight:500;color:#c79a3d">سجّل عقارك<svg class="ico" viewBox="0 0 24 24" style="width:18px;height:18px"><path d="M19 12H5M11 6l-6 6 6 6" class="il"></path></svg></a>
+      </div>
+      <div class="snap glass" style="width:230px;padding:16px">
+        <span style="display:flex;align-items:center;justify-content:center;width:40px;height:40px;border-radius:12px;background:rgba(199,154,61,.18);color:#c79a3d"><svg width="22" height="22" viewBox="0 0 24 24"><path d="M4 15a8 8 0 0 1 16 0M2 15h20M12 7V4" class="il"></path></svg></span>
+        <div style="font-size:16px;font-weight:600;color:#fff;margin-top:12px">شركات البناء والباعثين</div>
+        <p style="font-size:13px;color:#B9CDBF;line-height:1.65;margin-top:4px">حرفاء جدّيون، المناطق الأكثر طلباً، والنموذج والمساحة المطلوبة فعلاً.</p>
+        <a href="#" style="display:flex;align-items:center;gap:6px;min-height:44px;margin-top:6px;font-size:14px;font-weight:500;color:#c79a3d">اتّصل بالفريق<svg class="ico" viewBox="0 0 24 24" style="width:18px;height:18px"><path d="M19 12H5M11 6l-6 6 6 6" class="il"></path></svg></a>
+      </div>
+      <div class="snap glass" style="width:230px;padding:16px">
+        <span style="display:flex;align-items:center;justify-content:center;width:40px;height:40px;border-radius:12px;background:rgba(199,154,61,.18);color:#c79a3d"><svg width="22" height="22" viewBox="0 0 24 24"><path d="M3 10l9-6 9 6M5 10v8M9 10v8M15 10v8M19 10v8M3 20h18" class="il"></path></svg></span>
+        <div style="font-size:16px;font-weight:600;color:#fff;margin-top:12px">البنوك والممولون</div>
+        <p style="font-size:13px;color:#B9CDBF;line-height:1.65;margin-top:4px">ملفّات أوّلية مرتّبة، تقدير للقدرة المالية، ومتابعة مراحل المشروع.</p>
+        <a href="#" style="display:flex;align-items:center;gap:6px;min-height:44px;margin-top:6px;font-size:14px;font-weight:500;color:#c79a3d">اتّصل بالفريق<svg class="ico" viewBox="0 0 24 24" style="width:18px;height:18px"><path d="M19 12H5M11 6l-6 6 6 6" class="il"></path></svg></a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Support -->
+  <section style="padding:24px 20px 8px">
+    <div style="border-radius:20px;border:1px solid rgba(199,154,61,.5);padding:18px 16px;display:flex;gap:12px;align-items:flex-start">
+      <span style="display:flex;align-items:center;justify-content:center;width:40px;height:40px;border-radius:12px;background:rgba(199,154,61,.18);color:#c79a3d;flex:0 0 auto"><svg width="22" height="22" viewBox="0 0 24 24"><path d="M12 21s-7-4.5-7-10a4 4 0 0 1 7-2.5A4 4 0 0 1 19 11c0 5.5-7 10-7 10z" class="il"></path></svg></span>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:16px;font-weight:600;color:#fff">تحتاج مساندة؟</div>
+        <p style="font-size:13px;color:#B9CDBF;line-height:1.65;margin-top:4px">إذا كانت وضعيتك السكنية صعبة، الفريق يقرا كلّ مطلب. المساندة عينية: مواد، يد عاملة، دراسة فنّية. ما نوعدوش بحلّ، ونقولوها بصراحة.</p>
+        <a href="#" style="display:flex;align-items:center;gap:6px;min-height:44px;margin-top:4px;font-size:14px;font-weight:500;color:#c79a3d">اطلب مساندة<svg class="ico" viewBox="0 0 24 24" style="width:18px;height:18px"><path d="M19 12H5M11 6l-6 6 6 6" class="il"></path></svg></a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Light block: paths + final CTA -->
+  <section style="margin-top:28px;background:#f3f5f8;color:#12202f;border-radius:24px 24px 0 0;padding:28px 20px 8px">
+    <h2 style="font-size:24px;color:#12243c">شنوّة تحبّ تعمل؟</h2>
+    <p style="font-size:14px;color:#55677d;margin-top:8px">اختار المسار اللي يشبهلك، والاستمارة تتبدّل حسب اختيارك.</p>
+    <div style="display:flex;flex-direction:column;gap:10px;margin-top:18px">
+      <a href="#" style="display:flex;align-items:center;gap:14px;padding:12px 14px;background:#fff;border:1px solid #dbe1ea;border-radius:16px;min-height:72px;box-sizing:border-box;color:#12202f">
+        <span style="display:flex;align-items:center;justify-content:center;width:44px;height:44px;border-radius:12px;background:#e4eaf2;color:#1d3a5f;flex:0 0 auto"><svg width="22" height="22" viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="13" rx="1" class="il" style="stroke-dasharray:3 2"></rect><path d="M8 15v-4l4-3 4 3v4z" class="il"></path></svg></span>
+        <span style="flex:1;min-width:0"><span style="display:block;font-weight:600;font-size:16px">نحبّ نبني فوق أرضي</span><span style="display:block;font-size:13px;color:#55677d;line-height:1.6">ندرسو أرضك ونقترحو نموذج يناسبها.</span></span>
+        <svg class="ico" viewBox="0 0 24 24" style="color:#7d8da0"><path d="M14 6l-6 6 6 6" class="il"></path></svg>
+      </a>
+      <a href="#" style="display:flex;align-items:center;gap:14px;padding:12px 14px;background:#fff;border:1px solid #dbe1ea;border-radius:16px;min-height:72px;box-sizing:border-box;color:#12202f">
+        <span style="display:flex;align-items:center;justify-content:center;width:44px;height:44px;border-radius:12px;background:#e4eaf2;color:#1d3a5f;flex:0 0 auto"><svg width="22" height="22" viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="13" rx="1" class="il"></rect><path d="M7 16v-5l5-4 5 4v5z" class="il"></path><rect x="11" y="13" width="2" height="3" class="fg"></rect></svg></span>
+        <span style="flex:1;min-width:0"><span style="display:block;font-weight:600;font-size:16px">نحبّ أرض ودار</span><span style="display:block;font-size:13px;color:#55677d;line-height:1.6">أرض في منطقتك ودار مبنية عليها، بعقد واضح.</span></span>
+        <svg class="ico" viewBox="0 0 24 24" style="color:#7d8da0"><path d="M14 6l-6 6 6 6" class="il"></path></svg>
+      </a>
+      <a href="#" style="display:flex;align-items:center;gap:14px;padding:12px 14px;background:#fff;border:1px solid #dbe1ea;border-radius:16px;min-height:72px;box-sizing:border-box;color:#12202f">
+        <span style="display:flex;align-items:center;justify-content:center;width:44px;height:44px;border-radius:12px;background:#e4eaf2;color:#1d3a5f;flex:0 0 auto"><svg width="22" height="22" viewBox="0 0 24 24"><rect x="6" y="3" width="12" height="18" rx="1" class="il"></rect><path d="M9 7h2M13 7h2M9 11h2M13 11h2M9 15h2M13 15h2" class="il"></path></svg></span>
+        <span style="flex:1;min-width:0"><span style="display:block;font-weight:600;font-size:16px">نحبّ شقة</span><span style="display:block;font-size:13px;color:#55677d;line-height:1.6">نطابقو مطلبك مع المشاريع القانونية.</span></span>
+        <svg class="ico" viewBox="0 0 24 24" style="color:#7d8da0"><path d="M14 6l-6 6 6 6" class="il"></path></svg>
+      </a>
+      <a href="#" style="display:flex;align-items:center;gap:14px;padding:12px 14px;background:#fff;border:1px solid #dbe1ea;border-radius:16px;min-height:72px;box-sizing:border-box;color:#12202f">
+        <span style="display:flex;align-items:center;justify-content:center;width:44px;height:44px;border-radius:12px;background:#e4eaf2;color:#1d3a5f;flex:0 0 auto"><svg width="22" height="22" viewBox="0 0 24 24"><circle cx="8" cy="12" r="4" class="il"></circle><path d="M12 12h9M18 12v3M21 12v2" class="il"></path></svg></span>
+        <span style="flex:1;min-width:0"><span style="display:block;font-weight:600;font-size:16px">كراء مملّك</span><span style="display:block;font-size:13px;color:#55677d;line-height:1.6">ما عندكش تسبقة كبيرة؟ ندرسو قدرتك.</span></span>
+        <svg class="ico" viewBox="0 0 24 24" style="color:#7d8da0"><path d="M14 6l-6 6 6 6" class="il"></path></svg>
+      </a>
+    </div>
+
+    <div style="background:#12243c;border-radius:20px;padding:24px 20px;color:#fff;margin-top:24px">
+      <span class="brick"></span>
+      <h2 style="font-size:22px;color:#fff;margin-top:12px">مطلبك يبدا اليوم</h2>
+      <p style="font-size:14px;color:#BFD3C6;line-height:1.75;margin-top:8px">التسجيل مجّاني وما يلزمكش حساب. تعمّر الاستمارة، تاخو رمز مطلبك، ونحنا نتّصلو بيك.</p>
+      <a href="#" style="display:flex;align-items:center;justify-content:center;height:52px;margin-top:18px;border-radius:14px;background:#c79a3d;color:#12243c;font-weight:600;font-size:16px">سجّل مطلبك مجّاناً</a>
+    </div>
+    <div style="height:20px"></div>
+  </section>
+
+  <!-- Footer -->
+  <footer style="padding:24px 20px 28px;background:#0d1a2c;font-size:13px;color:#BFD3C6">
+    <div class="display" style="font-size:16px;color:#fff">اللَّبنة للبناء والإعمار</div>
+    <div style="color:#c79a3d;font-size:13px">معاً… نبني حلول السكن</div>
+    <div style="display:grid;grid-template-columns:repeat(2, minmax(0, 1fr));gap:0 16px;margin-top:14px">
+      <a href="#" style="display:flex;align-items:center;min-height:40px;color:#BFD3C6">تسجيل مطلب سكن</a>
+      <a href="#" style="display:flex;align-items:center;min-height:40px;color:#BFD3C6">طرق البناء</a>
+      <a href="#" style="display:flex;align-items:center;min-height:40px;color:#BFD3C6">محاكي التمويل</a>
+      <a href="#" style="display:flex;align-items:center;min-height:40px;color:#BFD3C6">مستويات التشطيب</a>
+      <a href="#" style="display:flex;align-items:center;min-height:40px;color:#BFD3C6">تتبّع مطلب</a>
+      <a href="#" style="display:flex;align-items:center;min-height:40px;color:#BFD3C6">حالات تمّ إنجازها</a>
+      <a href="#" style="display:flex;align-items:center;min-height:40px;color:#BFD3C6">عندك عقار؟</a>
+      <a href="#" style="display:flex;align-items:center;min-height:40px;color:#BFD3C6">مهني في البناء؟</a>
+      <a href="#" style="display:flex;align-items:center;min-height:40px;color:#BFD3C6">تحتاج مساندة؟</a>
+      <a href="#" style="display:flex;align-items:center;min-height:40px;color:#BFD3C6">حماية المعطيات</a>
+    </div>
+    <div style="margin-top:14px;padding-top:12px;border-top:1px solid rgba(255,255,255,.1);font-size:11px;color:#8FAB9C">اللَّبنة للبناء والإعمار · AL-LUBNA — نسخة تجريبية</div>
+  </footer>
+</div>
+</x-dc>
+</body>
+</html>

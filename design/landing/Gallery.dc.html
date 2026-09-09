@@ -1,0 +1,450 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Reem+Kufi:wght@500;600;700&amp;family=IBM+Plex+Sans+Arabic:wght@300;400;500;600&amp;family=IBM+Plex+Mono:wght@400;500&amp;display=swap">
+  <style>
+    body{margin:0;background:#fff;color:#12202f;font-family:'IBM Plex Sans Arabic','Segoe UI',system-ui,sans-serif;line-height:1.8;-webkit-font-smoothing:antialiased;direction:rtl}
+    h1,h2,h3,.display{font-family:'Reem Kufi','IBM Plex Sans Arabic','Segoe UI',sans-serif;line-height:1.45;margin:0;font-weight:600;text-wrap:balance}
+    p{margin:0}
+    a{color:#1d3a5f;text-decoration:none}a:hover{color:#12243c}
+    .num{font-family:'IBM Plex Mono',ui-monospace,monospace;font-variant-numeric:tabular-nums;direction:ltr;unicode-bidi:isolate;display:inline-block}
+    .brick{display:inline-block;width:26px;height:13px;border-radius:2px;background:#c79a3d}
+    .il{stroke:currentColor;fill:none;stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round}
+    .fg{fill:#c79a3d;stroke:none}.fs{fill:#e4eaf2;stroke:none}.fgs{fill:#f7efdf;stroke:none}.fw{fill:#fff}.fl{fill:#dbe1ea;stroke:none}
+    .svgt{font-family:'IBM Plex Sans Arabic','Segoe UI',sans-serif;font-size:12px;fill:#55677d;text-anchor:middle}
+    .ico{width:20px;height:20px;flex:0 0 auto}
+    .scroller{display:flex;gap:12px;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;padding:0 16px 4px}
+    .scroller::-webkit-scrollbar{display:none}
+    .snap{scroll-snap-align:start;flex:0 0 auto}
+    .ph{background:repeating-linear-gradient(135deg,#e6eaf0 0 6px,#eef1f5 6px 12px);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;color:#7d8da0;font-size:12px;text-align:center}
+    .card{background:#fff;border:1px solid #dbe1ea;border-radius:18px;overflow:hidden}
+    .chip{display:inline-flex;align-items:center;height:28px;padding:0 10px;border-radius:999px;background:#f3f5f8;font-size:12px;color:#2c3d50;white-space:nowrap}
+    .lbl{font-size:11px;font-weight:600;color:#a8781f}
+    .wall{stroke:#a8781f;stroke-width:1.25;fill:#f7efdf}
+    .blk{stroke:#1d3a5f;stroke-width:1.5;fill:#fff}
+  </style>
+</helmet>
+<div dir="rtl" lang="ar" style="position:relative;width:390px;background:#f3f5f8;overflow:hidden;box-sizing:border-box">
+
+  <!-- Header -->
+  <div style="display:flex;align-items:center;justify-content:space-between;height:56px;padding:0 16px;box-sizing:border-box;background:#fff;border-bottom:1px solid #dbe1ea">
+    <div style="display:flex;align-items:center;gap:10px">
+      <span class="brick"></span>
+      <span class="display" style="font-size:19px;color:#12243c">اللَّبنة</span>
+      <span style="font-size:11px;color:#7d8da0">للبناء والإعمار</span>
+    </div>
+    <div style="display:flex;align-items:center;gap:4px">
+      <span class="num" style="display:flex;align-items:center;justify-content:center;width:44px;height:44px;border-radius:12px;font-size:13px;font-weight:500;color:#55677d">FR</span>
+      <span style="display:flex;align-items:center;justify-content:center;width:44px;height:44px;border-radius:12px;color:#12202f"><svg width="22" height="22" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16" class="il"></path></svg></span>
+    </div>
+  </div>
+
+  <!-- Hero image (full-bleed) -->
+  <svg width="390" height="230" viewBox="0 0 390 230" style="display:block">
+    <rect width="390" height="230" class="fgs"></rect>
+    <circle cx="62" cy="54" r="18" class="fg"></circle>
+    <path d="M0 190h390" class="il" style="color:#1d3a5f"></path>
+    <path d="M18 190v-34h92v34" class="il" style="color:#1d3a5f;stroke-dasharray:5 4"></path>
+    <path d="M64 156v-14" class="il" style="color:#a8781f"></path>
+    <rect x="52" y="132" width="24" height="10" rx="2" class="fg"></rect>
+    <rect x="128" y="86" width="74" height="104" class="il fw" style="color:#1d3a5f"></rect>
+    <rect x="136" y="96" width="12" height="12" class="fl"></rect><rect x="158" y="96" width="12" height="12" class="fl"></rect><rect x="180" y="96" width="12" height="12" class="fl"></rect>
+    <rect x="136" y="118" width="12" height="12" class="fl"></rect><rect x="158" y="118" width="12" height="12" class="fl"></rect><rect x="180" y="118" width="12" height="12" class="fl"></rect>
+    <rect x="136" y="140" width="12" height="12" class="fl"></rect><rect x="158" y="140" width="12" height="12" class="fg"></rect><rect x="180" y="140" width="12" height="12" class="fl"></rect>
+    <rect x="136" y="162" width="12" height="12" class="fl"></rect><rect x="158" y="162" width="12" height="28" class="fl"></rect><rect x="180" y="162" width="12" height="12" class="fl"></rect>
+    <rect x="222" y="126" width="64" height="64" class="il fw" style="color:#1d3a5f"></rect>
+    <path d="M222 148h64M222 170h64" class="il" style="color:#bcc7d6"></path>
+    <path d="M254 126V44M254 44h84M254 60h-18M338 44v14M300 44v40" class="il" style="color:#1d3a5f"></path>
+    <rect x="294" y="84" width="12" height="10" class="fg"></rect>
+    <path d="M312 190v-44h56v44" class="il fw" style="color:#1d3a5f"></path>
+    <path d="M304 148l36-30 36 30" class="il" style="color:#1d3a5f"></path>
+    <rect x="334" y="168" width="12" height="22" class="fg"></rect>
+    <rect x="318" y="156" width="10" height="10" class="fl"></rect>
+    <path d="M376 190v-22" class="il" style="color:#7f9c85"></path><circle cx="376" cy="160" r="12" style="fill:#d9e3d5;stroke:#7f9c85;stroke-width:1.5"></circle>
+    <path d="M114 190v-16" class="il" style="color:#7f9c85"></path><circle cx="114" cy="166" r="9" style="fill:#d9e3d5;stroke:#7f9c85;stroke-width:1.5"></circle>
+  </svg>
+
+  <!-- Hero text -->
+  <section style="padding:20px 16px 8px;background:#fff">
+    <div style="font-size:12px;color:#a8781f;font-weight:500">المرحلة التجريبية · ولاية صفاقس</div>
+    <h1 style="font-size:32px;color:#12243c;margin-top:8px">نبنيو على قدّك</h1>
+    <p style="font-size:16px;color:#2c3d50;margin-top:10px;line-height:1.85">شوف كيفاش تمشي الأمور، خطوة بخطوة وبالصور، قبل ما تسجّل. مجّاني، بلا حساب، وأقلّ من ثلاث دقائق.</p>
+    <a href="#" style="display:flex;align-items:center;justify-content:center;height:52px;margin-top:18px;border-radius:14px;background:#c79a3d;color:#12243c;font-weight:600;font-size:16px">سجّل مطلبك مجّاناً</a>
+    <div style="height:14px"></div>
+  </section>
+
+  <!-- Sticky bottom bar (pinned in the real page) + fold marker -->
+  <div style="position:absolute;left:0;right:0;top:772px;height:72px;z-index:5;box-sizing:border-box;padding:12px 16px;background:rgba(255,255,255,.94);backdrop-filter:blur(12px);border-top:1px solid #dbe1ea;display:flex;gap:10px;align-items:center">
+    <a href="#" style="flex:1;display:flex;align-items:center;justify-content:center;height:48px;border-radius:14px;background:#c79a3d;color:#12243c;font-weight:600;font-size:16px">سجّل مطلبك مجّاناً</a>
+    <a href="#" style="display:flex;align-items:center;justify-content:center;width:48px;height:48px;border-radius:14px;border:1px solid #bcc7d6;background:#fff;color:#1d3a5f"><svg width="22" height="22" viewBox="0 0 24 24"><rect x="5" y="3" width="14" height="18" rx="2" class="il"></rect><path d="M8 7h8M8 12h2M12 12h4M8 16h2M12 16h4" class="il"></path></svg></a>
+  </div>
+  <div style="position:absolute;left:0;right:0;top:844px;border-top:1px dashed #bcc7d6;z-index:4;pointer-events:none"></div>
+  <div class="num" style="position:absolute;left:8px;top:846px;font-size:10px;color:#7d8da0;z-index:4">fold · 844</div>
+
+  <!-- Four paths, illustrated -->
+  <section style="padding:28px 16px 8px">
+    <h2 style="font-size:24px;color:#12243c">أربعة مسارات، اختار اللي يشبهلك</h2>
+    <p style="font-size:14px;color:#55677d;margin-top:8px">كلّ مسار عندو استمارتو وعرضو. الرسم يفسّر شنوّة يعني بالضبط.</p>
+
+    <div style="display:flex;flex-direction:column;gap:14px;margin-top:18px">
+
+      <!-- build on land -->
+      <div class="card">
+        <svg width="356" height="160" viewBox="0 0 356 160" style="display:block">
+          <rect width="356" height="160" class="fs"></rect>
+          <rect x="86" y="24" width="184" height="108" style="fill:#f3f5f8;stroke:#1d3a5f;stroke-width:1.75;stroke-dasharray:6 5"></rect>
+          <rect x="116" y="42" width="112" height="70" rx="2" style="fill:#fff;stroke:#1d3a5f;stroke-width:1.75"></rect>
+          <path d="M116 78h112M172 42v70" style="stroke:#dbe1ea;stroke-width:1.5"></path>
+          <rect x="166" y="104" width="12" height="8" class="fg"></rect>
+          <circle cx="250" cy="52" r="10" style="fill:#d9e3d5;stroke:#7f9c85;stroke-width:1.5"></circle>
+          <path d="M250 62v12" style="stroke:#7f9c85;stroke-width:1.5"></path>
+          <path d="M86 146h184M86 142v8M270 142v8" style="stroke:#a8781f;stroke-width:1.25"></path>
+          <text x="178" y="158" class="svgt" style="font-size:11px;fill:#a8781f">20 م</text>
+          <path d="M284 24v108M280 24h8M280 132h8" style="stroke:#a8781f;stroke-width:1.25"></path>
+          <text x="318" y="82" class="svgt" style="font-size:11px;fill:#a8781f">15 م</text>
+          <text x="144" y="66" class="svgt" style="font-size:11px;fill:#55677d">دار 100 م²</text>
+          <rect x="14" y="14" width="56" height="26" rx="13" style="fill:#12243c"></rect>
+          <text x="42" y="31" class="svgt" style="fill:#fff;font-size:11px">أرضك</text>
+        </svg>
+        <div style="padding:14px 16px 16px">
+          <h3 style="font-size:18px;color:#12202f">نحبّ نبني فوق أرضي</h3>
+          <p style="font-size:14px;color:#55677d;line-height:1.75;margin-top:4px">عندك أرض؟ ندرسو وضعيتها ونقترحو عليك نموذج بناء يناسب مساحتها وميزانيتك، مع بوردرو مفصّل.</p>
+          <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;align-items:center"><span class="lbl">شنوّة يلزم</span><span class="chip">مكان الأرض</span><span class="chip">مساحتها</span><span class="chip">الدار اللي تحبّها</span></div>
+          <a href="#" style="display:flex;align-items:center;gap:6px;min-height:44px;margin-top:4px;font-size:14px;font-weight:500;color:#1d3a5f">ابدا بهالمسار<svg class="ico" viewBox="0 0 24 24" style="width:18px;height:18px"><path d="M19 12H5M11 6l-6 6 6 6" class="il"></path></svg></a>
+        </div>
+      </div>
+
+      <!-- land + house -->
+      <div class="card">
+        <svg width="356" height="160" viewBox="0 0 356 160" style="display:block">
+          <rect width="356" height="160" class="fgs"></rect>
+          <rect x="150" y="30" width="170" height="104" style="fill:#f3f5f8;stroke:#1d3a5f;stroke-width:1.75"></rect>
+          <path d="M190 118v-40h90v40z" style="fill:#fff;stroke:#1d3a5f;stroke-width:1.75"></path>
+          <path d="M182 80l53-30 53 30" class="il" style="color:#1d3a5f"></path>
+          <rect x="228" y="96" width="14" height="22" class="fg"></rect>
+          <rect x="200" y="88" width="14" height="12" class="fl"></rect>
+          <rect x="256" y="88" width="14" height="12" class="fl"></rect>
+          <path d="M40 40h56l16 16v64H40z" style="fill:#fff;stroke:#1d3a5f;stroke-width:1.75"></path>
+          <path d="M96 40v16h16" class="il" style="color:#1d3a5f"></path>
+          <path d="M52 72h44M52 82h30M52 92h40" style="stroke:#bcc7d6;stroke-width:1.75;stroke-linecap:round"></path>
+          <circle cx="96" cy="106" r="10" class="fg"></circle>
+          <path d="M91 106l3.5 3.5 7-7" class="il" style="color:#12243c"></path>
+          <path d="M124 82h16M132 74v16" style="stroke:#a8781f;stroke-width:2.5;stroke-linecap:round"></path>
+          <rect x="14" y="14" width="122" height="26" rx="13" style="fill:#12243c"></rect>
+          <text x="75" y="31" class="svgt" style="fill:#fff;font-size:11px">أرض + دار · عقد واحد</text>
+        </svg>
+        <div style="padding:14px 16px 16px">
+          <h3 style="font-size:18px;color:#12202f">نحبّ أرض ودار</h3>
+          <p style="font-size:14px;color:#55677d;line-height:1.75;margin-top:4px">عرض متكامل: أرض في المنطقة اللي تحبّها ودار مبنية عليها، بعقد واضح وسعر معروف من البداية.</p>
+          <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;align-items:center"><span class="lbl">شنوّة يلزم</span><span class="chip">المنطقة</span><span class="chip">مساحة الأرض اللي تحبّها</span><span class="chip">ميزانيتك</span></div>
+          <a href="#" style="display:flex;align-items:center;gap:6px;min-height:44px;margin-top:4px;font-size:14px;font-weight:500;color:#1d3a5f">ابدا بهالمسار<svg class="ico" viewBox="0 0 24 24" style="width:18px;height:18px"><path d="M19 12H5M11 6l-6 6 6 6" class="il"></path></svg></a>
+        </div>
+      </div>
+
+      <!-- apartment -->
+      <div class="card">
+        <svg width="356" height="160" viewBox="0 0 356 160" style="display:block">
+          <rect width="356" height="160" class="fs"></rect>
+          <path d="M30 136h296" class="il" style="color:#1d3a5f"></path>
+          <rect x="118" y="26" width="120" height="110" style="fill:#fff;stroke:#1d3a5f;stroke-width:1.75"></rect>
+          <path d="M118 52h120M118 78h120M118 104h120" style="stroke:#e8ecf2;stroke-width:1.5"></path>
+          <rect x="130" y="34" width="24" height="14" class="fl"></rect><rect x="166" y="34" width="24" height="14" class="fl"></rect><rect x="202" y="34" width="24" height="14" class="fl"></rect>
+          <rect x="130" y="60" width="24" height="14" class="fl"></rect><rect x="166" y="60" width="24" height="14" class="fg"></rect><rect x="202" y="60" width="24" height="14" class="fl"></rect>
+          <rect x="130" y="86" width="24" height="14" class="fl"></rect><rect x="166" y="86" width="24" height="14" class="fl"></rect><rect x="202" y="86" width="24" height="14" class="fl"></rect>
+          <rect x="130" y="112" width="24" height="14" class="fl"></rect><rect x="166" y="112" width="24" height="24" style="fill:#1d3a5f"></rect><rect x="202" y="112" width="24" height="14" class="fl"></rect>
+          <path d="M194 67h48" style="stroke:#a8781f;stroke-width:1.25;stroke-dasharray:3 3"></path>
+          <text x="272" y="71" class="svgt" style="font-size:11px;fill:#a8781f">شقّتك</text>
+          <path d="M70 136v-18" class="il" style="color:#7f9c85"></path><circle cx="70" cy="112" r="10" style="fill:#d9e3d5;stroke:#7f9c85;stroke-width:1.5"></circle>
+          <path d="M292 136v-14" class="il" style="color:#7f9c85"></path><circle cx="292" cy="116" r="8" style="fill:#d9e3d5;stroke:#7f9c85;stroke-width:1.5"></circle>
+          <rect x="14" y="14" width="140" height="26" rx="13" style="fill:#12243c"></rect>
+          <text x="84" y="31" class="svgt" style="fill:#fff;font-size:11px">شقة في مشروع قانوني</text>
+        </svg>
+        <div style="padding:14px 16px 16px">
+          <h3 style="font-size:18px;color:#12202f">نحبّ شقة</h3>
+          <p style="font-size:14px;color:#55677d;line-height:1.75;margin-top:4px">نطابقو مطلبك مع المشاريع القانونية الجاهزة أو في طور الإنجاز في منطقتك، حسب المساحة والميزانية.</p>
+          <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;align-items:center"><span class="lbl">شنوّة يلزم</span><span class="chip">المنطقة</span><span class="chip">المساحة: 60 · 80 · 100 م²</span></div>
+          <a href="#" style="display:flex;align-items:center;gap:6px;min-height:44px;margin-top:4px;font-size:14px;font-weight:500;color:#1d3a5f">ابدا بهالمسار<svg class="ico" viewBox="0 0 24 24" style="width:18px;height:18px"><path d="M19 12H5M11 6l-6 6 6 6" class="il"></path></svg></a>
+        </div>
+      </div>
+
+      <!-- rent to own -->
+      <div class="card">
+        <svg width="356" height="160" viewBox="0 0 356 160" style="display:block">
+          <rect width="356" height="160" class="fgs"></rect>
+          <path d="M290 112v-32h48v32z" style="fill:#fff;stroke:#1d3a5f;stroke-width:1.75"></path>
+          <path d="M284 82l30-24 30 24" class="il" style="color:#1d3a5f"></path>
+          <rect x="309" y="96" width="10" height="16" class="fg"></rect>
+          <rect x="60" y="78" width="14" height="14" rx="3" class="fg"></rect><rect x="76" y="78" width="14" height="14" rx="3" class="fg"></rect><rect x="92" y="78" width="14" height="14" rx="3" class="fg"></rect><rect x="108" y="78" width="14" height="14" rx="3" class="fg"></rect>
+          <rect x="124" y="78" width="14" height="14" rx="3" class="fl"></rect><rect x="140" y="78" width="14" height="14" rx="3" class="fl"></rect><rect x="156" y="78" width="14" height="14" rx="3" class="fl"></rect><rect x="172" y="78" width="14" height="14" rx="3" class="fl"></rect>
+          <rect x="188" y="78" width="14" height="14" rx="3" class="fl"></rect><rect x="204" y="78" width="14" height="14" rx="3" class="fl"></rect><rect x="220" y="78" width="14" height="14" rx="3" class="fl"></rect><rect x="236" y="78" width="14" height="14" rx="3" class="fl"></rect>
+          <path d="M254 85h22M270 79l8 6-8 6" class="il" style="color:#a8781f"></path>
+          <text x="155" y="114" class="svgt" style="font-size:11px">كراء شهري يتحوّل مع الوقت لملكية</text>
+          <circle cx="46" cy="85" r="9" class="il fw" style="color:#a8781f"></circle><circle cx="46" cy="85" r="4" class="il" style="color:#a8781f;stroke-width:1.5"></circle>
+          <rect x="14" y="14" width="126" height="26" rx="13" style="fill:#12243c"></rect>
+          <text x="77" y="31" class="svgt" style="fill:#fff;font-size:11px">كراء يتحوّل لملكية</text>
+        </svg>
+        <div style="padding:14px 16px 16px">
+          <h3 style="font-size:18px;color:#12202f">كراء مملّك</h3>
+          <p style="font-size:14px;color:#55677d;line-height:1.75;margin-top:4px">ما عندكش تسبقة كبيرة؟ نسجّلو مطلبك وندرسو قدرتك على صيغة الكراء المملّك.</p>
+          <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;align-items:center"><span class="lbl">شنوّة يلزم</span><span class="chip">دخل قارّ</span><span class="chip">المنطقة</span></div>
+          <a href="#" style="display:flex;align-items:center;gap:6px;min-height:44px;margin-top:4px;font-size:14px;font-weight:500;color:#1d3a5f">ابدا بهالمسار<svg class="ico" viewBox="0 0 24 24" style="width:18px;height:18px"><path d="M19 12H5M11 6l-6 6 6 6" class="il"></path></svg></a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Two construction methods -->
+  <section style="padding:28px 16px 8px">
+    <h2 style="font-size:24px;color:#12243c">كيفاش يتبنى البيت؟ زوز طرق</h2>
+    <p style="font-size:14px;color:#55677d;margin-top:8px">الفرق موش في الجودة، الاثنان بنفس الدراسة ونفس المراقبة. الفرق في المواد وسرعة التنفيذ.</p>
+    <div style="display:grid;grid-template-columns:repeat(2, minmax(0, 1fr));gap:10px;margin-top:18px">
+      <div class="card" style="padding:12px">
+        <svg width="150" height="90" viewBox="0 0 150 90" style="display:block">
+          <rect width="150" height="90" rx="10" class="fs"></rect>
+          <rect x="12" y="12" width="126" height="10" style="fill:#1d3a5f"></rect>
+          <rect x="12" y="28" width="24" height="10" class="wall"></rect><rect x="38" y="28" width="24" height="10" class="wall"></rect><rect x="64" y="28" width="24" height="10" class="wall"></rect><rect x="90" y="28" width="24" height="10" class="wall"></rect><rect x="116" y="28" width="22" height="10" class="wall"></rect>
+          <rect x="12" y="40" width="11" height="10" class="wall"></rect><rect x="25" y="40" width="24" height="10" class="wall"></rect><rect x="51" y="40" width="24" height="10" class="wall"></rect><rect x="77" y="40" width="24" height="10" class="wall"></rect><rect x="103" y="40" width="24" height="10" class="wall"></rect><rect x="129" y="40" width="9" height="10" class="wall"></rect>
+          <rect x="12" y="52" width="24" height="10" class="wall"></rect><rect x="38" y="52" width="24" height="10" class="wall"></rect><rect x="64" y="52" width="24" height="10" class="wall"></rect><rect x="90" y="52" width="24" height="10" class="wall"></rect><rect x="116" y="52" width="22" height="10" class="wall"></rect>
+          <rect x="12" y="64" width="11" height="10" class="wall"></rect><rect x="25" y="64" width="24" height="10" class="wall"></rect><rect x="51" y="64" width="24" height="10" class="wall"></rect><rect x="77" y="64" width="24" height="10" class="wall"></rect><rect x="103" y="64" width="24" height="10" class="wall"></rect><rect x="129" y="64" width="9" height="10" class="wall"></rect>
+        </svg>
+        <div style="font-size:15px;font-weight:600;color:#12202f;margin-top:10px">البناء التقليدي</div>
+        <p style="font-size:12px;color:#55677d;line-height:1.6;margin-top:2px">آجرّ وسقف يُصبّ في الموقع. الأكثر انتشاراً، واليد العاملة متوفّرة في كلّ معتمدية.</p>
+      </div>
+      <div class="card" style="padding:12px">
+        <svg width="150" height="90" viewBox="0 0 150 90" style="display:block">
+          <rect width="150" height="90" rx="10" class="fgs"></rect>
+          <rect x="12" y="12" width="126" height="12" style="fill:#e4eaf2;stroke:#1d3a5f;stroke-width:1.5"></rect>
+          <path d="M30 12v12M52 12v12M74 12v12M96 12v12M118 12v12" style="stroke:#1d3a5f;stroke-width:1.5"></path>
+          <rect x="12" y="30" width="40" height="16" class="blk"></rect><rect x="18" y="35" width="10" height="6" class="fs"></rect><rect x="34" y="35" width="10" height="6" class="fs"></rect>
+          <rect x="55" y="30" width="40" height="16" class="blk"></rect><rect x="61" y="35" width="10" height="6" class="fs"></rect><rect x="77" y="35" width="10" height="6" class="fs"></rect>
+          <rect x="98" y="30" width="40" height="16" class="blk"></rect><rect x="104" y="35" width="10" height="6" class="fs"></rect><rect x="120" y="35" width="10" height="6" class="fs"></rect>
+          <rect x="12" y="49" width="19" height="16" class="blk"></rect><rect x="18" y="54" width="8" height="6" class="fs"></rect>
+          <rect x="34" y="49" width="40" height="16" class="blk"></rect><rect x="40" y="54" width="10" height="6" class="fs"></rect><rect x="56" y="54" width="10" height="6" class="fs"></rect>
+          <rect x="77" y="49" width="40" height="16" class="blk"></rect><rect x="83" y="54" width="10" height="6" class="fs"></rect><rect x="99" y="54" width="10" height="6" class="fs"></rect>
+          <rect x="120" y="49" width="18" height="16" class="blk"></rect><rect x="126" y="54" width="8" height="6" class="fs"></rect>
+          <rect x="12" y="68" width="40" height="16" class="blk"></rect><rect x="18" y="73" width="10" height="6" class="fs"></rect><rect x="34" y="73" width="10" height="6" class="fs"></rect>
+          <rect x="55" y="68" width="40" height="16" class="blk"></rect><rect x="61" y="73" width="10" height="6" class="fs"></rect><rect x="77" y="73" width="10" height="6" class="fs"></rect>
+          <rect x="98" y="68" width="40" height="16" class="blk"></rect><rect x="104" y="73" width="10" height="6" class="fs"></rect><rect x="120" y="73" width="10" height="6" class="fs"></rect>
+        </svg>
+        <div style="font-size:15px;font-weight:600;color:#12202f;margin-top:10px">بلوك خرساني + سقف Poutrelles</div>
+        <p style="font-size:12px;color:#55677d;line-height:1.6;margin-top:2px">بلوك معياري 50×20 صم وسقف بعناصر مسبقة الصنع تُركَّب في الموقع. أسرع في التنفيذ.</p>
+      </div>
+    </div>
+    <a href="#" style="display:flex;align-items:center;gap:6px;min-height:44px;margin-top:6px;font-size:14px;font-weight:500;color:#1d3a5f">المقارنة الكاملة والوثائق المرجعية<svg class="ico" viewBox="0 0 24 24" style="width:18px;height:18px"><path d="M19 12H5M11 6l-6 6 6 6" class="il"></path></svg></a>
+  </section>
+
+  <!-- Standing levels, visual ladder -->
+  <section style="padding:28px 0 8px">
+    <div style="padding:0 16px">
+      <h2 style="font-size:24px;color:#12243c">شنوّة يتبدّل من مستوى لمستوى؟</h2>
+      <p style="font-size:14px;color:#55677d;margin-top:8px">الهيكل واحد في الخمسة. اللي يتلوّن بالذهبي هو اللي يزيد في كلّ مستوى.</p>
+    </div>
+    <div class="scroller" style="margin-top:18px">
+      <div class="snap card" style="width:190px;padding:12px">
+        <svg width="164" height="96" viewBox="0 0 164 96" style="display:block">
+          <rect width="164" height="96" rx="12" class="fs"></rect>
+          <rect x="14" y="18" width="10" height="62" style="fill:#e8ecf2"></rect>
+          <rect x="24" y="18" width="126" height="62" style="fill:#fff;stroke:#1d3a5f;stroke-width:1.75"></rect>
+          <rect x="24" y="70" width="126" height="10" style="fill:#e8ecf2"></rect>
+          <path d="M24 26h126" style="stroke:#e8ecf2;stroke-width:3"></path>
+          <rect x="104" y="34" width="32" height="24" style="fill:#fff;stroke:#dbe1ea;stroke-width:2.5"></rect><path d="M120 34v24M104 46h32" style="stroke:#dbe1ea;stroke-width:1.5"></path>
+          <rect x="34" y="54" width="44" height="16" style="fill:#e8ecf2"></rect>
+          <rect x="36" y="36" width="22" height="9" rx="2" style="fill:#e8ecf2"></rect>
+        </svg>
+        <div style="display:flex;align-items:baseline;justify-content:space-between;margin-top:10px"><span style="font-size:15px;font-weight:600;color:#12202f">اقتصادي</span><span class="num" style="font-size:13px;color:#55677d">1 200</span></div>
+        <p style="font-size:12px;color:#55677d;line-height:1.6;margin-top:2px">بناء سليم بمواد عادية وتشطيب بسيط.</p>
+      </div>
+      <div class="snap card" style="width:190px;padding:12px">
+        <svg width="164" height="96" viewBox="0 0 164 96" style="display:block">
+          <rect width="164" height="96" rx="12" class="fs"></rect>
+          <rect x="14" y="18" width="10" height="62" style="fill:#e8ecf2"></rect>
+          <rect x="24" y="18" width="126" height="62" style="fill:#fff;stroke:#1d3a5f;stroke-width:1.75"></rect>
+          <rect x="24" y="70" width="126" height="10" class="fg"></rect>
+          <path d="M24 26h126" style="stroke:#e8ecf2;stroke-width:3"></path>
+          <rect x="104" y="34" width="32" height="24" style="fill:#fff;stroke:#dbe1ea;stroke-width:2.5"></rect><path d="M120 34v24M104 46h32" style="stroke:#dbe1ea;stroke-width:1.5"></path>
+          <rect x="34" y="54" width="44" height="16" style="fill:#e8ecf2"></rect>
+          <rect x="36" y="36" width="22" height="9" rx="2" style="fill:#e8ecf2"></rect>
+        </svg>
+        <div style="display:flex;align-items:baseline;justify-content:space-between;margin-top:10px"><span style="font-size:15px;font-weight:600;color:#12202f">عادي</span><span class="num" style="font-size:13px;color:#55677d">1 400</span></div>
+        <p style="font-size:12px;color:#55677d;line-height:1.6;margin-top:2px">نفس الهيكل مع فرش وتشطيب أحسن.</p>
+      </div>
+      <div class="snap card" style="width:190px;padding:12px;border-color:#c79a3d">
+        <svg width="164" height="96" viewBox="0 0 164 96" style="display:block">
+          <rect width="164" height="96" rx="12" class="fs"></rect>
+          <rect x="14" y="18" width="10" height="62" style="fill:#e8ecf2"></rect>
+          <rect x="24" y="18" width="126" height="62" style="fill:#fff;stroke:#1d3a5f;stroke-width:1.75"></rect>
+          <rect x="24" y="70" width="126" height="10" class="fg"></rect>
+          <path d="M24 26h126" style="stroke:#c79a3d;stroke-width:3"></path>
+          <rect x="104" y="34" width="32" height="24" style="fill:#fff;stroke:#dbe1ea;stroke-width:2.5"></rect><path d="M120 34v24M104 46h32" style="stroke:#dbe1ea;stroke-width:1.5"></path>
+          <rect x="34" y="54" width="44" height="16" class="fg"></rect>
+          <rect x="36" y="36" width="22" height="9" rx="2" style="fill:#e8ecf2"></rect>
+        </svg>
+        <div style="display:flex;align-items:baseline;justify-content:space-between;margin-top:10px"><span style="font-size:15px;font-weight:600;color:#a8781f">محسّن · المرجعي</span><span class="num" style="font-size:13px;color:#a8781f">1 600</span></div>
+        <p style="font-size:12px;color:#55677d;line-height:1.6;margin-top:2px">مطبخ مركّب وسقف مستعار.</p>
+      </div>
+      <div class="snap card" style="width:190px;padding:12px">
+        <svg width="164" height="96" viewBox="0 0 164 96" style="display:block">
+          <rect width="164" height="96" rx="12" class="fs"></rect>
+          <rect x="14" y="18" width="10" height="62" class="fg"></rect>
+          <rect x="24" y="18" width="126" height="62" style="fill:#fff;stroke:#1d3a5f;stroke-width:1.75"></rect>
+          <rect x="24" y="70" width="126" height="10" class="fg"></rect>
+          <path d="M24 26h126" style="stroke:#c79a3d;stroke-width:3"></path>
+          <rect x="104" y="34" width="32" height="24" style="fill:#fff;stroke:#c79a3d;stroke-width:2.5"></rect><path d="M120 34v24M104 46h32" style="stroke:#c79a3d;stroke-width:1.5"></path>
+          <rect x="34" y="54" width="44" height="16" class="fg"></rect>
+          <rect x="36" y="36" width="22" height="9" rx="2" style="fill:#e8ecf2"></rect>
+        </svg>
+        <div style="display:flex;align-items:baseline;justify-content:space-between;margin-top:10px"><span style="font-size:15px;font-weight:600;color:#12202f">راقٍ</span><span class="num" style="font-size:13px;color:#55677d">1 800</span></div>
+        <p style="font-size:12px;color:#55677d;line-height:1.6;margin-top:2px">ألمنيوم أرقى وواجهة مدروسة.</p>
+      </div>
+      <div class="snap card" style="width:190px;padding:12px">
+        <svg width="164" height="96" viewBox="0 0 164 96" style="display:block">
+          <rect width="164" height="96" rx="12" class="fs"></rect>
+          <rect x="14" y="18" width="10" height="62" class="fg"></rect>
+          <rect x="24" y="18" width="126" height="62" style="fill:#fff;stroke:#1d3a5f;stroke-width:1.75"></rect>
+          <rect x="24" y="70" width="126" height="10" class="fg"></rect>
+          <path d="M24 26h126" style="stroke:#c79a3d;stroke-width:3"></path>
+          <rect x="104" y="34" width="32" height="24" style="fill:#fff;stroke:#c79a3d;stroke-width:2.5"></rect><path d="M120 34v24M104 46h32" style="stroke:#c79a3d;stroke-width:1.5"></path>
+          <rect x="34" y="54" width="44" height="16" class="fg"></rect>
+          <rect x="36" y="36" width="22" height="9" rx="2" class="fg"></rect>
+        </svg>
+        <div style="display:flex;align-items:baseline;justify-content:space-between;margin-top:10px"><span style="font-size:15px;font-weight:600;color:#12202f">فاخر</span><span class="num" style="font-size:13px;color:#55677d">2 000</span></div>
+        <p style="font-size:12px;color:#55677d;line-height:1.6;margin-top:2px">تجهيزات فاخرة، تكييف، وتهيئة متكاملة.</p>
+      </div>
+    </div>
+    <div style="padding:12px 16px 0;display:flex;flex-wrap:wrap;gap:6px 14px;font-size:12px;color:#55677d">
+      <span style="display:inline-flex;align-items:center;gap:6px"><span style="width:10px;height:10px;border-radius:3px;background:#c79a3d"></span>الفرش</span>
+      <span style="display:inline-flex;align-items:center;gap:6px"><span style="width:10px;height:10px;border-radius:3px;background:#c79a3d"></span>الألمنيوم</span>
+      <span style="display:inline-flex;align-items:center;gap:6px"><span style="width:10px;height:10px;border-radius:3px;background:#c79a3d"></span>المطبخ</span>
+      <span style="display:inline-flex;align-items:center;gap:6px"><span style="width:10px;height:10px;border-radius:3px;background:#c79a3d"></span>السقف المستعار</span>
+      <span style="display:inline-flex;align-items:center;gap:6px"><span style="width:10px;height:10px;border-radius:3px;background:#c79a3d"></span>الواجهة</span>
+      <span style="display:inline-flex;align-items:center;gap:6px"><span style="width:10px;height:10px;border-radius:3px;background:#c79a3d"></span>التكييف</span>
+    </div>
+    <p style="padding:6px 16px 0;font-size:12px;color:#7d8da0">د/م² دون احتساب الأداءات (HT)، بلا ثمن الأرض ولا الدراسات والرخص.</p>
+  </section>
+
+  <!-- Journey filmstrip -->
+  <section style="padding:28px 0 8px">
+    <div style="padding:0 16px"><h2 style="font-size:24px;color:#12243c">الرحلة في أربع صور</h2></div>
+    <div class="scroller" style="margin-top:16px">
+      <div class="snap card" style="width:156px;padding:12px">
+        <svg width="96" height="96" viewBox="0 0 96 96" style="display:block">
+          <rect width="96" height="96" rx="16" class="fs"></rect>
+          <rect x="30" y="16" width="34" height="62" rx="6" class="il fw" style="color:#1d3a5f"></rect>
+          <rect x="36" y="28" width="22" height="4" rx="2" class="fl"></rect><rect x="36" y="37" width="22" height="4" rx="2" class="fl"></rect><rect x="36" y="46" width="14" height="4" rx="2" class="fl"></rect>
+          <rect x="36" y="60" width="22" height="9" rx="3" class="fg"></rect>
+          <circle cx="70" cy="66" r="12" class="il fgs" style="color:#a8781f"></circle><rect x="67" y="59" width="6" height="10" rx="3" class="il" style="color:#a8781f"></rect><path d="M64 67a6 6 0 0 0 12 0M70 73v2" class="il" style="color:#a8781f"></path>
+        </svg>
+        <div style="font-size:14px;font-weight:600;color:#12202f;margin-top:10px"><span class="num" style="color:#a8781f">01</span> سجّل مطلبك</div>
+        <p style="font-size:12px;color:#55677d;line-height:1.6;margin-top:2px">خمس خطوات، أقلّ من 3 دقائق، ولا بصوتك.</p>
+      </div>
+      <div class="snap card" style="width:156px;padding:12px">
+        <svg width="96" height="96" viewBox="0 0 96 96" style="display:block">
+          <rect width="96" height="96" rx="16" class="fgs"></rect>
+          <path d="M26 18h30l12 12v46H26z" class="il fw" style="color:#1d3a5f"></path><path d="M56 18v12h12" class="il" style="color:#1d3a5f"></path>
+          <path d="M34 42h24M34 50h16" class="il" style="color:#bcc7d6"></path>
+          <rect x="34" y="60" width="26" height="10" rx="3" class="fg"></rect>
+          <circle cx="72" cy="70" r="11" class="il fw" style="color:#a8781f"></circle><circle cx="72" cy="70" r="5" class="il" style="color:#a8781f;stroke-width:1.5"></circle>
+        </svg>
+        <div style="font-size:14px;font-weight:600;color:#12202f;margin-top:10px"><span class="num" style="color:#a8781f">02</span> ندرسو قدرتك</div>
+        <p style="font-size:12px;color:#55677d;line-height:1.6;margin-top:2px">ميزانية تقديرية، قسط شهري، ورمز متابعة.</p>
+      </div>
+      <div class="snap card" style="width:156px;padding:12px">
+        <svg width="96" height="96" viewBox="0 0 96 96" style="display:block">
+          <rect width="96" height="96" rx="16" class="fs"></rect>
+          <path d="M14 74l20-9 22 9 22-9 8 3M14 60l20-9 22 9 22-9 8 3" class="il" style="color:#bcc7d6"></path>
+          <circle cx="46" cy="44" r="19" class="il fw" style="color:#1d3a5f"></circle><path d="M60 58l14 14" class="il" style="color:#1d3a5f;stroke-width:3"></path>
+          <path d="M35 47l11-10 11 10M38 45v9h16v-9" class="il" style="color:#1d3a5f"></path><rect x="44" y="49" width="4" height="5" class="fg"></rect>
+          <path d="M78 30c0-7-11-7-11 0 0 5 5.5 9 5.5 9s5.5-4 5.5-9z" class="fg"></path>
+        </svg>
+        <div style="font-size:14px;font-weight:600;color:#12202f;margin-top:10px"><span class="num" style="color:#a8781f">03</span> نلقاو لك العرض</div>
+        <p style="font-size:12px;color:#55677d;line-height:1.6;margin-top:2px">مشروع، أرض، ولا مقاول من الشبكة.</p>
+      </div>
+      <div class="snap card" style="width:156px;padding:12px">
+        <svg width="96" height="96" viewBox="0 0 96 96" style="display:block">
+          <rect width="96" height="96" rx="16" class="fgs"></rect>
+          <path d="M52 34l16-14 16 14" class="il" style="color:#1d3a5f"></path><path d="M56 31v17h24V31" class="il fw" style="color:#1d3a5f"></path><rect x="65" y="40" width="6" height="8" class="fg"></rect>
+          <circle cx="36" cy="44" r="13" class="il fw" style="color:#a8781f"></circle><circle cx="36" cy="44" r="4" class="il" style="color:#a8781f"></circle>
+          <path d="M46 54l22 22M60 68l5-5M67 75l5-5" class="il" style="color:#a8781f;stroke-width:2.5"></path>
+        </svg>
+        <div style="font-size:14px;font-weight:600;color:#12202f;margin-top:10px"><span class="num" style="color:#a8781f">04</span> نتابعو معاك</div>
+        <p style="font-size:12px;color:#55677d;line-height:1.6;margin-top:2px">من الموعد الأوّل إلى مفتاح الدار.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Cases: before / after -->
+  <section style="padding:28px 16px 8px">
+    <h2 style="font-size:24px;color:#12243c">حالات من صفاقس</h2>
+    <p style="font-size:14px;color:#55677d;margin-top:8px">كلّ حالة منشورة بموافقة صاحبها، وبلا أسماء.</p>
+    <div style="display:flex;flex-direction:column;gap:14px;margin-top:18px">
+      <div class="card">
+        <div style="display:grid;grid-template-columns:repeat(2, minmax(0, 1fr));gap:2px">
+          <div class="ph" style="height:128px"><svg width="22" height="22" viewBox="0 0 24 24"><path d="M4 8h4l2-3h4l2 3h4v11H4z" class="il"></path><circle cx="12" cy="13" r="3" class="il"></circle></svg><span>قبل: الجدران قائمة</span></div>
+          <div class="ph" style="height:128px"><svg width="22" height="22" viewBox="0 0 24 24"><path d="M4 8h4l2-3h4l2 3h4v11H4z" class="il"></path><circle cx="12" cy="13" r="3" class="il"></circle></svg><span>بعد: التسليم</span></div>
+        </div>
+        <div style="padding:12px 16px 14px">
+          <span style="display:inline-block;font-size:11px;color:#a8781f;background:#f7efdf;border-radius:999px;padding:2px 10px">مثال توضيحي</span>
+          <div style="font-weight:600;font-size:15px;color:#12202f;margin-top:8px">بناء فوق أرض الحريف · ساقية الزيت</div>
+          <div style="font-size:13px;color:#55677d;margin-top:2px"><span class="num">80</span> م² · مستوى عادي · البناء التقليدي</div>
+        </div>
+      </div>
+      <div class="card">
+        <div style="display:grid;grid-template-columns:repeat(2, minmax(0, 1fr));gap:2px">
+          <div class="ph" style="height:128px"><svg width="22" height="22" viewBox="0 0 24 24"><path d="M4 8h4l2-3h4l2 3h4v11H4z" class="il"></path><circle cx="12" cy="13" r="3" class="il"></circle></svg><span>قبل: الأرض</span></div>
+          <div class="ph" style="height:128px"><svg width="22" height="22" viewBox="0 0 24 24"><path d="M4 8h4l2-3h4l2 3h4v11H4z" class="il"></path><circle cx="12" cy="13" r="3" class="il"></circle></svg><span>بعد: الدار</span></div>
+        </div>
+        <div style="padding:12px 16px 14px">
+          <span style="display:inline-block;font-size:11px;color:#a8781f;background:#f7efdf;border-radius:999px;padding:2px 10px">مثال توضيحي</span>
+          <div style="font-weight:600;font-size:15px;color:#12202f;margin-top:8px">أرض وبناء · المحرس</div>
+          <div style="font-size:13px;color:#55677d;margin-top:2px"><span class="num">100</span> م² · مستوى محسّن · بلوك + Poutrelles</div>
+        </div>
+      </div>
+    </div>
+    <a href="#" style="display:flex;align-items:center;gap:6px;min-height:44px;margin-top:6px;font-size:14px;font-weight:500;color:#1d3a5f">كلّ الحالات المنجزة<svg class="ico" viewBox="0 0 24 24" style="width:18px;height:18px"><path d="M19 12H5M11 6l-6 6 6 6" class="il"></path></svg></a>
+  </section>
+
+  <!-- Sfax delegations -->
+  <section style="padding:20px 16px 8px">
+    <h2 style="font-size:22px;color:#12243c">صفاقس، <span class="num">16</span> معتمدية</h2>
+    <p style="font-size:14px;color:#55677d;margin-top:6px">المرحلة التجريبية تغطّي الولاية كلّها.</p>
+    <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:14px">
+      <span class="chip" style="background:#fff;border:1px solid #dbe1ea">صفاقس المدينة</span><span class="chip" style="background:#fff;border:1px solid #dbe1ea">صفاقس الغربية</span><span class="chip" style="background:#fff;border:1px solid #dbe1ea">صفاقس الجنوبية</span><span class="chip" style="background:#fff;border:1px solid #dbe1ea">ساقية الزيت</span><span class="chip" style="background:#fff;border:1px solid #dbe1ea">ساقية الداير</span><span class="chip" style="background:#fff;border:1px solid #dbe1ea">طينة</span><span class="chip" style="background:#fff;border:1px solid #dbe1ea">عقارب</span><span class="chip" style="background:#fff;border:1px solid #dbe1ea">جبنيانة</span><span class="chip" style="background:#fff;border:1px solid #dbe1ea">العامرة</span><span class="chip" style="background:#fff;border:1px solid #dbe1ea">الحنشة</span><span class="chip" style="background:#fff;border:1px solid #dbe1ea">منزل شاكر</span><span class="chip" style="background:#fff;border:1px solid #dbe1ea">الغريبة</span><span class="chip" style="background:#fff;border:1px solid #dbe1ea">بئر علي بن خليفة</span><span class="chip" style="background:#fff;border:1px solid #dbe1ea">الصخيرة</span><span class="chip" style="background:#fff;border:1px solid #dbe1ea">المحرس</span><span class="chip" style="background:#fff;border:1px solid #dbe1ea">قرقنة</span>
+    </div>
+  </section>
+
+  <!-- Final CTA -->
+  <section style="padding:24px 16px 8px">
+    <div style="background:#12243c;border-radius:18px;padding:24px 20px;color:#fff">
+      <span class="brick"></span>
+      <h2 style="font-size:22px;color:#fff;margin-top:12px">مطلبك يبدا اليوم</h2>
+      <p style="font-size:14px;color:#BFD3C6;line-height:1.75;margin-top:8px">التسجيل مجّاني وما يلزمكش حساب. تعمّر الاستمارة، تاخو رمز مطلبك، ونحنا نتّصلو بيك.</p>
+      <a href="#" style="display:flex;align-items:center;justify-content:center;height:52px;margin-top:18px;border-radius:14px;background:#c79a3d;color:#12243c;font-weight:600;font-size:16px">سجّل مطلبك مجّاناً</a>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer style="margin-top:20px;padding:22px 16px 26px;background:#fff;border-top:1px solid #dbe1ea;font-size:13px;color:#55677d">
+    <div class="display" style="font-size:16px;color:#12202f">اللَّبنة للبناء والإعمار</div>
+    <div style="color:#a8781f;font-size:13px">معاً… نبني حلول السكن</div>
+    <div style="display:grid;grid-template-columns:repeat(2, minmax(0, 1fr));gap:0 16px;margin-top:12px">
+      <a href="#" style="display:flex;align-items:center;min-height:40px;color:#55677d">تسجيل مطلب سكن</a>
+      <a href="#" style="display:flex;align-items:center;min-height:40px;color:#55677d">طرق البناء</a>
+      <a href="#" style="display:flex;align-items:center;min-height:40px;color:#55677d">محاكي التمويل</a>
+      <a href="#" style="display:flex;align-items:center;min-height:40px;color:#55677d">مستويات التشطيب</a>
+      <a href="#" style="display:flex;align-items:center;min-height:40px;color:#55677d">تتبّع مطلب</a>
+      <a href="#" style="display:flex;align-items:center;min-height:40px;color:#55677d">حالات تمّ إنجازها</a>
+      <a href="#" style="display:flex;align-items:center;min-height:40px;color:#55677d">عندك عقار؟</a>
+      <a href="#" style="display:flex;align-items:center;min-height:40px;color:#55677d">مهني في البناء؟</a>
+    </div>
+    <div style="margin-top:12px;padding-top:12px;border-top:1px solid #dbe1ea;font-size:11px;color:#7d8da0">اللَّبنة للبناء والإعمار · AL-LUBNA — نسخة تجريبية</div>
+  </footer>
+</div>
+</x-dc>
+</body>
+</html>

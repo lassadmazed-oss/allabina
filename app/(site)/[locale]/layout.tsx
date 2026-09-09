@@ -38,14 +38,14 @@ export async function generateMetadata({
       ? {
           title: 'AL-LUBNA — Construction & Développement',
           description:
-            "Plateforme tunisienne qui structure la demande de logement et met le citoyen en relation avec les solutions de construction, d'immobilier et de financement adaptées à ses moyens.",
+            "Plateforme tunisienne qui structure la demande de logement et met le client en relation avec les solutions de construction, d'immobilier et de financement adaptées à ses moyens.",
           siteName: 'AL-LUBNA',
           ogLocale: 'fr_TN',
         }
       : {
           title: 'اللَّبنة للبناء والإعمار — نبنيو على قدّك',
           description:
-            'منصة تونسية ذكية تجمع مطالب السكن وتربط المواطن بالمشاريع وشركات البناء وحلول التمويل المناسبة لقدرته المالية ومكان السكن المطلوب.',
+            'منصة تونسية ذكية تجمع مطالب السكن وتربط الحريف بالمشاريع وشركات البناء وحلول التمويل المناسبة لقدرته المالية ومكان السكن المطلوب.',
           siteName: 'اللَّبنة للبناء والإعمار',
           ogLocale: 'ar_TN',
         }
@@ -84,7 +84,7 @@ export default async function SiteLayout({
 
   /**
    * مصدر واحد لروابط الموقع: الترويسة والقائمة والذيل. مجمّعة بمنطق رحلة
-   * المواطن — ابدا · اعرف · شارك — لا بترتيب ظهورها التاريخي.
+   * الحريف — ابدا · اعرف · شارك — لا بترتيب ظهورها التاريخي.
    */
   const NAV_GROUPS = [
     {
@@ -98,6 +98,7 @@ export default async function SiteLayout({
     {
       title: t.nav.groupLearn,
       links: [
+        { href: p('/systemes'), label: t.systemsPage.navLink },
         { href: p('/standing'), label: t.standingPage.navLink },
         { href: p('/realisations'), label: t.cases.navLink },
       ],
@@ -116,6 +117,7 @@ export default async function SiteLayout({
   const NAV_LINKS = [
     { href: p('/simulateur'), label: t.nav.simulator },
     { href: p('/suivi'), label: t.nav.track },
+    { href: p('/systemes'), label: t.systemsPage.navLink },
     { href: p('/standing'), label: t.standingPage.navLink },
     { href: p('/realisations'), label: t.cases.navLink },
     { href: p('/soutien'), label: t.soutien.navLink },
