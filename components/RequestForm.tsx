@@ -17,7 +17,12 @@ import {
   PROBLEM_KINDS,
   FINANCING_STATES,
 } from '@/lib/schema'
-import { HOUSING_CONDITIONS, HOUSING_PROBLEMS, INCOME_STABILITY } from '@/lib/support-schema'
+import {
+  HOUSING_CONDITIONS,
+  HOUSING_PROBLEMS,
+  HOUSING_TENURE_OFFERED,
+  INCOME_STABILITY,
+} from '@/lib/support-schema'
 import {
   applicableDocuments,
   groupDocuments,
@@ -307,6 +312,18 @@ export default function RequestForm({
     (k) => k !== 'expensive' || isRenting
   )
 
+  /**
+   * الخيارات المعروضة + قيمة الملفّ إن كانت من قائمة قديمة.
+   *
+   * بلا هذا يفتح صاحب ملفّ قديم صفحة التعديل فيجد الخانة فارغة، ويحفظ
+   * فيُمحى جوابه بلا أن يقصد — والمحو الصامت أسوأ من خيار زائد.
+   */
+  const tenureOptions = HOUSING_CONDITIONS.filter(
+    (k) =>
+      (HOUSING_TENURE_OFFERED as readonly string[]).includes(k) ||
+      k === values.housingCondition
+  )
+
   /** تبديل قيمة في حقل متعدّد مخزَّن كنصّ بفواصل */
   const toggleIn = (field: string, code: string) =>
     setValues((v) => {
@@ -524,15 +541,34 @@ export default function RequestForm({
 
   /** الاستعجال: أعلى الخطوة لمن يرمّم أو عنده مشكل، وفي مكانه المعتاد للبقيّة */
   const urgencyGroup = () => (
-    <Group title={t.urgencyTitle} lede={t.urgencyLede}>
-      <div className="grid gap-2 sm:grid-cols-2">
-        {URGENCIES.map((u) => (
-          <Chip key={u} on={values.urgency === u} onClick={() => set('urgency', u)} block>
-            {labels.urgency[u]}
-          </Chip>
-        ))}
+    <Group title={t.grpTime}>
+      <div className="grid gap-4 sm:grid-cols-2">
+        <div>
+          <span className="mb-2 block text-sm font-medium">
+            {t.horizon} <span className="text-[#8c2f22]">*</span>
+          </span>
+          <div className="flex flex-wrap gap-2">
+            {HORIZONS.map((h) => (
+              <Chip key={h} on={values.horizon === h} onClick={() => set('horizon', h)}>
+                {labels.horizon[h]}
+              </Chip>
+            ))}
+          </div>
+          <input type="hidden" name="horizon" value={String(values.horizon ?? '')} />
+          {err('horizon') && <p className="mt-2 text-sm text-[#8c2f22]">{err('horizon')}</p>}
+        </div>
+        <div>
+          <span className="mb-2 block text-sm font-medium">{t.urgencyTitle}</span>
+          <div className="flex flex-wrap gap-2">
+            {URGENCIES.map((u) => (
+              <Chip key={u} on={values.urgency === u} onClick={() => set('urgency', u)}>
+                {labels.urgency[u]}
+              </Chip>
+            ))}
+          </div>
+          <input type="hidden" name="urgency" value={String(values.urgency ?? '')} />
+        </div>
       </div>
-      <input type="hidden" name="urgency" value={String(values.urgency ?? '')} />
       <label className="mt-3 block">
         <span className="mb-1.5 block text-xs text-muted">{t.urgencyNote}</span>
         <input
@@ -569,22 +605,38 @@ export default function RequestForm({
     >
       <input type="hidden" name="locale" value={locale} />
 
-      <div className="mb-8">
-        <div className="mb-3 flex items-center justify-between text-sm">
-          <span className="font-medium text-brand">
-            {fmt(t.stepOf, { i: stepIndex + 1, n: steps.length })}
-          </span>
-          <span className="text-faint">{steps[stepIndex]}</span>
-        </div>
-        <div className="flex gap-1.5" aria-hidden="true">
-          {steps.map((_, i) => (
-            <div
-              key={i}
-              className={`h-1.5 flex-1 rounded-full ${i <= stepIndex ? 'bg-brand' : 'bg-line'}`}
-            />
-          ))}
-        </div>
-      </div>
+      {/* الخطوات: أرقام تُنقر للرجوع، والاسم للحالية وحدها — لا شريط صامت */}
+      <nav className="mb-5" aria-label={fmt(t.stepOf, { i: stepIndex + 1, n: steps.length })}>
+        <ol className="flex items-center gap-1.5">
+          {steps.map((name, i) => {
+            const done = i < stepIndex
+            const cur = i === stepIndex
+            return (
+              <li key={name} className={`flex items-center gap-1.5 ${cur ? "flex-1" : ""}`}>
+                <button
+                  type="button"
+                  disabled={!done}
+                  onClick={() => setStep(order[i])}
+                  aria-current={cur ? "step" : undefined}
+                  className={`num flex size-7 shrink-0 items-center justify-center rounded-full text-xs font-semibold transition ${
+                    cur
+                      ? "bg-brand text-white"
+                      : done
+                        ? "bg-brand-soft text-brand hover:bg-brand hover:text-white"
+                        : "bg-surface-2 text-faint"
+                  }`}
+                >
+                  {i + 1}
+                </button>
+                {cur && <span className="truncate text-sm font-medium">{name}</span>}
+                {i < steps.length - 1 && (
+                  <span className={`h-px w-3 sm:w-5 ${done ? "bg-brand" : "bg-line"}`} aria-hidden="true" />
+                )}
+              </li>
+            )
+          })}
+        </ol>
+      </nav>
 
       {showBanner && (
         <div
@@ -608,8 +660,8 @@ export default function RequestForm({
 
       {/* 1 */}
       <fieldset className={step === 1 ? 'block' : 'hidden'}>
-        <legend className="display mb-2 text-2xl font-semibold">{t.s1Title}</legend>
-        <p className="mb-6 text-muted">{t.s1Lede}</p>
+        <legend className="display mb-1 text-xl font-semibold">{t.s1Title}</legend>
+        <p className="mb-4 text-sm text-muted">{t.s1Lede}</p>
         {/* بطاقة لكلّ مسار: أيقونة تميّزها بنظرة، وسطر يقول لمن هي.
             «فلوسي حاضرة» خرجت من هنا: هي حالة تمويل لا نوع مطلب — كانت
             تفرض «بناء فوق أرضي» على من عنده مال ويريد شقّة. */}
@@ -678,10 +730,10 @@ export default function RequestForm({
 
       {/* 2 — بحسب الخريطة: كلّ مسار يرى أسئلته */}
       <fieldset className={step === 2 ? 'block' : 'hidden'}>
-        <legend className="display mb-1 text-2xl font-semibold">
+        <legend className="display mb-1 text-xl font-semibold">
           {flow.type === 'other' ? t.s2TitleOther : t.s2Title}
         </legend>
-        <p className="mb-5 text-muted">{flow.type === 'other' ? t.s2LedeOther : t.s2Lede}</p>
+        <p className="mb-4 text-sm text-muted">{flow.type === 'other' ? t.s2LedeOther : t.s2Lede}</p>
 
         {/* «مشكل آخر»: الحكاية أوّلاً — هي سبب اختيار هذا المسار */}
         {flow.type === 'other' && (
@@ -703,21 +755,18 @@ export default function RequestForm({
 
         {flow.type === 'other' && (
           <Group title={t.grpObstacle}>
-            <Field label={t.problemType} hint={t.optional} error={err('problemType')}>
-              <select
-                name="problemType"
-                value={String(values.problemType ?? '')}
-                onChange={(e) => set('problemType', e.target.value)}
-                className={`${inputCls} sm:max-w-md`}
-              >
-                <option value="">{t.choose}</option>
+            <div>
+              <span className="mb-2 block text-sm font-medium">{t.problemType} <span className="text-xs font-normal text-faint">{t.optional}</span></span>
+              <div className="grid gap-2 sm:grid-cols-2">
                 {PROBLEM_KINDS.map((k) => (
-                  <option key={k} value={k}>
+                  <Chip key={k} on={values.problemType === k} onClick={() => set('problemType', values.problemType === k ? '' : k)} block>
                     {t.problemLabels[k]}
-                  </option>
+                  </Chip>
                 ))}
-              </select>
-            </Field>
+              </div>
+              <input type="hidden" name="problemType" value={String(values.problemType ?? '')} />
+              {err('problemType') && <p className="mt-2 text-sm text-[#8c2f22]">{err('problemType')}</p>}
+            </div>
           </Group>
         )}
 
@@ -810,7 +859,7 @@ export default function RequestForm({
         </Group>
 
         {/* ---------- الدار ---------- */}
-        {(flow.has('builtArea') || flow.has('currentArea') || flow.has('bedrooms') || flow.has('works')) && (
+        {(flow.has('builtArea') || flow.has('currentArea') || flow.has('bedrooms') || flow.has('works') || flow.has('apartmentState')) && (
           <Group title={t.grpHome}>
             {/* الترميم: شنوّة بالضبط — السؤال الذي يفتح ويغلق كلّ ما بعده */}
             {flow.has('works') && (
@@ -980,53 +1029,16 @@ export default function RequestForm({
               </div>
             )}
 
-            {(flow.has('bedrooms') || flow.has('horizon')) && (
+            {flow.has('bedrooms') && (
               <div className="mt-5 grid gap-4 sm:grid-cols-2">
-                {flow.has('bedrooms') && (
-                  <Field label={t.bedrooms} hint={t.optional} error={err('bedrooms')}>
-                    <Stepper name="bedrooms" min={1} max={6} value={values.bedrooms} onChange={(v) => set('bedrooms', v)} />
-                  </Field>
-                )}
-                <Field label={t.horizon} error={err('horizon')}>
-                  <select
-                    name="horizon"
-                    value={String(values.horizon ?? '')}
-                    onChange={(e) => set('horizon', e.target.value)}
-                    className={inputCls}
-                  >
-                    <option value="">{t.choose}</option>
-                    {HORIZONS.map((h) => (
-                      <option key={h} value={h}>
-                        {labels.horizon[h]}
-                      </option>
-                    ))}
-                  </select>
+                <Field label={t.bedrooms} hint={t.optional} error={err('bedrooms')}>
+                  <Stepper name="bedrooms" min={1} max={6} value={values.bedrooms} onChange={(v) => set('bedrooms', v)} />
                 </Field>
               </div>
             )}
           </Group>
         )}
 
-        {/* «مشكل آخر»: الأفق وحده من «الدار» */}
-        {flow.type === 'other' && (
-          <Group title={t.horizon}>
-            <Field label={t.horizon} error={err('horizon')}>
-              <select
-                name="horizon"
-                value={String(values.horizon ?? '')}
-                onChange={(e) => set('horizon', e.target.value)}
-                className={`${inputCls} sm:max-w-md`}
-              >
-                <option value="">{t.choose}</option>
-                {HORIZONS.map((h) => (
-                  <option key={h} value={h}>
-                    {labels.horizon[h]}
-                  </option>
-                ))}
-              </select>
-            </Field>
-          </Group>
-        )}
 
         {/* ---------- طريقة البناء — لمن يبني شيئاً ---------- */}
         {flow.has('constructionSystem') && systems.length > 1 && (
@@ -1216,8 +1228,8 @@ export default function RequestForm({
       {/* 3 — الأرض لمن يملكها · الدار الحالية لمن يرمّم · لا ثالثة لغيرهما */}
       {flow.has('landStep') && (
         <fieldset className={step === 3 ? 'block' : 'hidden'}>
-          <legend className="display mb-2 text-2xl font-semibold">{t.s3Title}</legend>
-          <p className="mb-6 text-muted">{t.s3Lede}</p>
+          <legend className="display mb-1 text-xl font-semibold">{t.s3Title}</legend>
+          <p className="mb-4 text-sm text-muted">{t.s3Lede}</p>
           <div className="grid gap-5 sm:grid-cols-2">
             <Field label={t.landArea} error={err('landAreaM2')}>
               <input
@@ -1306,8 +1318,8 @@ export default function RequestForm({
 
       {flow.has('homeStep') && (
         <fieldset className={step === 3 ? 'block' : 'hidden'}>
-          <legend className="display mb-2 text-2xl font-semibold">{t.sHomeTitle}</legend>
-          <p className="mb-6 text-muted">{t.sHomeLede}</p>
+          <legend className="display mb-1 text-xl font-semibold">{t.sHomeTitle}</legend>
+          <p className="mb-4 text-sm text-muted">{t.sHomeLede}</p>
 
           <span className="mb-2 block text-sm font-medium">{t.ownership}</span>
           <div className="grid gap-2.5 sm:grid-cols-3">
@@ -1382,8 +1394,8 @@ export default function RequestForm({
       {/* 4 — عائلتك ووضعك: كان المستشار يسألها في مكالمة ويكتبها في
           «المسار الاجتماعي». صاحبها يعرفها أحسن، ويكتبها مرّة واحدة. */}
       <fieldset className={step === 4 ? 'block' : 'hidden'}>
-        <legend className="display mb-2 text-2xl font-semibold">{t.s6Title}</legend>
-        <p className="mb-6 leading-8 text-muted">{t.s6Lede}</p>
+        <legend className="display mb-1 text-xl font-semibold">{t.s6Title}</legend>
+        <p className="mb-4 text-sm text-muted">{t.s6Lede}</p>
 
         <Group title={t.grpFamily} lede={t.grpFamilyLede}>
           <div className="grid gap-5 sm:grid-cols-2">
@@ -1427,21 +1439,18 @@ export default function RequestForm({
 
         {/* السكن والكراء في مكان واحد: الكراء وصفٌ لوضعية السكن لا للدخل */}
         <Group title={t.grpHousing} lede={t.grpHousingLede}>
-          <Field label={t.housingCondition} hint={t.optional} error={err('housingCondition')}>
-            <select
-              name="housingCondition"
-              value={String(values.housingCondition ?? '')}
-              onChange={(e) => set('housingCondition', e.target.value)}
-              className={`${inputCls} sm:max-w-md`}
-            >
-              <option value="">{t.choose}</option>
-              {HOUSING_CONDITIONS.map((k) => (
-                <option key={k} value={k}>
+          <div>
+            <span className="mb-2 block text-sm font-medium">{t.housingCondition} <span className="text-xs font-normal text-faint">{t.optional}</span></span>
+            <div className="grid gap-2 sm:grid-cols-2">
+              {tenureOptions.map((k) => (
+                <Chip key={k} on={values.housingCondition === k} onClick={() => set('housingCondition', values.housingCondition === k ? '' : k)} block>
                   {t.housingLabels[k]}
-                </option>
+                </Chip>
               ))}
-            </select>
-          </Field>
+            </div>
+            <input type="hidden" name="housingCondition" value={String(values.housingCondition ?? '')} />
+            {err('housingCondition') && <p className="mt-2 text-sm text-[#8c2f22]">{err('housingCondition')}</p>}
+          </div>
 
           {/* الكراء يظهر مع جوابه لا في خانة منفصلة: من قال «بالكراء»
               يُسأل عن مبلغه في نفس اللحظة، ومن بدّل جوابه يختفي السؤال.
@@ -1534,66 +1543,57 @@ export default function RequestForm({
           </label>
 
           <div className="grid gap-5 sm:grid-cols-2">
-            <Field label={t.incomeStability} hint={t.optional} error={err('incomeStability')}>
-              <select
-                name="incomeStability"
-                value={String(values.incomeStability ?? '')}
-                onChange={(e) => set('incomeStability', e.target.value)}
-                className={inputCls}
-              >
-                <option value="">{t.choose}</option>
+            <div>
+              <span className="mb-2 block text-sm font-medium">{t.incomeStability} <span className="text-xs font-normal text-faint">{t.optional}</span></span>
+              <div className="grid gap-2 sm:grid-cols-2">
                 {INCOME_STABILITY.map((k) => (
-                  <option key={k} value={k}>
+                  <Chip key={k} on={values.incomeStability === k} onClick={() => set('incomeStability', values.incomeStability === k ? '' : k)} block>
                     {t.incomeLabels[k]}
-                  </option>
+                  </Chip>
                 ))}
-              </select>
-            </Field>
+              </div>
+              <input type="hidden" name="incomeStability" value={String(values.incomeStability ?? '')} />
+              {err('incomeStability') && <p className="mt-2 text-sm text-[#8c2f22]">{err('incomeStability')}</p>}
+            </div>
             {!values.cashReady && (
-              <Field label={t.financingState} hint={t.optional} error={err('financingState')}>
-                <select
-                  name="financingState"
-                  value={String(values.financingState ?? '')}
-                  onChange={(e) => set('financingState', e.target.value)}
-                  className={inputCls}
-                >
-                  <option value="">{t.choose}</option>
+              <div>
+                <span className="mb-2 block text-sm font-medium">{t.financingState} <span className="text-xs font-normal text-faint">{t.optional}</span></span>
+                <div className="grid gap-2 sm:grid-cols-2">
                   {FINANCING_STATES.map((k) => (
-                    <option key={k} value={k}>
+                    <Chip key={k} on={values.financingState === k} onClick={() => set('financingState', values.financingState === k ? '' : k)} block>
                       {t.financingLabels[k]}
-                    </option>
+                    </Chip>
                   ))}
-                </select>
-              </Field>
+                </div>
+                <input type="hidden" name="financingState" value={String(values.financingState ?? '')} />
+                {err('financingState') && <p className="mt-2 text-sm text-[#8c2f22]">{err('financingState')}</p>}
+              </div>
             )}
           </div>
         </Group>
 
         {flow.type !== 'other' && (
         <Group title={t.grpObstacle}>
-          <Field label={t.problemType} hint={t.optional} error={err('problemType')}>
-            <select
-              name="problemType"
-              value={String(values.problemType ?? '')}
-              onChange={(e) => set('problemType', e.target.value)}
-              className={`${inputCls} sm:max-w-md`}
-            >
-              <option value="">{t.choose}</option>
+          <div>
+            <span className="mb-2 block text-sm font-medium">{t.problemType} <span className="text-xs font-normal text-faint">{t.optional}</span></span>
+            <div className="grid gap-2 sm:grid-cols-2">
               {PROBLEM_KINDS.map((k) => (
-                <option key={k} value={k}>
+                <Chip key={k} on={values.problemType === k} onClick={() => set('problemType', values.problemType === k ? '' : k)} block>
                   {t.problemLabels[k]}
-                </option>
+                </Chip>
               ))}
-            </select>
-          </Field>
+            </div>
+            <input type="hidden" name="problemType" value={String(values.problemType ?? '')} />
+            {err('problemType') && <p className="mt-2 text-sm text-[#8c2f22]">{err('problemType')}</p>}
+          </div>
         </Group>
         )}
       </fieldset>
 
       {/* 5 — القدرة المالية */}
       <fieldset className={step === 5 ? 'block' : 'hidden'}>
-        <legend className="display mb-2 text-2xl font-semibold">{t.s4Title}</legend>
-        <p className="mb-6 text-muted">{t.s4Lede}</p>
+        <legend className="display mb-1 text-xl font-semibold">{t.s4Title}</legend>
+        <p className="mb-4 text-sm text-muted">{t.s4Lede}</p>
         {flow.financeOptional && !financeOpen ? (
           <div className="rounded-lg border border-line bg-surface p-4">
             <b className="block text-sm">{t.financeOptionalTitle}</b>
@@ -1608,145 +1608,143 @@ export default function RequestForm({
           </div>
         ) : (
           <>
+        <p className="mb-4 text-xs text-faint">{t.requiredNote}</p>
         {values.cashReady && (
-          <p className="mb-6 rounded border border-gold/40 bg-gold-soft px-4 py-3 text-sm leading-7 text-gold">
+          <p className="mb-4 rounded-lg border border-gold/40 bg-gold-soft px-4 py-3 text-sm leading-7 text-gold">
             {t.cashReadyNote}
           </p>
         )}
 
-        <div className="grid gap-5 sm:grid-cols-2">
-          <Field label={t.income} error={err('monthlyIncome')}>
-            <input
-              type="number"
-              inputMode="numeric"
-              name="monthlyIncome"
-              value={String(values.monthlyIncome ?? '')}
-              onChange={(e) => set('monthlyIncome', e.target.value)}
-              className={inputCls}
-            />
-          </Field>
-          <Field label={t.spouseIncome} hint={t.optional}>
-            <input
-              type="number"
-              inputMode="numeric"
-              name="spouseIncome"
-              value={String(values.spouseIncome ?? '')}
-              onChange={(e) => set('spouseIncome', e.target.value)}
-              className={inputCls}
-            />
-          </Field>
-          <Field label={t.otherIncome} hint={t.optional}>
-            <input
-              type="number"
-              inputMode="numeric"
-              name="otherIncome"
-              value={String(values.otherIncome ?? '')}
-              onChange={(e) => set('otherIncome', e.target.value)}
-              className={inputCls}
-            />
-          </Field>
-          <Field label={t.existingLoans} hint={t.existingLoansHint}>
-            <input
-              type="number"
-              inputMode="numeric"
-              name="existingLoans"
-              value={String(values.existingLoans ?? '')}
-              onChange={(e) => set('existingLoans', e.target.value)}
-              className={inputCls}
-            />
-          </Field>
-          <Field label={values.cashReady ? t.budgetReady : t.downPayment}>
-            <input
-              type="number"
-              inputMode="numeric"
-              name="downPayment"
-              value={String(values.downPayment ?? '')}
-              onChange={(e) => set('downPayment', e.target.value)}
-              className={inputCls}
-            />
-          </Field>
-          {!values.cashReady && (
-          <Field label={t.maxMonthly} hint={t.optional}>
-            <input
-              type="number"
-              inputMode="numeric"
-              name="maxMonthly"
-              value={String(values.maxMonthly ?? '')}
-              onChange={(e) => set('maxMonthly', e.target.value)}
-              className={inputCls}
-            />
-          </Field>
-          )}
-          <Field label={t.employment} error={err('employment')}>
-            <select
-              name="employment"
-              value={String(values.employment ?? '')}
-              onChange={(e) => set('employment', e.target.value)}
-              className={inputCls}
-            >
-              <option value="">{t.choose}</option>
-              {EMPLOYMENT_TYPES.map((emp) => (
-                <option key={emp} value={emp}>
-                  {labels.employment[emp]}
-                </option>
-              ))}
-            </select>
-          </Field>
-          <Field label={t.seniority} hint={t.optional}>
-            <input
-              type="number"
-              inputMode="numeric"
-              name="seniorityYears"
-              max={50}
-              value={String(values.seniorityYears ?? '')}
-              onChange={(e) => set('seniorityYears', e.target.value)}
-              className={inputCls}
-            />
-          </Field>
-        </div>
-
-        <label className="mt-5 flex cursor-pointer items-center gap-3 rounded border border-line bg-surface p-4">
-          <input
-            type="checkbox"
-            name="isExpat"
-            checked={Boolean(values.isExpat)}
-            onChange={(e) => set('isExpat', e.target.checked)}
-            className="size-4 accent-[#1d3a5f]"
-          />
-          <span className="text-sm">{t.isExpat}</span>
-        </label>
-        {values.isExpat && (
-          <div className="mt-4">
-            <Field label={t.expatCountry}>
-              <input
-                type="text"
-                name="expatCountry"
-                value={String(values.expatCountry ?? '')}
-                onChange={(e) => set('expatCountry', e.target.value)}
-                className={inputCls}
-              />
+        {/* ---------- الدخل ---------- */}
+        <Group title={t.grpIncomeMoney}>
+          <div className="grid gap-4 sm:grid-cols-3">
+            <Field label={t.income} required error={err('monthlyIncome')}>
+                <input
+                  type="number"
+                  inputMode="numeric"
+                  name="monthlyIncome"
+                  value={String(values.monthlyIncome ?? '')}
+                  onChange={(e) => set('monthlyIncome', e.target.value)}
+                  className={inputCls}
+                />
+            </Field>
+            <Field label={t.spouseIncome} hint={t.optional}>
+                <input
+                  type="number"
+                  inputMode="numeric"
+                  name="spouseIncome"
+                  value={String(values.spouseIncome ?? '')}
+                  onChange={(e) => set('spouseIncome', e.target.value)}
+                  className={inputCls}
+                />
+            </Field>
+            <Field label={t.otherIncome} hint={t.optional}>
+                <input
+                  type="number"
+                  inputMode="numeric"
+                  name="otherIncome"
+                  value={String(values.otherIncome ?? '')}
+                  onChange={(e) => set('otherIncome', e.target.value)}
+                  className={inputCls}
+                />
             </Field>
           </div>
-        )}
+        </Group>
+
+        {/* ---------- الالتزامات واللي حاضر ---------- */}
+        <Group title={t.grpCommit}>
+          <div className="grid gap-4 sm:grid-cols-3">
+            <Field label={t.existingLoans} hint={t.existingLoansHint}>
+                <input
+                  type="number"
+                  inputMode="numeric"
+                  name="existingLoans"
+                  value={String(values.existingLoans ?? '')}
+                  onChange={(e) => set('existingLoans', e.target.value)}
+                  className={inputCls}
+                />
+            </Field>
+            {!values.cashReady && (
+              <Field label={t.maxMonthly} hint={t.optional}>
+                <input
+                  type="number"
+                  inputMode="numeric"
+                  name="maxMonthly"
+                  value={String(values.maxMonthly ?? '')}
+                  onChange={(e) => set('maxMonthly', e.target.value)}
+                  className={inputCls}
+                />
+              </Field>
+            )}
+            <Field label={values.cashReady ? t.budgetReady : t.downPayment} required={Boolean(values.cashReady)}>
+                <input
+                  type="number"
+                  inputMode="numeric"
+                  name="downPayment"
+                  value={String(values.downPayment ?? '')}
+                  onChange={(e) => set('downPayment', e.target.value)}
+                  className={inputCls}
+                />
+            </Field>
+          </div>
+        </Group>
+
+        {/* ---------- الخدمة ---------- */}
+        <Group title={t.grpJob}>
+          <span className="mb-2 block text-sm font-medium">
+            {t.employment} <span className="text-[#8c2f22]">*</span>
+          </span>
+          <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+            {EMPLOYMENT_TYPES.map((emp) => (
+              <Chip key={emp} on={values.employment === emp} onClick={() => set('employment', emp)} block>
+                {labels.employment[emp]}
+              </Chip>
+            ))}
+          </div>
+          <input type="hidden" name="employment" value={String(values.employment ?? '')} />
+          {err('employment') && <p className="mt-2 text-sm text-[#8c2f22]">{err('employment')}</p>}
+
+          <div className="mt-4 grid gap-4 sm:grid-cols-2">
+            <Field label={t.seniority} hint={t.optional}>
+              <Stepper name="seniorityYears" min={0} max={50} value={values.seniorityYears} onChange={(v) => set('seniorityYears', v)} />
+            </Field>
+            <div>
+              <span className="mb-2 block text-sm font-medium">{t.isExpat}</span>
+              <div className="flex flex-wrap items-center gap-2">
+                <Chip on={Boolean(values.isExpat)} onClick={() => set('isExpat', !values.isExpat)} check>
+                  {labels.employment.expat}
+                </Chip>
+                {values.isExpat && (
+                  <input
+                    type="text"
+                    name="expatCountry"
+                    placeholder={t.expatCountry}
+                    value={String(values.expatCountry ?? '')}
+                    onChange={(e) => set('expatCountry', e.target.value)}
+                    className={`${inputCls} w-44`}
+                  />
+                )}
+              </div>
+              <input type="hidden" name="isExpat" value={values.isExpat ? "on" : ""} />
+            </div>
+          </div>
+        </Group>
 
         {num('monthlyIncome') > 0 && (
-          <div className="mt-6 rounded border border-line bg-brand-soft p-5">
+          <div className="mt-5 rounded-lg border border-brand/20 bg-brand-soft p-4">
             <div className="text-sm font-medium text-brand">{t.estimateTitle}</div>
-            <div className="mt-3 grid gap-4 sm:grid-cols-3">
+            <div className="mt-2 grid gap-3 sm:grid-cols-3">
               <Stat label={t.maxPayment} value={formatTND(capacity.maxPayment, locale)} />
               <Stat label={t.maxLoan} value={formatTND(capacity.maxLoan, locale)} />
               <Stat label={t.maxBudget} value={formatTND(capacity.maxBudget, locale)} />
             </div>
-            <p className="mt-3 text-xs leading-6 text-muted">{bankTermsNote}</p>
+            <p className="mt-2 text-xs leading-6 text-muted">{bankTermsNote}</p>
           </div>
         )}
 
-        {/* السكن الاجتماعي */}
-        <div className="mt-8 rounded border border-line bg-surface-2 p-5">
-          <span className="block text-sm font-medium">{t.socialTitle}</span>
-          <p className="mt-1 text-sm leading-7 text-muted">{t.socialLede}</p>
-
-          <div className="mt-4 flex flex-col gap-3 text-sm">
+        {/* ---------- البرامج المدعّمة ---------- */}
+        <Group title={t.socialTitle} lede={t.socialLede}>
+          <div className="grid gap-2 sm:grid-cols-2">
             {(
               [
                 ['foprolosInterest', t.foprolos],
@@ -1755,46 +1753,34 @@ export default function RequestForm({
                 ['cnssAffiliated', t.cnssAffiliated],
               ] as const
             ).map(([key, label]) => (
-              <label key={key} className="flex items-start gap-2.5 leading-6">
-                <input
-                  type="checkbox"
-                  name={key}
-                  checked={values[key] === true}
-                  onChange={(e) => set(key, e.target.checked)}
-                  className="mt-1 size-4 accent-[#1d3a5f]"
-                />
-                <span>{label}</span>
-              </label>
+              <Chip key={key} on={values[key] === true} onClick={() => set(key, values[key] !== true)} block check>
+                {label}
+              </Chip>
             ))}
           </div>
-
+          {(['foprolosInterest', 'isFirstHome', 'hasSocialHousing', 'cnssAffiliated'] as const).map((key) => (
+            <input key={key} type="hidden" name={key} value={values[key] === true ? "on" : ""} />
+          ))}
           {values.cnssAffiliated === true && (
-            <label className="mt-4 block max-w-56">
-              <span className="mb-1.5 block text-xs text-muted">{t.cnssYears}</span>
-              <input
-                type="number"
-                name="cnssYears"
-                min={0}
-                max={60}
-                value={String(values.cnssYears ?? '')}
-                onChange={(e) => set('cnssYears', e.target.value)}
-                className={`${inputCls} num`}
-              />
-            </label>
+            <div className="mt-3">
+              <Field label={t.cnssYears} hint={t.optional}>
+                <Stepper name="cnssYears" min={0} max={60} value={values.cnssYears} onChange={(v) => set('cnssYears', v)} />
+              </Field>
+            </div>
           )}
-
-          <p className="mt-4 text-xs leading-6 text-faint">{t.socialNote}</p>
-        </div>
+          <p className="mt-3 text-xs leading-6 text-faint">{t.socialNote}</p>
+        </Group>
           </>
         )}
       </fieldset>
 
       {/* 6 — الاتصال والوثائق */}
       <fieldset className={step === 6 ? 'block' : 'hidden'}>
-        <legend className="display mb-2 text-2xl font-semibold">{t.s5Title}</legend>
-        <p className="mb-6 text-muted">{t.s5Lede}</p>
-        <div className="grid gap-5 sm:grid-cols-2">
-          <Field label={t.fullName} error={err('fullName')}>
+        <legend className="display mb-1 text-xl font-semibold">{t.s5Title}</legend>
+        <p className="mb-4 text-sm text-muted">{t.s5Lede}</p>
+        <Group title={t.grpContact}>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <Field label={t.fullName} required error={err('fullName')}>
             <input
               type="text"
               name="fullName"
@@ -1803,7 +1789,7 @@ export default function RequestForm({
               className={inputCls}
             />
           </Field>
-          <Field label={t.phone} error={err('phone')} hint={t.phoneHint}>
+          <Field label={t.phone} required error={err('phone')} hint={t.phoneHint}>
             <input
               type="tel"
               inputMode="tel"
@@ -1827,13 +1813,12 @@ export default function RequestForm({
             </Field>
           </div>
         </div>
+        </Group>
 
         {/* الأوراق — تصريح لا تثبّت، ومفصّلة حسب الملفّ: من يبني فوق
             أرضه ومن يشري شقّة ما يحتاجوش نفس الورق. الترشيح في
             lib/request-documents.ts والقائمة في القاعدة. */}
-        <div className="mt-8 rounded border border-line bg-surface p-4 sm:p-5">
-          <span className="mb-1 block text-sm font-medium">{t.docsTitle}</span>
-          <p className="mb-4 text-sm leading-7 text-muted">{t.docsLede}</p>
+        <Group title={t.docsTitle} lede={t.docsLede}>
 
           {docProgress.total > 0 && (
             <p
@@ -1908,7 +1893,7 @@ export default function RequestForm({
           </div>
 
           <p className="mt-4 text-xs leading-6 text-faint">{t.docsNote}</p>
-        </div>
+        </Group>
 
         {/* الموافقة تُعطى مرّة عند الإرسال الأوّل. طلبها من جديد على كلّ
             تصحيح يوحي بأنّها قابلة للسحب بنسيان خانة — وهي ليست كذلك. */}
@@ -1982,7 +1967,7 @@ export default function RequestForm({
 }
 
 const inputCls =
-  'w-full rounded border border-line bg-surface px-3.5 py-2.5 text-[15px] outline-none transition focus:border-brand'
+  'w-full rounded-lg border border-line bg-surface px-3 py-2 text-[15px] outline-none transition focus:border-brand'
 
 
 /**
@@ -2007,13 +1992,13 @@ function Group({
   children: React.ReactNode
 }) {
   return (
-    <section className="mt-7 border-t border-line pt-5 first:mt-0 first:border-0 first:pt-0">
+    <section className="mt-6 border-t border-line pt-4 first:mt-0 first:border-0 first:pt-0">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
-        <h3 className="text-sm font-semibold">{title}</h3>
+        <h3 className="text-[15px] font-semibold">{title}</h3>
         {aside}
       </div>
-      {lede && <p className="mt-0.5 text-sm leading-7 text-muted">{lede}</p>}
-      <div className="mt-3">{children}</div>
+      {lede && <p className="mt-0.5 text-xs leading-6 text-muted">{lede}</p>}
+      <div className="mt-2.5">{children}</div>
     </section>
   )
 }
@@ -2046,7 +2031,7 @@ function Chip({
       type="button"
       onClick={onClick}
       aria-pressed={on}
-      className={`inline-flex min-h-11 items-center gap-2 rounded-lg border px-4 text-sm transition active:scale-[0.98] ${
+      className={`inline-flex min-h-10 items-center gap-2 rounded-lg border px-3.5 text-sm transition active:scale-[0.98] ${
         block ? 'w-full justify-start text-start' : ''
       } ${
         on
@@ -2099,7 +2084,7 @@ function Choice({
 }) {
   return (
     <label
-      className={`relative flex cursor-pointer gap-3 rounded-xl border p-3.5 transition ${
+      className={`relative flex cursor-pointer gap-2.5 rounded-xl border p-3 transition ${
         on
           ? 'border-brand bg-brand-soft shadow-[0_1px_0_0_var(--color-brand)]'
           : 'border-line bg-surface hover:border-brand/40 hover:bg-brand-soft/40'
@@ -2157,9 +2142,9 @@ function Stepper({
 }) {
   const n = Number(value || 0)
   const cls =
-    'flex size-11 shrink-0 items-center justify-center text-lg text-muted transition hover:bg-brand-soft hover:text-brand disabled:opacity-30'
+    'flex size-10 shrink-0 items-center justify-center text-lg text-muted transition hover:bg-brand-soft hover:text-brand disabled:opacity-30'
   return (
-    <div className="inline-flex h-11 items-stretch overflow-hidden rounded-lg border border-line bg-surface">
+    <div className="inline-flex h-10 items-stretch overflow-hidden rounded-lg border border-line bg-surface">
       <button
         type="button"
         onClick={() => onChange(String(Math.max(min, n - 1)))}
@@ -2197,11 +2182,14 @@ function Field({
   label,
   hint,
   error,
+  required = false,
   children,
 }: {
   label: string
   hint?: string
   error?: string
+  /** نجمة حمراء: «لازم». كلّ ما عداها اختياري بلا أن نكرّر الكلمة */
+  required?: boolean
   children: React.ReactNode
 }) {
   return (
@@ -2214,6 +2202,7 @@ function Field({
     >
       <span className="mb-1.5 flex items-baseline gap-2 text-sm font-medium">
         {label}
+        {required && <span className="text-[#8c2f22]">*</span>}
         {hint && <span className="text-xs font-normal text-faint">{hint}</span>}
       </span>
       {children}
