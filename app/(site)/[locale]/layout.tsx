@@ -8,6 +8,7 @@ import LangSwitch from '@/components/LangSwitch'
 import MobileNav from '@/components/MobileNav'
 import { LOCALES, dirOf, getDictionary, isLocale, otherLocale, path, type Locale } from '@/lib/i18n'
 import { canonicalUrl, languageAlternates, siteUrl } from '@/lib/site'
+import { landingCopy } from '@/components/landing/copy'
 
 /**
  * لون شريط المتصفّح على التليفون: بلا هذا يبقى أبيض النظام فوق ترويسة
@@ -99,6 +100,7 @@ export default async function SiteLayout({
     {
       title: t.nav.groupLearn,
       links: [
+        { href: p('/a-propos'), label: landingCopy[locale].nav.about },
         { href: p('/systemes'), label: t.systemsPage.navLink },
         { href: p('/standing'), label: t.standingPage.navLink },
         { href: p('/realisations'), label: t.cases.navLink },
@@ -121,6 +123,7 @@ export default async function SiteLayout({
    * في التذييل وفي القائمة، وتظهر فوق حين يتّسع المكان.
    */
   const NAV_LINKS: { href: string; label: string; hideBelow?: 'xl' | '2xl' }[] = [
+    { href: p('/a-propos'), label: landingCopy[locale].nav.about },
     { href: p('/simulateur'), label: t.nav.simulator },
     { href: p('/suivi'), label: t.nav.track },
     { href: p('/systemes'), label: t.systemsPage.navLink },

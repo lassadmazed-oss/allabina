@@ -236,3 +236,6 @@
   box-shadow: 0 10px 24px rgba(212, 161, 94, 0.35);
 }
 @media (min-width: 900px) { .lp-sticky { display: none; } }
+
+/* شعار «من نحن» تحت الفقرة */
+.lp .about__tag { margin-top: 10px; font-weight: 800; color: var(--lp-gold-deep); font-size: 1.05rem; }

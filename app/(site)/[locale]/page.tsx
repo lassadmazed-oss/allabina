@@ -125,6 +125,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
           <span className="eyebrow">{c.about.eyebrow}</span>
           <h2 className="sec-title">{c.about.title}</h2>
           <p className="lead">{c.about.text}</p>
+          <p className="about__tag">{c.about.tagline}</p>
           <div className="feats">
             {c.about.feats.map((f, i) => (
               <div className="feat" key={f}>
@@ -133,7 +134,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
               </div>
             ))}
           </div>
-          <Link href={p('/realisations')} className="btn btn--navy btn--sm">
+          <Link href={p('/a-propos')} className="btn btn--navy btn--sm">
             {c.about.cta}
             <IcArrow className="arr" />
           </Link>
