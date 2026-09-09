@@ -280,9 +280,13 @@ async function clean(client) {
   await removeStorage([...casePhotos, ...supPhotos].map((r) => r.storage_path))
 
   const a = await client.query(`delete from case_studies where is_demo`)
+  // دفتر الشفافية سجلّ إضافي: الحذف لا يمرّ إلّا بفتح allabina.ledger_purge داخل معاملة (0018)
+  await client.query('begin')
+  await client.query(`set local allabina.ledger_purge = 'on'`)
   const b = await client.query(
     `delete from support_ledger where request_id in (select request_id from support_cases where is_demo)`
   )
+  await client.query('commit')
   const c = await client.query(`delete from support_cases where is_demo`)
   console.log(`محو: ${a.rowCount} حالة منجزة · ${c.rowCount} حالة مساندة · ${b.rowCount} قيد دفتر`)
 }
