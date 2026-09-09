@@ -19,11 +19,14 @@ export type NavGroup = { title: string; links: NavLink[] }
 export default function MobileNav({
   groups,
   cta,
+  freeNote,
   langSwitch,
   labels,
 }: {
   groups: NavGroup[]
   cta: NavLink
+  /** «بدون معاليم» تحت زرّ التسجيل */
+  freeNote?: string
   /** مبدّل اللغة كما هو — لا نكرّر منطق حساب رابطه هنا */
   langSwitch: React.ReactNode
   labels: { menuTitle: string; menuOpen: string; menuClose: string }
@@ -117,9 +120,11 @@ export default function MobileNav({
             <div className="sticky bottom-0 flex flex-col gap-3 border-t border-line bg-surface px-5 py-4">
               <Link
                 href={cta.href}
-                className="flex min-h-12 items-center justify-center rounded-lg bg-brand px-5 font-medium text-white transition active:bg-brand-deep"
+                className="flex min-h-12 flex-col items-center justify-center rounded-lg bg-brand px-5 py-2 font-medium text-white transition active:bg-brand-deep"
               >
                 {cta.label}
+                {/* «قدّاش تاخذو منّي؟» — الجواب على الزرّ نفسه */}
+                {freeNote && <span className="text-[11px] font-normal opacity-85">{freeNote}</span>}
               </Link>
               <div className="flex justify-center [&>a]:flex [&>a]:min-h-11 [&>a]:w-full [&>a]:items-center [&>a]:justify-center [&>a]:text-sm">
                 {langSwitch}

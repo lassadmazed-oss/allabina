@@ -1,152 +1,205 @@
 import Link from 'next/link'
-import { getBuildTiers } from '@/lib/supabase/server'
-import { getDictionary, isLocale, path, type Locale } from '@/lib/i18n'
-import { formatNumber, formatRange, perM2Label } from '@/lib/format'
+import '../../landing.css'
+import { isLocale, type Locale } from '@/lib/i18n'
+import { landingCopy } from '@/components/landing/copy'
+import { PHOTOS } from '@/components/landing/photos'
+import TunisiaMap from '@/components/landing/TunisiaMap'
+import StickyCta from '@/components/landing/StickyCta'
+import {
+  IcArrow,
+  IcBuilding,
+  IcFlag,
+  IcHome,
+  IcLeaf,
+  IcPin,
+  IcPlay,
+  IcShield,
+  IcUsers,
+} from '@/components/landing/icons'
 
-export const dynamic = 'force-dynamic'
+/* eslint-disable @next/next/no-img-element -- صور ثابتة في public/landing */
 
-const HOME_PATHS = ['build_on_land', 'land_and_house', 'apartment', 'rent_to_own'] as const
+/**
+ * صفحة الاستقبال — هوية اللبنة الجديدة: كحلي/ذهبي/كريمي، خطّ Cairo،
+ * صور حقيقية لكلّ قسم، وزرّ ثابت على الهاتف. النصوص في components/landing/copy.ts.
+ */
+const TILE_STYLE = ['blue', 'sand', 'mint', 'blush'] as const
+const TILE_COLOR = ['#0E3A5B', '#8A5A1E', '#2E7D4F', '#B0433A'] as const
 
 export default async function HomePage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale: raw } = await params
   const locale: Locale = isLocale(raw) ? raw : 'ar'
-  const t = getDictionary(locale)
-  const p = (s = '') => path(locale, s)
-  const { tiers, referencePrice } = await getBuildTiers('SFX', locale)
-  const perM2 = `${perM2Label(locale)} HT`
+  const c = landingCopy[locale]
+  const p = (s = '') => `/${locale}${s}`
+
+  const tileIcons = [<IcBuilding key="b" />, <IcHome key="h" />, <IcLeaf key="l" />, <IcUsers key="u" />]
+  const statIcons = [<IcShield key="s" />, <IcPin key="p" />, <IcHome key="h" />, <IcLeaf key="l" />]
+  const featIcons = [<IcShield key="s" />, <IcUsers key="u" />, <IcFlag key="f" />]
 
   return (
-    <>
-      {/* الواجهة — Hero */}
-      <section className="relative overflow-hidden bg-brand-deep text-white">
-        <div className="brick-pattern absolute inset-0" aria-hidden="true" />
-        <div className="relative mx-auto max-w-6xl px-4 py-14 sm:px-5 sm:py-20 lg:py-28">
-          {/* items-start: النصّ يلتفّ سطرين على التليفون، واللبنة تبقى مع أوّله */}
-          <div className="mb-5 flex items-start gap-3 text-[13px] leading-6 text-[#BFD3C6] sm:mb-6 sm:items-center sm:text-sm">
-            <span className="brick mt-1.5 shrink-0 sm:mt-0" aria-hidden="true" />
-            <span>{t.home.badge}</span>
-          </div>
-          <h1 className="display max-w-3xl text-[1.75rem] font-semibold leading-snug sm:text-5xl sm:leading-tight lg:text-6xl">
-            {t.home.title}
-          </h1>
-          <p className="mt-4 max-w-2xl leading-8 text-[#B9CDBF] sm:mt-6 sm:text-lg">{t.home.lede}</p>
-          {/* على التليفون: زرّان متساويان بعرض الشاشة — الإبهام يصيبهما بلا تصويب */}
-          <div className="mt-8 grid gap-3 sm:mt-10 sm:flex sm:flex-wrap">
-            <Link
-              href={p('/demande')}
-              className="flex min-h-12 items-center justify-center rounded bg-gold-light px-7 font-medium text-brand-deep transition hover:bg-[#c08c46] active:scale-[0.99]"
-            >
-              {t.home.cta1}
-            </Link>
-            <Link
-              href={p('/simulateur')}
-              className="flex min-h-12 items-center justify-center rounded border border-[#2C4437] px-7 font-medium text-[#EAF2EC] transition hover:border-[#4d6b5b] active:scale-[0.99]"
-            >
-              {t.home.cta2}
-            </Link>
-          </div>
-          <p className="mt-6 text-sm leading-6 text-[#8FAB9C]">{t.home.heroNote}</p>
+    <div className="lp">
+      {/* الواجهة */}
+      <section className="hero" id="top">
+        <div className="hero__media">
+          <img src={PHOTOS.hero} alt={c.hero.alt} fetchPriority="high" />
         </div>
-      </section>
-
-      {/* المسارات — Parcours */}
-      <section className="mx-auto max-w-6xl px-4 py-10 sm:px-5 sm:py-16">
-        <h2 className="text-2xl font-semibold sm:text-3xl">{t.home.pathsTitle}</h2>
-        <p className="mt-3 max-w-2xl text-muted">{t.home.pathsLede}</p>
-        <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {HOME_PATHS.map((key) => (
-            <Link
-              key={key}
-              href={p(`/demande?type=${key}`)}
-              className="group flex flex-col rounded border border-line bg-surface p-4 sm:p-6 transition hover:border-brand hover:shadow-sm"
-            >
-              <span className="brick mb-4" aria-hidden="true" />
-              <h3 className="text-lg font-semibold group-hover:text-brand">
-                {t.labels.requestType[key]}
-              </h3>
-              <p className="mt-2 flex-1 text-sm leading-7 text-muted">{t.home.paths[key]}</p>
-              <span className="mt-4 text-sm font-medium text-brand">{t.home.pathStart}</span>
-            </Link>
-          ))}
-        </div>
-      </section>
-
-      {/* كيفاش تخدم — Comment ça marche */}
-      <section className="border-y border-line bg-surface">
-        <div className="mx-auto max-w-6xl px-4 py-10 sm:px-5 sm:py-16">
-          <h2 className="text-2xl font-semibold sm:text-3xl">{t.home.howTitle}</h2>
-          <div className="mt-8 grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
-            {t.home.steps.map((s, i) => (
-              <div key={i}>
-                <div className="num mb-3 text-sm font-medium text-gold">
-                  {String(i + 1).padStart(2, '0')}
+        <div className="hero__shade" aria-hidden="true" />
+        <div className="wrap hero__in">
+          <div className="hero__txt">
+            <span className="eyebrow">{c.hero.eyebrow}</span>
+            <h1>{c.hero.title}</h1>
+            <div className="hero__sub">{c.hero.sub}</div>
+            <p className="hero__p">{c.hero.text}</p>
+            <div className="hero__cta">
+              <Link href={p('/demande')} className="btn btn--navy">
+                {c.hero.cta1}
+                <IcArrow className="arr" />
+              </Link>
+              <a href="#services" className="btn btn--ghost">
+                {c.hero.cta2}
+                <span className="playdot">
+                  <IcPlay />
+                </span>
+              </a>
+            </div>
+            {/* «قدّاش تاخذو منّي؟» أوّل سؤال يوقف الناس — جوابه تحت الزرّ */}
+            <p className="hero__free">{c.hero.free}</p>
+            <div className="stats">
+              {c.stats.map((s, i) => (
+                <div className="stat" key={i}>
+                  <span className="stat__i">{statIcons[i]}</span>
+                  {s.n ? <span className="stat__n">{s.n}</span> : null}
+                  <span className="stat__l">{s.l}</span>
                 </div>
-                <h3 className="text-lg font-semibold">{s.t}</h3>
-                <p className="mt-2 text-sm leading-7 text-muted">{s.b}</p>
-              </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* خدماتنا */}
+      <section className="wrap" id="services">
+        <div className="card services">
+          <div className="services__txt">
+            <span className="eyebrow">{c.services.eyebrow}</span>
+            <h2 className="sec-title">{c.services.title}</h2>
+            <p className="lead">{c.services.text}</p>
+            <Link href={p('/demande')} className="btn btn--navy">
+              {c.services.cta}
+              <IcArrow className="arr" />
+            </Link>
+          </div>
+          <div className="tiles">
+            {c.services.items.map((it, i) => (
+              <Link key={it.href} href={p(it.href)} className={`tile tile--${TILE_STYLE[i]}`}>
+                <span className="tile__ic" style={{ color: TILE_COLOR[i] }}>
+                  {tileIcons[i]}
+                </span>
+                <h3>{it.t}</h3>
+                <p>{it.d}</p>
+                <span className="go">
+                  <IcArrow className="arr" />
+                </span>
+              </Link>
             ))}
           </div>
         </div>
       </section>
 
-      {/* أسعار البناء — Coût de construction */}
-      <section className="mx-auto max-w-6xl px-4 py-10 sm:px-5 sm:py-16">
-        <div className="max-w-2xl">
-          <h2 className="text-2xl font-semibold sm:text-3xl">{t.home.pricesTitle}</h2>
-          <p className="mt-3 leading-8 text-muted">{t.home.pricesLede}</p>
-        </div>
-        <div className="mt-8 grid gap-4 sm:grid-cols-3">
-          {tiers.map((tier) => (
-            <div key={tier.tier} className="rounded border border-line bg-surface p-4 sm:p-6">
-              <span className="brick mb-4 block" aria-hidden="true" />
-              <h3 className="text-lg font-semibold">{tier.label}</h3>
-              <div className="num mt-2 text-xl font-semibold text-brand">
-                <bdi dir="ltr">{formatRange(tier.min, tier.max)}</bdi>
-                <span className="text-sm font-normal text-muted"> {perM2}</span>
-              </div>
-              <p className="mt-3 text-sm leading-7 text-muted">{tier.description}</p>
-            </div>
-          ))}
-        </div>
-        <p className="mt-5 text-sm leading-7 text-faint">
-          {t.home.pricesNote}{' '}
-          <span className="num">
-            <bdi dir="ltr">{formatNumber(referencePrice)}</bdi> {perM2}
-          </span>
-        </p>
-      </section>
-
-      {/* لمن — Pour qui */}
-      <section className="mx-auto max-w-6xl px-4 py-10 sm:px-5 sm:py-16">
-        <div className="grid gap-6 lg:grid-cols-3">
-          {[t.home.audience.citizen, t.home.audience.builders, t.home.audience.banks].map((a) => (
-            <div key={a.title} className="rounded border border-line bg-surface p-5 sm:p-7">
-              <h3 className="text-lg font-semibold">{a.title}</h3>
-              <ul className="mt-4 space-y-2 text-sm leading-7 text-muted">
-                {a.items.map((it) => (
-                  <li key={it}>— {it}</li>
-                ))}
-              </ul>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* دعوة أخيرة — Appel final */}
-      <section className="mx-auto max-w-6xl px-4 pb-14 sm:px-5 sm:pb-20">
-        <div className="flex flex-wrap items-center justify-between gap-5 rounded border border-line bg-gold-soft p-5 sm:gap-6 sm:p-8">
-          <div>
-            <h2 className="text-xl font-semibold sm:text-2xl">{t.home.ctaTitle}</h2>
-            <p className="mt-2 max-w-xl text-sm leading-7 text-ink-soft">{t.home.ctaBody}</p>
+      {/* من نحن */}
+      <section className="wrap about" id="about">
+        <div className="photo-card">
+          <img src={PHOTOS.about} alt={c.about.alt} loading="lazy" />
+          <div className="photo-card__shade" aria-hidden="true" />
+          <div className="script" aria-hidden="true">
+            {c.about.script}
           </div>
-          <Link
-            href={p('/demande')}
-            className="flex min-h-12 w-full items-center justify-center rounded bg-brand px-7 font-medium text-white transition hover:bg-brand-deep active:scale-[0.99] sm:w-auto"
-          >
-            {t.nav.cta}
+          <Link href={p('/realisations')} className="play">
+            <span className="play__b">
+              <IcPlay />
+            </span>
+            {c.about.photoCta}
           </Link>
         </div>
+        <div className="about__txt">
+          <span className="eyebrow">{c.about.eyebrow}</span>
+          <h2 className="sec-title">{c.about.title}</h2>
+          <p className="lead">{c.about.text}</p>
+          <div className="feats">
+            {c.about.feats.map((f, i) => (
+              <div className="feat" key={f}>
+                <span className="ic">{featIcons[i]}</span>
+                {f}
+              </div>
+            ))}
+          </div>
+          <Link href={p('/realisations')} className="btn btn--navy btn--sm">
+            {c.about.cta}
+            <IcArrow className="arr" />
+          </Link>
+        </div>
+        <div className="about__map">
+          <TunisiaMap />
+          <div className="map__cap">
+            <b>{c.about.mapTitle}</b>
+            <span>{c.about.mapSub}</span>
+          </div>
+        </div>
       </section>
-    </>
+
+      {/* كيف نعمل */}
+      <section className="wrap how" id="how">
+        <span className="eyebrow">{c.how.eyebrow}</span>
+        <h2 className="sec-title">{c.how.title}</h2>
+        <ol className="steps">
+          {c.how.steps.map((s, i) => (
+            <li className="step" key={s.t}>
+              {PHOTOS.steps[i] ? (
+                <div className="step__img">
+                  <img src={PHOTOS.steps[i]} alt="" loading="lazy" />
+                </div>
+              ) : null}
+              <span className="step__n">{String(i + 1).padStart(2, '0')}</span>
+              <h3>{s.t}</h3>
+              <p>{s.d}</p>
+            </li>
+          ))}
+        </ol>
+      </section>
+
+      {/* مشاريعنا */}
+      <section className="wrap projects" id="projects">
+        <div className="sec-head">
+          <div>
+            <span className="eyebrow">{c.projects.eyebrow}</span>
+            <h2 className="sec-title">{c.projects.title}</h2>
+            <p className="lead">{c.projects.text}</p>
+          </div>
+          <Link href={p('/realisations')} className="linkarrow">
+            {c.projects.all}
+            <IcArrow className="arr" />
+          </Link>
+        </div>
+        <div className="pgrid">
+          {c.projects.items.map((it, i) => (
+            <Link key={it.href} href={p(it.href)} className="pcard">
+              <img src={PHOTOS.projects[i]} alt={it.t} loading="lazy" />
+              <div className="pcard__shade" aria-hidden="true" />
+              <div className="pcard__txt">
+                <div>
+                  <b>{it.t}</b>
+                  <small>{it.l}</small>
+                </div>
+                <span className="go">
+                  <IcArrow className="arr" />
+                </span>
+              </div>
+            </Link>
+          ))}
+        </div>
+      </section>
+
+      <StickyCta href={p('/demande')} label={c.sticky.cta} />
+    </div>
   )
 }

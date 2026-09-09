@@ -15,8 +15,8 @@ import { canonicalUrl, languageAlternates, siteUrl } from '@/lib/site'
  */
 export const viewport: Viewport = {
   themeColor: [
-    { media: '(prefers-color-scheme: light)', color: '#ffffff' },
-    { media: '(prefers-color-scheme: dark)', color: '#12243c' },
+    { media: '(prefers-color-scheme: light)', color: '#f4efe6' },
+    { media: '(prefers-color-scheme: dark)', color: '#0a2a44' },
   ],
   colorScheme: 'light',
 }
@@ -132,28 +132,33 @@ export default async function SiteLayout({
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link
           rel="stylesheet"
-          href="https://fonts.googleapis.com/css2?family=Reem+Kufi:wght@500;600;700&family=IBM+Plex+Sans+Arabic:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap"
+          href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&family=Dancing+Script:wght@600&family=IBM+Plex+Mono:wght@400;500&display=swap"
         />
       </head>
       <body>
         <header className="sticky top-0 z-40 border-b border-line bg-surface/95 backdrop-blur">
           <div className="mx-auto flex max-w-6xl items-center gap-3 px-4 py-3 sm:px-5 sm:py-4">
             {/* min-h-11: الشعار رابط للرئيسية، وارتفاع 23px لا يُصاب بالإبهام */}
-            <Link href={p()} className="flex min-h-11 min-w-0 items-center gap-2.5 sm:gap-3">
-              <span className="brick shrink-0" aria-hidden="true" />
-              <span className="display truncate text-base font-semibold text-brand-deep sm:text-lg">
-                {t.nav.brand}
-              </span>
-              <span className="hidden text-xs text-faint md:inline">{t.nav.brandSub}</span>
+            {/* الشعار: المصباح والمباني — ملفّ مستخرَج من لوحة الهوية (public/landing) */}
+            <Link href={p()} className="flex min-h-11 min-w-0 items-center" aria-label={t.nav.brand}>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/landing/logo-light.png"
+                alt={`${t.nav.brand} ${t.nav.brandSub}`}
+                className="w-auto"
+                style={{ height: 52 }}
+                width={440}
+                height={268}
+              />
             </Link>
 
             {/* قائمة الحاسوب — تظهر من lg فما فوق */}
-            <nav className="ms-auto hidden items-center gap-1 text-sm lg:flex">
+            <nav className="ms-auto hidden items-center gap-0.5 text-sm lg:flex">
               {NAV_LINKS.map((l) => (
                 <Link
                   key={l.href}
                   href={l.href}
-                  className="rounded px-2 py-1.5 text-muted transition hover:text-brand"
+                  className="whitespace-nowrap rounded-full px-2.5 py-1.5 font-semibold text-brand transition hover:bg-brand-soft xl:px-3"
                 >
                   {l.label}
                 </Link>
@@ -163,7 +168,7 @@ export default async function SiteLayout({
               </Suspense>
               <Link
                 href={p('/demande')}
-                className="ms-1 rounded-lg bg-brand px-4 py-2 font-medium text-white transition hover:bg-brand-deep"
+                className="ms-1 whitespace-nowrap rounded-full bg-brand px-5 py-2.5 font-bold text-white shadow-md shadow-brand/20 transition hover:bg-brand-deep"
               >
                 {t.nav.cta}
               </Link>
@@ -173,13 +178,14 @@ export default async function SiteLayout({
             <div className="ms-auto flex items-center gap-2 lg:hidden">
               <Link
                 href={p('/demande')}
-                className="flex min-h-11 items-center rounded-lg bg-brand px-3.5 text-sm font-medium text-white transition active:bg-brand-deep"
+                className="flex min-h-11 items-center whitespace-nowrap rounded-full bg-brand px-4 text-sm font-bold text-white transition active:bg-brand-deep"
               >
                 {t.nav.cta}
               </Link>
               <MobileNav
                 groups={NAV_GROUPS}
                 cta={{ href: p('/demande'), label: t.nav.cta }}
+                freeNote={t.nav.ctaFree}
                 langSwitch={
                   <Suspense fallback={null}>
                     <LangSwitch current={locale} other={other} label={t.otherLangName} />
@@ -197,17 +203,23 @@ export default async function SiteLayout({
 
         <main>{children}</main>
 
-        <footer className="mt-16 border-t border-line bg-surface sm:mt-24">
+        <footer className="mt-16 rounded-t-[40px] bg-gradient-to-b from-brand to-brand-deep text-white sm:mt-24">
           <div
-            className="mx-auto max-w-6xl px-4 py-10 text-sm text-muted sm:px-5"
+            className="mx-auto max-w-6xl px-4 py-10 text-sm text-white/80 sm:px-5"
             style={{ paddingBottom: 'max(2.5rem, env(safe-area-inset-bottom))' }}
           >
             <div className="flex flex-col gap-8 sm:flex-row sm:flex-wrap sm:items-start sm:justify-between">
               <div className="max-w-md">
-                <div className="display text-base font-semibold text-ink">
-                  {t.nav.brand} {locale === 'ar' ? t.nav.brandSub : ''}
-                </div>
-                <div className="mb-2 text-sm text-gold">{t.nav.slogan}</div>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src="/landing/logo-dark.png"
+                  alt={`${t.nav.brand} ${t.nav.brandSub}`}
+                  className="w-auto"
+                  style={{ height: 72 }}
+                  width={400}
+                  height={276}
+                />
+                <div className="mb-2 mt-3 text-sm text-gold-light">{t.nav.slogan}</div>
                 <p className="leading-7">{t.footer.about}</p>
               </div>
 
@@ -218,7 +230,7 @@ export default async function SiteLayout({
                     <Link
                       key={l.href}
                       href={l.href}
-                      className="flex min-h-11 items-center transition hover:text-brand sm:min-h-0"
+                      className="flex min-h-11 items-center font-medium text-white/85 transition hover:text-gold-light sm:min-h-0"
                     >
                       {l.label}
                     </Link>
@@ -226,7 +238,12 @@ export default async function SiteLayout({
                 )}
               </nav>
             </div>
-            <div className="mt-8 border-t border-line pt-5 text-xs text-faint">{t.footer.legal}</div>
+            <div className="mt-8 flex flex-col gap-2 border-t border-white/10 pt-5 text-xs text-white/60 sm:flex-row sm:items-center sm:justify-between">
+              <span>{t.footer.legal}</span>
+              <span className="tracking-[0.2em] text-white/70" dir="ltr">
+                SAME ROOTS · BRIGHTER TOMORROWS
+              </span>
+            </div>
           </div>
         </footer>
       </body>
