@@ -59,7 +59,6 @@ export async function submitRequest(
     ...raw,
     flexibility: formData.getAll('flexibility'),
     documents: formData.getAll('documents'),
-    housingProblems: formData.getAll('housingProblems'),
     hasWater: raw.hasWater === 'on',
     hasPower: raw.hasPower === 'on',
     hasRoad: raw.hasRoad === 'on',

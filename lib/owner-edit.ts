@@ -176,7 +176,6 @@ export function toFormValues(
     housingCondition: social?.housing_condition ?? '',
     incomeStability: social?.income_stability ?? '',
     // «كاري» تُقرأ من الحيازة: عمود is_renting مشتقّ لا مصدر
-    housingProblems: [...(social?.housing_problems ?? [])].sort().join(','),
     rentTnd: s(social?.rent_tnd ?? null),
     problemType: r.problem_type ?? '',
     financingState: r.financing_state ?? '',
@@ -320,7 +319,6 @@ export const OWNER_FIELDS = [
   'hasDisability',
   'housingCondition',
   'incomeStability',
-  'housingProblems',
   'rentTnd',
   'problemType',
   'financingState',
@@ -439,7 +437,6 @@ export const FIELD_LABELS_AR: Record<string, string> = {
   hasDisability: 'إعاقة أو مرض مزمن',
   housingCondition: 'وضعية السكن الحالية',
   incomeStability: 'استقرار الدخل',
-  housingProblems: 'مشاكل السكن الحالي',
   rentTnd: 'الكراء الشهري',
   problemType: 'أكبر عائق',
   financingState: 'وضع التمويل',

@@ -85,8 +85,7 @@ export async function writeClientAnswers(requestId: string, d: RequestData): Pro
     d.dependents !== null ||
     d.hasDisability ||
     d.housingCondition !== null ||
-    d.incomeStability !== null ||
-    d.housingProblems.length > 0
+    d.incomeStability !== null
 
   if (hasSocial) {
     const { error } = await db.from('social_assessments').upsert(
@@ -96,7 +95,11 @@ export async function writeClientAnswers(requestId: string, d: RequestData): Pro
         dependents: d.dependents,
         has_disability: d.hasDisability,
         housing_condition: d.housingCondition,
-        housing_problems: d.housingProblems,
+        /**
+         * housing_problems لا يُكتب: السؤال رُفع من الاستمارة، والعمود
+         * يحمل ما صرّح به أصحاب ملفّات قديمة. الكتابة بمصفوفة فارغة
+         * كانت ستمحوه عند أوّل تعديل يجريه صاحبه.
+         */
         income_stability: d.incomeStability,
         /**
          * «كاري» يُشتقّ من الحيازة ولا يُسأل مرّتين. يبقى عموداً لأنّ

@@ -110,13 +110,6 @@ describe('toFormValues', () => {
     expect(v.rentTnd).toBe('620')
   })
 
-  it('مشاكل السكن مجموعة مرتّبة: الترتيب ليس معطى', () => {
-    // نفس المشاكل بترتيب مقلوب ليست تبديلاً
-    expect(v.housingProblems).toBe('expensive,unstable')
-    const flipped = diffValues(v, { ...v, housingProblems: ['unstable', 'expensive'] }, OWNER_FIELDS)
-    expect(flipped).not.toHaveProperty('housingProblems')
-  })
-
   it('«فلوسي حاضرة» تُقرأ من المطلب لا من وضع التمويل', () => {
     expect(v.cashReady).toBe(false)
     const ready = toFormValues({ ...request, cash_ready: true }, finance, land)
@@ -128,7 +121,6 @@ describe('toFormValues', () => {
     expect(bare.monthlyIncome).toBe('')
     expect(bare.landAreaM2).toBe('')
     expect(bare.hasWater).toBe(false)
-    expect(bare.housingProblems).toBe('')
     expect(bare.rentTnd).toBe('')
   })
 })

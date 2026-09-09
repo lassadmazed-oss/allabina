@@ -19,7 +19,6 @@ import {
 } from '@/lib/schema'
 import {
   HOUSING_CONDITIONS,
-  HOUSING_PROBLEMS,
   HOUSING_TENURE_OFFERED,
   INCOME_STABILITY,
 } from '@/lib/support-schema'
@@ -96,7 +95,6 @@ const FIELD_STEP: Record<string, number> = {
   householdSize: 4,
   dependents: 4,
   housingCondition: 4,
-  housingProblems: 4,
   rentTnd: 4,
   incomeStability: 4,
   problemType: 4,
@@ -297,20 +295,8 @@ export default function RequestForm({
     .split(',')
     .filter(Boolean)
 
-  const housingProblems = String(values.housingProblems ?? '')
-    .split(',')
-    .filter(Boolean)
-
   /** «بالكراء» جواب في الحيازة، لا سؤال ثانٍ يناقضه */
   const isRenting = values.housingCondition === 'renting'
-
-  /**
-   * المشاكل المعروضة تتبع الحيازة: «الكراء ثقيل» سؤال بلا معنى لمن
-   * يسكن في ملكه. نخفيه بدل أن يقرأه ويتخطّاه.
-   */
-  const shownProblems = HOUSING_PROBLEMS.filter(
-    (k) => k !== 'expensive' || isRenting
-  )
 
   /**
    * الخيارات المعروضة + قيمة الملفّ إن كانت من قائمة قديمة.
@@ -347,7 +333,8 @@ export default function RequestForm({
       foprolosInterest: Boolean(values.foprolosInterest),
       hasDisability: Boolean(values.hasDisability),
       housingCondition: String(values.housingCondition ?? ''),
-      housingProblems,
+      // ما عاد يُسأل في الاستمارة؛ يبقى في الملفّات القديمة وحدها
+      housingProblems: [],
       incomeStability: String(values.incomeStability ?? ''),
       ownership: String(values.ownership ?? ''),
       works: String(values.works ?? '').split(',').filter(Boolean),
@@ -363,7 +350,6 @@ export default function RequestForm({
     values.foprolosInterest,
     values.hasDisability,
     values.housingCondition,
-    values.housingProblems,
     values.incomeStability,
     values.ownership,
     values.works,
@@ -1471,40 +1457,14 @@ export default function RequestForm({
             </Field>
           )}
 
-          {/* المشاكل تجتمع: المسكن يكون ضيّقاً وغالياً وبعيداً في آن واحد.
-              خيار واحد كان يجبره يختار أثقلها ويسكت عن الباقي — ومن بلا
-              مسكن لا يُسأل أصلاً عمّا يضايقه في مسكنه. */}
-          {values.housingCondition && values.housingCondition !== 'homeless' && (
-            <div className="mt-5">
-              <span className="mb-1 block text-sm font-medium">{t.housingProblems}</span>
-              <p className="mb-3 text-sm leading-7 text-muted">{t.housingProblemsLede}</p>
-              <div className="flex flex-col gap-2">
-                {shownProblems.map((k) => {
-                  const on = housingProblems.includes(k)
-                  return (
-                    <label
-                      key={k}
-                      className={`flex min-h-12 cursor-pointer items-center gap-2.5 rounded border px-3 text-sm transition ${
-                        on ? 'border-brand bg-brand-soft' : 'border-line hover:border-line-strong'
-                      }`}
-                    >
-                      <input
-                        type="checkbox"
-                        name="housingProblems"
-                        value={k}
-                        checked={on}
-                        onChange={() => toggleIn('housingProblems', k)}
-                        className="size-4 shrink-0 accent-[#1d3a5f]"
-                      />
-                      {t.housingProblemLabels[k]}
-                    </label>
-                  )
-                })}
-              </div>
-            </div>
-          )}
         </Group>
 
+      </fieldset>
+
+      {/* 5 — القدرة المالية */}
+      <fieldset className={step === 5 ? 'block' : 'hidden'}>
+        <legend className="display mb-1 text-xl font-semibold">{t.s4Title}</legend>
+        <p className="mb-4 text-sm text-muted">{t.s4Lede}</p>
         <Group title={t.grpIncome} lede={t.grpIncomeLede}>
           {/* «فلوسي حاضرة» حالة تمويل لا نوع مطلب. كانت في الخطوة الأولى
               بين مسارات السكن، وكانت تفرض «بناء فوق أرضي» على من اختارها —
@@ -1588,12 +1548,7 @@ export default function RequestForm({
           </div>
         </Group>
         )}
-      </fieldset>
 
-      {/* 5 — القدرة المالية */}
-      <fieldset className={step === 5 ? 'block' : 'hidden'}>
-        <legend className="display mb-1 text-xl font-semibold">{t.s4Title}</legend>
-        <p className="mb-4 text-sm text-muted">{t.s4Lede}</p>
         {flow.financeOptional && !financeOpen ? (
           <div className="rounded-lg border border-line bg-surface p-4">
             <b className="block text-sm">{t.financeOptionalTitle}</b>
@@ -1609,6 +1564,7 @@ export default function RequestForm({
         ) : (
           <>
         <p className="mb-4 text-xs text-faint">{t.requiredNote}</p>
+
         {values.cashReady && (
           <p className="mb-4 rounded-lg border border-gold/40 bg-gold-soft px-4 py-3 text-sm leading-7 text-gold">
             {t.cashReadyNote}

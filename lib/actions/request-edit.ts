@@ -221,7 +221,6 @@ export async function updateOwnRequest(_prev: unknown, formData: FormData): Prom
     ...raw,
     flexibility: formData.getAll('flexibility'),
     documents: formData.getAll('documents'),
-    housingProblems: formData.getAll('housingProblems'),
     govCode: current.values.govCode,
     hasWater: raw.hasWater === 'on',
     hasPower: raw.hasPower === 'on',

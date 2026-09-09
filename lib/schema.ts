@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { HOUSING_CONDITIONS, HOUSING_PROBLEMS, INCOME_STABILITY } from '@/lib/support-schema'
+import { HOUSING_CONDITIONS, INCOME_STABILITY } from '@/lib/support-schema'
 import {
   APARTMENT_STATES,
   EXISTING_BUILDING,
@@ -241,8 +241,6 @@ export const requestSchema = z.object({
   hasDisability: optionalFlag,
   /** صفة الحيازة — «وين تسكن توّة؟». واحدة ومتنافية. */
   housingCondition: nullableEnum(HOUSING_CONDITIONS),
-  /** ما يضايقه فيه — متعدّد ومجتمع كما هو في الواقع */
-  housingProblems: multiEnum(HOUSING_PROBLEMS),
   incomeStability: nullableEnum(INCOME_STABILITY),
   /**
    * الكراء الحالي: أوضح دليل على ما يقدر يدفعه شهرياً — هو يدفعه فعلاً.
