@@ -1,5 +1,7 @@
 'use client'
 
+import VoiceRecorder from '@/components/VoiceRecorder'
+import type { Dictionary } from '@/lib/i18n'
 import { useActionState } from 'react'
 import Link from 'next/link'
 import { submitSupportRequest, type SupportRequestState } from '@/lib/actions/support'
@@ -57,11 +59,14 @@ export default function SupportRequestForm({
   govCode,
   delegations,
   t,
+  voice,
 }: {
   locale: Locale
   govCode: string
   delegations: Delegation[]
   t: AskHelpStrings
+  /** نصوص زرّ التسجيل — تُمرَّر صراحةً لا عبر القاموس كاملاً */
+  voice: Dictionary['voice']
 }) {
   const [state, action, pending] = useActionState(submitSupportRequest, {
     ok: false,
@@ -137,6 +142,7 @@ export default function SupportRequestForm({
             placeholder={t.needPlaceholder}
             className={field}
           />
+          <VoiceRecorder name="voiceNeedText" t={voice} />
         </label>
 
         <label className="mt-5 block sm:w-2/3">

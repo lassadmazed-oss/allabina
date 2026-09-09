@@ -54,6 +54,7 @@ export default async function ReseauPage({ params }: { params: Promise<{ locale:
       </section>
 
       <IntervenantForm
+        voice={t.voice}
         locale={locale}
         govCode="SFX"
         families={(families ?? []) as FamilyRow[]}

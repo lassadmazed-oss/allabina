@@ -1,5 +1,7 @@
 'use client'
 
+import VoiceRecorder from '@/components/VoiceRecorder'
+import type { Dictionary } from '@/lib/i18n'
 import { useActionState, useMemo, useRef, useState } from 'react'
 import Modal from '@/components/Modal'
 import { joinNetwork, type NetworkState } from '@/lib/actions/network'
@@ -76,6 +78,7 @@ export default function IntervenantForm({
   delegations,
   zones,
   t,
+  voice,
 }: {
   locale: Locale
   govCode: string
@@ -85,6 +88,8 @@ export default function IntervenantForm({
   delegations: Delegation[]
   zones: Zone[]
   t: NetworkStrings
+  /** نصوص زرّ التسجيل — تُمرَّر صراحةً لا عبر القاموس كاملاً */
+  voice: Dictionary['voice']
 }) {
   const [state, action, pending] = useActionState(joinNetwork, { ok: false } as NetworkState)
 
@@ -344,6 +349,7 @@ export default function IntervenantForm({
             placeholder={t.bioPlaceholder}
             className={field}
           />
+          <VoiceRecorder name="voiceBio" t={voice} />
         </label>
       </fieldset>
 

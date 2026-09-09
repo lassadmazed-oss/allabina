@@ -37,6 +37,7 @@ export default async function AskHelpPage({ params }: { params: Promise<{ locale
       </section>
 
       <SupportRequestForm
+        voice={t.voice}
         locale={locale}
         govCode="SFX"
         delegations={delegations.map((d) => ({ id: d.id, name_ar: d.name_ar }))}
