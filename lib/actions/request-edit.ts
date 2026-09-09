@@ -11,7 +11,6 @@ import { phoneMatches } from '@/lib/public-state'
 import { sendRequestEdited } from '@/lib/sms/winsms'
 import { DEFAULT_LOCALE, isLocale, type Locale } from '@/lib/i18n'
 import { OWNER_COOKIE, OWNER_TTL_MS, issueOwnerToken, readOwnerToken } from '@/lib/owner-session'
-import { docCodeOf } from '@/lib/documents'
 import { writeClientAnswers } from '@/lib/actions/client-answers'
 import {
   OWNER_FIELDS,
@@ -154,7 +153,7 @@ export async function loadOwnRequest(): Promise<OwnRequest | null> {
       .maybeSingle(),
     db
       .from('request_documents')
-      .select('doc_type')
+      .select('doc_code')
       .eq('request_id', id)
       .eq('declared', true),
   ])
@@ -176,8 +175,8 @@ export async function loadOwnRequest(): Promise<OwnRequest | null> {
       (land as LandRow | null) ?? null,
       (cfg as ConfigRow | null) ?? null,
       (social as SocialRow | null) ?? null,
-      ((docs ?? []) as { doc_type: string }[])
-        .map((x) => docCodeOf(x.doc_type))
+      ((docs ?? []) as { doc_code: string | null }[])
+        .map((x) => x.doc_code)
         .filter((c): c is string => Boolean(c))
     ),
     ownerUpdatedAt: row.owner_updated_at,

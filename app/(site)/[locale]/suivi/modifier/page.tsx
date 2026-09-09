@@ -5,7 +5,9 @@ import { loadOwnRequest, closeOwnerSession } from '@/lib/actions/request-edit'
 import { loadOwnSupportCase, setPublicationConsent } from '@/lib/actions/support-consent'
 import {
   getBuildTiers,
+  getConstructionSystems,
   getDelegations,
+  getDocCatalog,
   getFinanceContext,
   getGovernorates,
   getImadas,
@@ -58,13 +60,16 @@ export default async function ModifierPage({
 
   const supportCase = await loadOwnSupportCase(own.id)
 
-  const [governorates, delegations, imadas, zones, finance, build] = await Promise.all([
+  const [governorates, delegations, imadas, zones, finance, build, systems, docCatalog] =
+    await Promise.all([
     getGovernorates(),
     getDelegations('SFX'),
     getImadas('SFX'),
     getZones('SFX'),
     getFinanceContext(),
     getBuildTiers('SFX', locale),
+    getConstructionSystems(),
+    getDocCatalog(),
   ])
 
   return (
@@ -162,8 +167,10 @@ export default async function ModifierPage({
       </p>
 
       <RequestForm
+        docCatalog={docCatalog}
         mode="edit"
         initialValues={own.values}
+        voice={dict.voice}
         locale={locale}
         t={dict.form}
         labels={dict.labels}
@@ -174,6 +181,7 @@ export default async function ModifierPage({
         assumptions={finance.assumptions}
         bankTermsNote={finance.bankTermsNote}
         tiers={build.tiers}
+        systems={systems}
       />
     </div>
   )

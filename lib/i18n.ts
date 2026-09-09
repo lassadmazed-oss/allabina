@@ -209,8 +209,21 @@ const ar = {
 
         // الوثائق — تصريح لا تثبّت
         docsTitle: 'وين وصلت في الأوراق؟',
-        docsLede: 'أشّر على اللي عندك جاهز. ما نطلبوش منّك ترفعها توّة — هذا باش نعرفو شنوّة ينقصك قبل ما نتّصلو بيك.',
-        docsNote: 'التأشير تصريح منّك. الفريق يتثبّت وقت الدراسة.',
+        docsLede: 'هذي الأوراق اللي عادة تتطلب في ملفّ كيما ملفّك. أشّر على اللي عندك جاهز — ما نطلبوش منّك ترفعها توّة.',
+        docsNote: 'التأشير تصريح منّك، والفريق يتثبّت وقت الدراسة. القائمة إرشادية: البنك ولا البلدية ينجّمو يطلبو زيادة ولا أقلّ حسب حالتك.',
+        docsRequired: 'ضرورية',
+        docsOptional: 'تقوّي الملفّ',
+        docsProgress: 'عندك {done} من {total} ورقة ضرورية',
+        docsAllDone: 'الأوراق الضرورية كاملة عندك',
+        docsWhere: 'وين تلقاها:',
+        docsGroups: {
+            identity: 'هويّتك',
+            income: 'دخلك وقدرتك',
+            property: 'العقار والملكية',
+            permits: 'الرخص والأمثلة',
+            social: 'السكن الاجتماعي',
+            support: 'وضعيتك الاجتماعية'
+        },
         docLabels: {
             'id-card': 'بطاقة تعريف',
             'work-certificate': 'شهادة في العمل',
@@ -298,6 +311,7 @@ const ar = {
         consentShort: 'الموافقة على معالجة المعطيات',
         errors: {
             banner: 'فمّا حقول ناقصة ولا غير صحيحة. رجّعناك للخطوة اللي فيها المشكل.',
+            elsewhere: 'باقي حقل ناقص في خطوة {step}.',
             rateLimited: 'عدد المحاولات كثير. عاود بعد شويّة.',
             server: 'صار مشكل تقني في التسجيل. عاود المحاولة.',
             expired: 'جلستك سالات. عاود دخّل رمزك ورقم هاتفك.',
@@ -520,6 +534,7 @@ const ar = {
         errorKept: 'كلّ اللي كتبتو باقٍ في بلاصتو — صلّح الحقول المذكورة وعاود.',
         errors: {
             banner: 'فمّا حقول ناقصة ولا غير صحيحة.',
+            elsewhere: 'Il reste un champ à compléter à l’étape {step}.',
             rateLimited: 'عدد المحاولات كثير. عاود بعد شويّة.',
             server: 'صار مشكل تقني. عاود المحاولة.',
             fallback: 'هالحقل فيه مشكل.',
@@ -785,6 +800,7 @@ const ar = {
         dti: 'سقف الاستدانة من الدخل',
         productsTitle: 'صيغ تمويل مرجعية',
         productsLede: 'للاستئناس. النسب والمدد والشروط النهائية تُحدَّد من البنك حسب ملفّك.',
+        productsNotExclusive: 'اللَّبنة موش شريكة مع بنك معيّن ولا تحيلك على واحد. هذي الصيغ اللي وثّقناها إلى اليوم، وتنجّم تمشي لأيّ بنك تونسي — والشروط تتحدّد عندو هو.',
         upTo: 'إلى',
         ofCost: 'من الكلفة',
         yearsWord: 'سنة',
@@ -921,6 +937,20 @@ const ar = {
         s5: 'حقوقك',
         s5body: 'تنجّم في أيّ وقت تطلب الاطّلاع على معطياتك أو تصحيحها أو حذفها. يكفي تتّصل بينا بالرمز متاع مطلبك. معالجة المعطيات الشخصية في تونس خاضعة للقانون عدد 63 لسنة 2004 وللهيئة الوطنية لحماية المعطيات الشخصية.',
         note: 'ملاحظة: هذي نسخة تجريبية من المنصة. النصّ القانوني النهائي لهذه الصفحة يُضبط مع مختصّ قانوني قبل الإطلاق العلني.'
+    },
+    voice: {
+        start: 'سجّل صوتك',
+        stop: 'وقّف التسجيل',
+        again: 'سجّل من جديد',
+        remove: 'امسح',
+        recording: 'قاعد نسجّل… احكي على راحتك.',
+        uploading: 'قاعد يتبعث…',
+        ready: 'تسجيلك محفوظ',
+        hint: 'ما تحبّش تكتب؟ احكيها.',
+        limit: 'إلى 3 دقائق',
+        denied: 'ما نجّمناش نوصلو للميكرو. تثبّت من الإذن في المتصفّح وعاود.',
+        unsupported: 'المتصفّح متاعك ما يدعمش التسجيل. تنجّم تكتب في الخانة فوق.',
+        failed: 'ما نجحش الإرسال. عاود، ولا اكتب في الخانة فوق.'
     },
     labels: {
         requestType: {
@@ -1190,8 +1220,21 @@ const fr: Dictionary = {
         },
 
         docsTitle: 'Où en sont vos documents ?',
-        docsLede: "Cochez ce que vous avez déjà. Inutile de les téléverser maintenant : c'est pour savoir ce qui manque avant de vous appeler.",
-        docsNote: "Cocher est une déclaration. L'équipe vérifie lors de l'étude.",
+        docsLede: "Voici les pièces habituellement demandées pour un dossier comme le vôtre. Cochez ce que vous avez déjà — inutile de les téléverser maintenant.",
+        docsNote: "Cocher est une déclaration ; l'équipe vérifie lors de l'étude. Liste indicative : la banque ou la municipalité peuvent en demander plus ou moins.",
+        docsRequired: 'Indispensable',
+        docsOptional: 'Renforce le dossier',
+        docsProgress: 'Vous avez {done} pièces indispensables sur {total}',
+        docsAllDone: 'Toutes les pièces indispensables sont réunies',
+        docsWhere: "Où l'obtenir :",
+        docsGroups: {
+            identity: 'Votre identité',
+            income: 'Revenus et capacité',
+            property: 'Bien et propriété',
+            permits: 'Autorisations et plans',
+            social: 'Logement social',
+            support: 'Situation sociale'
+        },
         docLabels: {
             'id-card': "Carte d'identité",
             'work-certificate': 'Certificat de travail',
@@ -1764,6 +1807,7 @@ const fr: Dictionary = {
         dti: 'Plafond d’endettement',
         productsTitle: 'Formules de financement de référence',
         productsLede: 'À titre indicatif. Les taux, durées et conditions définitifs sont fixés par la banque selon votre dossier.',
+        productsNotExclusive: "AL-LUBNA n'est partenaire d'aucune banque et ne vous oriente vers aucune. Voici les formules documentées à ce jour ; vous pouvez vous adresser à toute banque tunisienne, qui fixe ses propres conditions.",
         upTo: "jusqu'à",
         ofCost: 'du coût',
         yearsWord: 'ans',
@@ -1901,6 +1945,20 @@ const fr: Dictionary = {
         s5: 'Vos droits',
         s5body: "Vous pouvez à tout moment demander l'accès, la rectification ou la suppression de vos données, en nous contactant avec votre code de demande. Le traitement des données personnelles en Tunisie est régi par la loi n° 2004-63 et relève de l'INPDP.",
         note: "Note : version pilote de la plateforme. Le texte juridique définitif de cette page sera arrêté avec un conseil juridique avant le lancement public."
+    },
+    voice: {
+        start: 'Enregistrer un message',
+        stop: 'Arrêter',
+        again: 'Réenregistrer',
+        remove: 'Supprimer',
+        recording: 'Enregistrement en cours… parlez tranquillement.',
+        uploading: 'Envoi en cours…',
+        ready: 'Votre message est enregistré',
+        hint: 'Vous préférez parler ?',
+        limit: 'jusqu’à 3 minutes',
+        denied: 'Accès au micro impossible. Vérifiez l’autorisation du navigateur et réessayez.',
+        unsupported: 'Votre navigateur ne gère pas l’enregistrement. Vous pouvez écrire ci-dessus.',
+        failed: 'L’envoi a échoué. Réessayez, ou écrivez ci-dessus.'
     },
     labels: {
         requestType: {

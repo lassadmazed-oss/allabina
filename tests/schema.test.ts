@@ -157,8 +157,13 @@ describe('الحقول متعدّدة القيم', () => {
     expect(r.success && r.data.flexibility).toEqual(['area'])
   })
 
-  it('الوثائق نفس القاعدة', () => {
-    const r = requestSchema.safeParse({ ...apartmentForm, documents: ['id-card', 'land-title', 'xx'] })
-    expect(r.success && r.data.documents).toEqual(['id-card', 'land-title'])
+  it('الوثائق: قائمة مفتوحة، والتحقّق من الشكل لا من العضوية', () => {
+    // الدليل في القاعدة يكبر بلا نشر نسخة، فقائمة مغلقة هنا كانت
+    // ستُسقط بصمت كلّ رمز جديد. الانتماء يُتحقَّق منه أمام القاعدة.
+    const r = requestSchema.safeParse({
+      ...apartmentForm,
+      documents: ['cin', 'urbanism_cert', 'CODE-غلط', '', 'cin'],
+    })
+    expect(r.success && r.data.documents).toEqual(['cin', 'urbanism_cert'])
   })
 })

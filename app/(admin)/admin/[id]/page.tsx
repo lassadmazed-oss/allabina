@@ -1,9 +1,19 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { requireStaff } from '@/lib/auth'
-import { DOC_TYPE_LABELS } from '@/lib/documents'
+import {
+  applicableDocuments,
+  groupDocuments,
+  missingRequired,
+} from '@/lib/request-documents'
 import { can } from '@/lib/permissions'
-import { db, getConstructionSystems, getFinancingProducts, getStandingLevels } from '@/lib/supabase/server'
+import {
+  db,
+  getConstructionSystems,
+  getDocCatalog,
+  getFinancingProducts,
+  getStandingLevels,
+} from '@/lib/supabase/server'
 import { assembliesForSpan, suggestAssembly, type SpanLimit } from '@/lib/construction'
 import { setFloorAssemblyAction, setProjectSystemAction } from '@/lib/actions/construction'
 import { LABELS } from '@/lib/schema'
@@ -125,7 +135,14 @@ const PUBLIC_STATE_AR: Record<string, string> = {
 }
 
 /** مصدر واحد مع الاستمارة العمومية — lib/documents.ts */
-const DOC_TYPES = DOC_TYPE_LABELS
+const DOC_GROUP_LABELS: Record<string, string> = {
+  identity: 'الهويّة',
+  income: 'الدخل والقدرة',
+  property: 'العقار والملكية',
+  permits: 'الرخص والأمثلة',
+  social: 'السكن الاجتماعي',
+  support: 'الوضعية الاجتماعية',
+}
 
 const FINANCING_STATE_LABELS: Record<string, string> = {
   not_started: 'ما بداش',
@@ -185,6 +202,7 @@ export default async function RequestDetail({ params }: { params: Promise<{ id: 
     { data: smsRows },
     { data: assessment },
     assessmentConfig,
+    docCatalog,
     { data: social },
     { data: config },
     { data: latestDevis },
@@ -226,6 +244,7 @@ export default async function RequestDetail({ params }: { params: Promise<{ id: 
     db.from('sms_log').select('template, status, to_number, error, sent_at, created_at').eq('request_id', id).order('created_at', { ascending: false }),
     db.from('support_assessments').select('*').eq('request_id', id).maybeSingle(),
     loadAssessmentConfig(),
+    getDocCatalog(),
     db.from('social_assessments').select('*').eq('request_id', id).maybeSingle(),
     db.from('project_configs').select('*').eq('request_id', id).maybeSingle(),
     db
@@ -376,6 +395,42 @@ export default async function RequestDetail({ params }: { params: Promise<{ id: 
   const devisTotal = Number((latestDevis as { total_ht?: number } | null)?.total_ht ?? 0)
 
   const criteria = ((score?.breakdown as { criteria?: Criterion[] } | null)?.criteria ?? []) as Criterion[]
+
+  /**
+   * نفس ترشيح الاستمارة بالضبط: الفريق يشوف القائمة اللي شافها صاحب
+   * الملفّ. قائمتان مختلفتان تعني مكالمة تطلب ورقة ما تطلبتش منّو.
+   */
+  const applicableDocs = applicableDocuments(docCatalog, {
+    requestType: String(r.request_type ?? ''),
+    employment: String(fin?.employment ?? ''),
+    cashReady: Boolean(r.cash_ready),
+    isRenting: Boolean(social?.is_renting),
+    existingLoans: Number(fin?.existing_loans_tnd ?? 0),
+    foprolosInterest: Boolean(r.foprolos_interest),
+    hasDisability: Boolean(social?.has_disability),
+    housingCondition: String(social?.housing_condition ?? ''),
+    incomeStability: String(social?.income_stability ?? ''),
+  })
+  const docSections = groupDocuments(applicableDocs)
+  const declaredCodes = (docs ?? [])
+    .filter((x) => x.declared)
+    .map((x) => String(x.doc_code ?? ''))
+    .filter(Boolean)
+  const docMissing = missingRequired(applicableDocs, declaredCodes)
+  /**
+   * سطر بلا رمز يبقى ممكناً: تأشيرة الفريق تُكتب بالاسم العربي وحده.
+   * فنقابل بالاثنين، وإلّا ظهرت وثيقة أشّرها الفريق كأنّها «خارج القائمة».
+   */
+  const inList = new Set([
+    ...applicableDocs.map((d) => d.code),
+    ...applicableDocs.map((d) => d.nameAr),
+  ])
+  const docExtra = (docs ?? []).filter(
+    (x) =>
+      (x.declared || x.available) &&
+      !inList.has(String(x.doc_code ?? '')) &&
+      !inList.has(String(x.doc_type ?? ''))
+  )
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-8 sm:px-5 sm:py-10">
@@ -1703,44 +1758,83 @@ export default async function RequestDetail({ params }: { params: Promise<{ id: 
         <p className="mt-1 text-xs leading-6 text-muted">
           الوسم «صرّح بها» يجي من الاستمارة. التأشيرة تبقى تثبّتك أنت.
         </p>
-        <div className="mt-4 grid gap-2 sm:grid-cols-2">
-          {DOC_TYPES.map((d) => {
-            const rec = (docs ?? []).find((x) => x.doc_type === d)
-            return (
-              <form
-                key={d}
-                action={toggleDocumentAction}
-                className="flex items-center justify-between gap-3 rounded border border-line px-3 py-2"
-              >
-                <input type="hidden" name="id" value={r.id} />
-                <input type="hidden" name="doc_type" value={d} />
-                <span className="flex flex-wrap items-center gap-2 text-sm">
-                  {d}
-                  {rec?.declared && (
-                    <span className="rounded bg-gold-soft px-1.5 py-0.5 text-[11px] text-gold">
-                      صرّح بها
-                    </span>
-                  )}
-                </span>
-                <span className="flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    name="available"
-                    defaultChecked={rec?.available ?? false}
-                    className="size-4 accent-[#1d3a5f]"
-                  />
-                  <button className="rounded border border-line px-2 py-1 text-xs hover:border-brand hover:text-brand">
-                    حفظ
-                  </button>
-                </span>
-              </form>
-            )
-          })}
+        {docMissing.length > 0 && (
+          <p className="mt-3 rounded border border-gold/40 bg-gold-soft px-3 py-2 text-xs leading-6 text-gold">
+            ينقص من الضروري: {docMissing.map((d) => d.nameAr).join('، ')}
+          </p>
+        )}
+
+        <div className="mt-4 flex flex-col gap-4">
+          {docSections.map((section) => (
+            <div key={section.group}>
+              <div className="mb-2 text-xs font-medium text-faint">
+                {DOC_GROUP_LABELS[section.group]}
+              </div>
+              <div className="grid gap-2 sm:grid-cols-2">
+                {section.docs.map((d) => {
+                  const rec = (docs ?? []).find(
+                    (x) => x.doc_code === d.code || x.doc_type === d.nameAr
+                  )
+                  return (
+                    <form
+                      key={d.code}
+                      action={toggleDocumentAction}
+                      className="flex items-center justify-between gap-3 rounded border border-line px-3 py-2"
+                    >
+                      <input type="hidden" name="id" value={r.id} />
+                      <input type="hidden" name="doc_type" value={d.nameAr} />
+                      <input type="hidden" name="doc_code" value={d.code} />
+                      <span className="flex flex-wrap items-center gap-2 text-sm">
+                        {d.nameAr}
+                        {d.required && (
+                          <span className="rounded bg-surface-2 px-1.5 py-0.5 text-[11px] text-muted">
+                            ضرورية
+                          </span>
+                        )}
+                        {rec?.declared && (
+                          <span className="rounded bg-gold-soft px-1.5 py-0.5 text-[11px] text-gold">
+                            صرّح بها
+                          </span>
+                        )}
+                      </span>
+                      <span className="flex items-center gap-2">
+                        <input
+                          type="checkbox"
+                          name="available"
+                          defaultChecked={rec?.available ?? false}
+                          className="size-4 accent-[#1d3a5f]"
+                        />
+                        <button className="rounded border border-line px-2 py-1 text-xs hover:border-brand hover:text-brand">
+                          حفظ
+                        </button>
+                      </span>
+                    </form>
+                  )
+                })}
+              </div>
+            </div>
+          ))}
         </div>
+
+        {/* أوراق صُرّح بها ثمّ تبدّل الملفّ فما عادتش تخصّه — نعرضها
+            حتى لا تختفي تثبّتات الفريق من الشاشة بلا خبر */}
+        {docExtra.length > 0 && (
+          <div className="mt-4">
+            <div className="mb-2 text-xs font-medium text-faint">خارج قائمة هذا الملفّ</div>
+            <ul className="flex flex-wrap gap-2 text-xs text-muted">
+              {docExtra.map((x) => (
+                <li key={x.id} className="rounded border border-line px-2 py-1">
+                  {x.doc_type}
+                  {x.available ? ' · متوفّرة' : ''}
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
 
         <RequestFiles
           requestId={r.id}
-          docTypes={DOC_TYPES}
+          docTypes={applicableDocs.map((d) => d.nameAr)}
           files={(requestFiles ?? []) as RequestFile[]}
         />
       </div>

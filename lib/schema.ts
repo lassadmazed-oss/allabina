@@ -1,5 +1,4 @@
 import { z } from 'zod'
-import { CLIENT_DOC_CODES } from '@/lib/documents'
 import { HOUSING_CONDITIONS, INCOME_STABILITY } from '@/lib/support-schema'
 
 export const REQUEST_TYPES = [
@@ -29,6 +28,9 @@ export const EMPLOYMENT_TYPES = [
 ] as const
 
 export const HORIZONS = ['now', '6m', '12m', '24m'] as const
+
+/** شكل رمز الوثيقة — الانتماء للدليل يُتحقَّق منه أمام القاعدة */
+export const DOC_CODE = /^[a-z][a-z0-9_]{1,39}$/
 
 /**
  * أكبر عائق كما يراه صاحب المطلب.
@@ -189,8 +191,21 @@ export const requestSchema = z.object({
   problemType: nullableEnum(PROBLEM_KINDS),
   financingState: nullableEnum(FINANCING_STATES),
 
-  /** الوثائق التي يقول صاحب المطلب إنّها عنده — تصريح لا تثبّت */
-  documents: multiEnum(CLIENT_DOC_CODES as unknown as readonly [string, ...string[]]),
+  /**
+   * الوثائق التي يقول صاحب المطلب إنّها عنده — تصريح لا تثبّت.
+   *
+   * لا قائمة مغلقة هنا: الدليل سطور في request_doc_catalog يزيدها
+   * الفريق، وقائمة ثابتة في المخطّط كانت ستُسقط بصمت كلّ رمز جديد.
+   * هنا نتحقّق من الشكل فقط، والانتماء يُتحقَّق منه أمام القاعدة في
+   * lib/actions/client-answers.ts.
+   */
+  documents: z
+    .union([z.string(), z.array(z.string())])
+    .optional()
+    .transform((v) => {
+      const list = v === undefined ? [] : Array.isArray(v) ? v : [v]
+      return [...new Set(list.filter((x) => DOC_CODE.test(x)))].slice(0, 60)
+    }),
 
   /**
    * «فلوسي حاضرة»: مسار بلا بنك. من صرّح بها لا يُسأل عن القسط ولا عن

@@ -1,5 +1,6 @@
 'use client'
 
+import VoiceRecorder from '@/components/VoiceRecorder'
 import { useActionState, useEffect, useMemo, useState } from 'react'
 import { submitRequest, type SubmitState } from '@/lib/actions/request'
 import { updateOwnRequest, type EditState } from '@/lib/actions/request-edit'
@@ -16,7 +17,12 @@ import {
   FINANCING_STATES,
 } from '@/lib/schema'
 import { HOUSING_CONDITIONS, INCOME_STABILITY } from '@/lib/support-schema'
-import { CLIENT_DOC_CODES } from '@/lib/documents'
+import {
+  applicableDocuments,
+  groupDocuments,
+  requiredProgress,
+  type CatalogDoc,
+} from '@/lib/request-documents'
 import { computeCapacity, formatTND, type FinanceSettings } from '@/lib/finance'
 import { buildCostRange, tierByKey, type TierPrice } from '@/lib/pricing'
 import { fmt, path, type Dictionary, type Locale } from '@/lib/i18n'
@@ -133,6 +139,8 @@ export default function RequestForm({
   initialType = '',
   mode = 'create',
   initialValues,
+  docCatalog,
+  voice,
 }: {
   locale: Locale
   t: Dictionary['form']
@@ -151,6 +159,10 @@ export default function RequestForm({
   mode?: 'create' | 'edit'
   /** القيم المسجّلة — مطلوبة في وضع التعديل */
   initialValues?: Record<string, string | boolean>
+  /** دليل الوثائق من القاعدة — الترشيح حسب الملفّ يقع هنا */
+  docCatalog: CatalogDoc[]
+  /** نصوص زرّ التسجيل — تُمرَّر صراحةً لا عبر القاموس كاملاً */
+  voice: Dictionary['voice']
 }) {
   const isEdit = mode === 'edit'
   const [state, formAction, pending] = useActionState<SubmitState | EditState, FormData>(
@@ -191,7 +203,19 @@ export default function RequestForm({
     } catch {}
   }, [values, isEdit])
 
-  const set = (k: string, v: string | boolean) => setValues((s) => ({ ...s, [k]: v }))
+  /**
+   * الحقول التي مسّها الحريف بعد آخر إرسال.
+   *
+   * `useActionState` يحتفظ بقائمة الأخطاء حتّى الإرسال التالي، فتبقى
+   * «رقم الهاتف» معروضةً خطأً بعد أن يكتبه. الشكوى تصير كاذبة، ومن
+   * يقرأ شكوى كاذبة مرّة يكفّ عن قراءة اللافتة أصلاً.
+   */
+  const [fixedFields, setFixedFields] = useState<string[]>([])
+
+  const set = (k: string, v: string | boolean) => {
+    setValues((s) => ({ ...s, [k]: v }))
+    setFixedFields((f) => (f.includes(k) ? f : [...f, k]))
+  }
   const num = (k: string) => Number(values[k] || 0)
   const perM2 = perM2Label(locale)
   const m2 = areaLabel(locale)
@@ -203,6 +227,42 @@ export default function RequestForm({
   const docs = String(values.documents ?? '')
     .split(',')
     .filter(Boolean)
+
+  /**
+   * الأوراق التي تخصّ هذا الملفّ بالذات، تُعاد كلّما تبدّل جواب يؤثّر
+   * فيها: نوع المطلب، نوع الشغل، فلوس حاضرة، كاري، أقساط، فوبرولوس،
+   * إعاقة، وضع السكن، استقرار الدخل.
+   */
+  const docSections = useMemo(() => {
+    const applicable = applicableDocuments(docCatalog, {
+      requestType: String(values.requestType ?? ''),
+      employment: String(values.employment ?? ''),
+      cashReady: Boolean(values.cashReady),
+      isRenting: Boolean(values.isRenting),
+      existingLoans: Number(values.existingLoans || 0),
+      foprolosInterest: Boolean(values.foprolosInterest),
+      hasDisability: Boolean(values.hasDisability),
+      housingCondition: String(values.housingCondition ?? ''),
+      incomeStability: String(values.incomeStability ?? ''),
+    })
+    return groupDocuments(applicable)
+  }, [
+    docCatalog,
+    values.requestType,
+    values.employment,
+    values.cashReady,
+    values.isRenting,
+    values.existingLoans,
+    values.foprolosInterest,
+    values.hasDisability,
+    values.housingCondition,
+    values.incomeStability,
+  ])
+
+  const docProgress = requiredProgress(
+    docSections.flatMap((s) => s.docs),
+    docs
+  )
 
   const toggleDoc = (code: string) =>
     setValues((v) => {
@@ -276,18 +336,47 @@ export default function RequestForm({
     if (typeof window !== 'undefined') window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
+  /** خطأ ما زال قائماً: من القاعدة، ولم يمسّه الحريف بعد */
+  const openFields = (state.fields ?? []).filter((f) => !fixedFields.includes(f))
+
   const err = (k: string) =>
-    state.fields?.includes(k)
+    openFields.includes(k)
       ? t.errors[k === 'consent' ? 'consentRequired' : k] ?? t.errors.fallback
       : undefined
 
   const fieldNames = fieldLabels(t)
 
-  /** أسماء الحقول الخاطئة كما يقرأها الحريف */
-  const badFields = (state.fields ?? []).map((f) => fieldNames[f] ?? f)
+  /**
+   * اللافتة تخصّ الخطوة المعروضة وحدها.
+   *
+   * كانت فوق الخطوات كلّها: من يُرسل ناقصاً ثمّ يرجع إلى الخطوة الأولى
+   * يجد شكوى عن «الاسم واللقب» و«رقم الهاتف» — حقول في الخطوة السادسة
+   * لم يصل إليها. الشكوى في غير مكانها تُربك ولا تُرشد.
+   */
+  const badFields = openFields
+    .filter((f) => (FIELD_STEP[f] ?? 6) === step)
+    .map((f) => fieldNames[f] ?? f)
+
+  /** خطأ خارج هذه الخطوة: نقول أين هو بدل أن نصمت */
+  const elsewhereStep = openFields
+    .map((f) => FIELD_STEP[f] ?? 6)
+    .filter((n) => n !== step)
+    .sort((a, b) => a - b)[0]
+
+  /**
+   * خطأ حقول صُلّحت كلّها لا يُعرض: `useActionState` يحتفظ بالردّ القديم
+   * حتّى الإرسال التالي، فتبقى اللافتة قائمة بعد أن يزول سببها.
+   * أمّا أخطاء الخادم والحدّ الزمني فتُعرض دائماً — ليست عن حقل.
+   */
+  const isFieldError = state.error === 'banner'
+  const showBanner = Boolean(
+    state.error && (!isFieldError || badFields.length > 0 || elsewhereStep !== undefined)
+  )
 
   // عند فشل التحقّق: نرجّعو الحريف للخطوة اللي فيها المشكل ونحطّو المؤشّر في الحقل
   useEffect(() => {
+    // ردّ جديد من الخادم: ما اعتُبر مصلَّحاً سقط، والقائمة الجديدة هي الحقيقة
+    setFixedFields([])
     if (!state.fields?.length) return
     const first = [...state.fields].sort(
       (a, b) => (FIELD_STEP[a] ?? 6) - (FIELD_STEP[b] ?? 6)
@@ -345,12 +434,14 @@ export default function RequestForm({
         </div>
       </div>
 
-      {state.error && (
+      {showBanner && (
         <div
           role="alert"
           className="mb-6 rounded border border-[#e0b4ac] bg-[#fbeeeb] p-4 text-sm leading-7 text-[#8c2f22]"
         >
-          {t.errors[state.error] ?? t.genericError}
+          {isFieldError && badFields.length === 0 && elsewhereStep !== undefined
+            ? fmt(t.errors.elsewhere, { step: steps[order.indexOf(elsewhereStep)] ?? '' })
+            : t.errors[state.error!] ?? t.genericError}
           {badFields.length > 0 && (
             <ul className="mt-2 flex flex-wrap gap-x-2 gap-y-1">
               {badFields.map((f) => (
@@ -793,6 +884,7 @@ export default function RequestForm({
             className={inputCls}
             placeholder={t.problemPlaceholder}
           />
+          <VoiceRecorder name="voiceProblemNote" t={voice} />
         </div>
 
         {/* مواصفات الدار — كانت تُعمَّر في اللوحة بعد مكالمة. صاحبها
@@ -1328,35 +1420,86 @@ export default function RequestForm({
           </div>
         </div>
 
-        {/* الوثائق — تصريح لا تثبّت. الفريق كان يكتشف النقص في المكالمة
-            الأولى، وصاحب الملفّ يعرفه من الآن. */}
+        {/* الأوراق — تصريح لا تثبّت، ومفصّلة حسب الملفّ: من يبني فوق
+            أرضه ومن يشري شقّة ما يحتاجوش نفس الورق. الترشيح في
+            lib/request-documents.ts والقائمة في القاعدة. */}
         <div className="mt-8 rounded border border-line bg-surface p-4 sm:p-5">
           <span className="mb-1 block text-sm font-medium">{t.docsTitle}</span>
           <p className="mb-4 text-sm leading-7 text-muted">{t.docsLede}</p>
-          <div className="grid gap-2 sm:grid-cols-2">
-            {CLIENT_DOC_CODES.map((code) => {
-              const on = docs.includes(code)
-              return (
-                <label
-                  key={code}
-                  className={`flex min-h-12 cursor-pointer items-center gap-2.5 rounded border px-3 text-sm transition ${
-                    on ? 'border-brand bg-brand-soft' : 'border-line hover:border-line-strong'
-                  }`}
-                >
-                  <input
-                    type="checkbox"
-                    name="documents"
-                    value={code}
-                    checked={on}
-                    onChange={() => toggleDoc(code)}
-                    className="size-4 accent-[#1d3a5f]"
-                  />
-                  {t.docLabels[code]}
-                </label>
-              )
-            })}
+
+          {docProgress.total > 0 && (
+            <p
+              className={`mb-4 rounded border px-3 py-2 text-sm ${
+                docProgress.done === docProgress.total
+                  ? 'border-brand/40 bg-brand-soft text-brand'
+                  : 'border-line bg-ground text-muted'
+              }`}
+            >
+              {docProgress.done === docProgress.total
+                ? t.docsAllDone
+                : fmt(t.docsProgress, { done: docProgress.done, total: docProgress.total })}
+            </p>
+          )}
+
+          <div className="flex flex-col gap-5">
+            {docSections.map((section) => (
+              <div key={section.group}>
+                <div className="mb-2 text-xs font-medium tracking-wide text-faint">
+                  {t.docsGroups[section.group]}
+                </div>
+                <div className="flex flex-col gap-2">
+                  {section.docs.map((d) => {
+                    const on = docs.includes(d.code)
+                    return (
+                      <label
+                        key={d.code}
+                        className={`flex cursor-pointer items-start gap-2.5 rounded border p-3 transition ${
+                          on ? 'border-brand bg-brand-soft' : 'border-line hover:border-line-strong'
+                        }`}
+                      >
+                        <input
+                          type="checkbox"
+                          name="documents"
+                          value={d.code}
+                          checked={on}
+                          onChange={() => toggleDoc(d.code)}
+                          className="mt-0.5 size-4 shrink-0 accent-[#1d3a5f]"
+                        />
+                        <span className="min-w-0">
+                          <span className="flex flex-wrap items-center gap-2">
+                            <span className="text-sm font-medium">
+                              {(locale === 'fr' && d.nameFr) || d.nameAr}
+                            </span>
+                            <span
+                              className={`rounded px-1.5 py-0.5 text-[11px] ${
+                                d.required
+                                  ? 'bg-gold-soft text-gold'
+                                  : 'bg-surface-2 text-muted'
+                              }`}
+                            >
+                              {d.required ? t.docsRequired : t.docsOptional}
+                            </span>
+                          </span>
+                          {d.whyAr && (
+                            <span className="mt-1 block text-xs leading-6 text-muted">
+                              {d.whyAr}
+                            </span>
+                          )}
+                          {d.issuerAr && (
+                            <span className="mt-0.5 block text-xs leading-6 text-faint">
+                              {t.docsWhere} {d.issuerAr}
+                            </span>
+                          )}
+                        </span>
+                      </label>
+                    )
+                  })}
+                </div>
+              </div>
+            ))}
           </div>
-          <p className="mt-3 text-xs leading-6 text-faint">{t.docsNote}</p>
+
+          <p className="mt-4 text-xs leading-6 text-faint">{t.docsNote}</p>
         </div>
 
         {/* الموافقة تُعطى مرّة عند الإرسال الأوّل. طلبها من جديد على كلّ

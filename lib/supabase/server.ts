@@ -1,8 +1,10 @@
 import 'server-only'
+import type { CatalogDoc } from '@/lib/request-documents'
 import { createClient } from '@supabase/supabase-js'
 import type { FinanceSettings } from '@/lib/finance'
 import { PROVISIONAL_SETTINGS } from '@/lib/finance'
 import { DEFAULT_TIERS, REFERENCE_PRICE_HT, SENSITIVITY_HT, type TierPrice } from '@/lib/pricing'
+import type { ConstructionSystem } from '@/lib/construction'
 
 const url = process.env.SUPABASE_URL ?? process.env.NEXT_PUBLIC_SUPABASE_URL
 const secret = process.env.SUPABASE_SECRET_KEY
@@ -41,8 +43,10 @@ export async function getDelegations(govCode: string): Promise<Delegation[]> {
  * السياق المالي.
  * المنصة لا تثبّت أيّ شرط بنكي: هامش الربح/نسبة التمويل، سقف الاستدانة، المدّة،
  * المساهمة الذاتية، ومصاريف التسجيل والتأمين والضمانات تُحدَّد وفق المعمول به لدى
- * بنك الزيتونة والمؤسّسات البنكية التونسية والتشريع الجاري به العمل بتاريخ إسناد
- * التمويل. ما نخزّنه هنا شيئان فقط:
+ * البنوك والمؤسّسات البنكية التونسية والتشريع الجاري به العمل بتاريخ إسناد
+ * التمويل — **بلا تسمية بنك بعينه**: هذا التنبيه يظهر تحت كلّ نتيجة محاكاة،
+ * واسم بنك في تنبيه قانوني يُقرأ توصيةً أو شراكةً، وكلاهما غير صحيح.
+ * ما نخزّنه هنا شيئان فقط:
  *   1. النصّ الذي يُعرض تحت كلّ نتيجة (bankTermsNote)
  *   2. فرضيات داخلية موحّدة لترتيب المطالب فيما بينها (assumptions) — لا تُقدَّم
  *      للحريف كشروط تمويل، وهي نقطة انطلاق قابلة للتعديل في المحاكي.
@@ -55,8 +59,9 @@ export type FinanceContext = {
 
 const FALLBACK_TERMS_NOTE =
   'يتم تحديد هامش الربح/نسبة التمويل المرجعية، سقف الاستدانة، مدة التمويل، المساهمة الذاتية، ' +
-  'مصاريف التسجيل والتأمين والضمانات والمصاريف البنكية وفق الشروط المعمول بها لدى بنك الزيتونة ' +
-  'والمؤسسات البنكية التونسية، ووفق التشريع والترتيبات الجاري بها العمل بتاريخ إسناد التمويل.'
+  'مصاريف التسجيل والتأمين والضمانات والمصاريف البنكية وفق الشروط المعمول بها لدى البنوك ' +
+  'التونسية والمؤسسات البنكية التونسية، ووفق التشريع والترتيبات الجاري بها العمل بتاريخ ' +
+  'إسناد التمويل.'
 
 export async function getFinanceContext(): Promise<FinanceContext> {
   const { data } = await db.from('app_settings').select('key, value')
@@ -228,4 +233,55 @@ export async function getBuildTiers(
     },
     isHt: map.get('build.prices_are_ht') !== false,
   }
+}
+
+/**
+ * أنظمة البناء المتاحة للاختيار — كراس الشروط، القسم 12.
+ *
+ * البوردرو القائم كلّه موسوم `TRAD`: النظام التقليدي كان الافتراض الضمنيّ
+ * للمنصة، فصار خياراً صريحاً بين خيارين بدل أن يبقى مجهولاً.
+ */
+export async function getConstructionSystems(): Promise<ConstructionSystem[]> {
+  const { data } = await db
+    .from('construction_systems')
+    .select(
+      'code, name_ar, name_fr, citizen_summary_ar, citizen_summary_fr, principle_ar, principle_fr, sort_order, is_active, constraints'
+    )
+    .eq('is_active', true)
+    .order('sort_order')
+  return (data ?? []) as ConstructionSystem[]
+}
+
+/**
+ * دليل وثائق المطلب.
+ *
+ * في القاعدة لا في الكود: الأوراق تتبدّل بتبدّل المناشير، والفريق
+ * يعرف الواقع الإداري أكثر من أيّ قائمة مكتوبة في ملفّ TypeScript.
+ * الترشيح حسب الملفّ في lib/request-documents.ts.
+ */
+export async function getDocCatalog(): Promise<CatalogDoc[]> {
+  const { data, error } = await db
+    .from('request_doc_catalog')
+    .select('code, name_ar, name_fr, why_ar, issuer_ar, doc_group, applies_to, only_if, is_required, sort_order')
+    .eq('is_active', true)
+    .order('doc_group')
+    .order('sort_order')
+
+  if (error) {
+    console.error('getDocCatalog', error)
+    return []
+  }
+
+  return (data ?? []).map((d) => ({
+    code: String(d.code),
+    nameAr: String(d.name_ar),
+    nameFr: (d.name_fr as string | null) ?? null,
+    whyAr: (d.why_ar as string | null) ?? null,
+    issuerAr: (d.issuer_ar as string | null) ?? null,
+    group: d.doc_group as CatalogDoc['group'],
+    appliesTo: (d.applies_to as string[] | null) ?? null,
+    onlyIf: (d.only_if as string[] | null) ?? [],
+    required: Boolean(d.is_required),
+    sortOrder: Number(d.sort_order ?? 0),
+  }))
 }

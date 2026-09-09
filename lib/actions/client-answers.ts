@@ -1,6 +1,5 @@
 import 'server-only'
 import { db } from '@/lib/supabase/server'
-import { docLabelOf } from '@/lib/documents'
 import type { RequestData } from '@/lib/schema'
 
 /**
@@ -26,9 +25,27 @@ export async function writeClientAnswers(requestId: string, d: RequestData): Pro
     d.garage ||
     d.terrasse ||
     d.jardin ||
-    d.desiredAreaM2 !== null
+    d.desiredAreaM2 !== null ||
+    d.constructionSystem !== null
 
   if (hasSpecs) {
+    // رمز نظام مجهول يكسر المفتاح الخارجي، فيسقط **سطر المواصفات كلّه**
+    // لا الرمز وحده. القاعدة أعلاه: لا ترمي أبداً — فنُسقط الرمز ونحتفظ
+    // بالمساحة والطوابق والغرف.
+    let systemCode = d.constructionSystem
+    if (systemCode) {
+      const { data: sys } = await db
+        .from('construction_systems')
+        .select('code')
+        .eq('code', systemCode)
+        .eq('is_active', true)
+        .maybeSingle()
+      if (!sys) {
+        console.warn('طريقة بناء مجهولة، أُسقطت:', systemCode)
+        systemCode = null
+      }
+    }
+
     const { error } = await db.from('project_configs').upsert(
       {
         request_id: requestId,
@@ -43,6 +60,7 @@ export async function writeClientAnswers(requestId: string, d: RequestData): Pro
         terrasse: d.terrasse,
         jardin: d.jardin,
         standing: d.standing,
+        system_code: systemCode,
         updated_at: new Date().toISOString(),
       },
       { onConflict: 'request_id' }
@@ -83,42 +101,57 @@ export async function writeClientAnswers(requestId: string, d: RequestData): Pro
 /**
  * ما يقول صاحب المطلب إنّه عنده.
  *
- * نكتب السطور المؤشَّرة ونصفّر البقية: من رفع التأشير في تعديل لاحق
- * يعني «ما عادش عندي» أو «غلطت»، وترك القديم يعطي الفريق قائمة كاذبة.
+ * الرموز تجي من المتصفّح، فلا نثق بها: نقابلها بدليل القاعدة ونرمي ما
+ * ليس فيه. المخطّط تحقّق من الشكل، وهنا يُتحقَّق من الانتماء.
+ *
+ * نكتب المؤشَّر ونصفّر البقية: من رفع التأشير في تعديل لاحق يعني «ما
+ * عادش عندي» أو «غلطت»، وترك القديم يعطي الفريق قائمة كاذبة.
  * `available` لا تُمسّ في الحالتين — هي تثبّت الفريق لا تصريح الحريف.
  */
 export async function writeDeclaredDocuments(
   requestId: string,
   codes: readonly string[]
 ): Promise<void> {
-  const labels = codes.map(docLabelOf).filter((l): l is string => Boolean(l))
   const now = new Date().toISOString()
 
-  if (labels.length) {
+  const { data: catalog, error: catErr } = await db
+    .from('request_doc_catalog')
+    .select('code, name_ar')
+    .eq('is_active', true)
+  if (catErr) {
+    console.error('request_doc_catalog read', catErr)
+    return
+  }
+
+  const names = new Map((catalog ?? []).map((c) => [String(c.code), String(c.name_ar)]))
+  const valid = [...new Set(codes)].filter((c) => names.has(c))
+
+  if (valid.length) {
     const { error } = await db.from('request_documents').upsert(
-      labels.map((doc_type) => ({
+      valid.map((code) => ({
         request_id: requestId,
-        doc_type,
+        doc_code: code,
+        // الاسم يبقى للتوافق مع السطور القديمة وشاشات تقرأ بالاسم
+        doc_type: names.get(code)!,
         declared: true,
         declared_at: now,
         updated_at: now,
       })),
-      { onConflict: 'request_id,doc_type' }
+      { onConflict: 'request_id,doc_code' }
     )
     if (error) console.error('request_documents declare', error)
   }
 
-  // الرفع بالمعرّفات لا بمرشّح `not in`: أسماء الوثائق عربية وفيها
-  // فواصل وشرطات مائلة، وتركيبها داخل قائمة PostgREST يفتح باب اقتباس
-  // يصمت حين يخطئ بدل أن يعلن. القراءة ثمّ الكتابة أوضح وأأمن.
+  // الرفع بالمعرّفات: نقرا ثمّ نكتب، بلا تركيب قوائم داخل مرشّح نصّي
   const { data: stale } = await db
     .from('request_documents')
-    .select('id, doc_type')
+    .select('id, doc_code')
     .eq('request_id', requestId)
     .eq('declared', true)
 
+  const keep = new Set(valid)
   const toClear = (stale ?? [])
-    .filter((row) => !labels.includes(String(row.doc_type)))
+    .filter((row) => !row.doc_code || !keep.has(String(row.doc_code)))
     .map((row) => row.id as number)
 
   if (toClear.length) {
