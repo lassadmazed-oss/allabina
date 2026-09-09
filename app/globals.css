@@ -5,23 +5,24 @@
      هوية اللَّبنة: كحلي عميق للثقة، وذهبي للّبنة نفسها.
      الكحلي للنصّ والأفعال، والذهبي للتمييز لا للتزيين.
      --------------------------------------------------------------- */
-  --color-ink: #12202f;
-  --color-ink-soft: #2c3d50;
-  --color-muted: #55677d;
-  --color-faint: #7d8da0;
-  --color-ground: #f3f5f8;
+  /* هوية 2026: كحلي #0E3A5B · ذهبي #D4A15E · كريمي #F4EFE6 · خطّ Cairo */
+  --color-ink: #14202b;
+  --color-ink-soft: #23364a;
+  --color-muted: #5b6b7a;
+  --color-faint: #8a97a5;
+  --color-ground: #f4efe6;
   --color-surface: #ffffff;
-  --color-surface-2: #e8ecf2;
-  --color-line: #dbe1ea;
-  --color-line-strong: #bcc7d6;
-  --color-brand: #1d3a5f;
-  --color-brand-deep: #12243c;
-  --color-brand-soft: #e4eaf2;
-  --color-gold: #a8781f;
-  --color-gold-light: #c79a3d;
-  --color-gold-soft: #f7efdf;
-  --font-display: "Reem Kufi", "IBM Plex Sans Arabic", sans-serif;
-  --font-body: "IBM Plex Sans Arabic", "Segoe UI", system-ui, sans-serif;
+  --color-surface-2: #eee6d8;
+  --color-line: #e6dfd3;
+  --color-line-strong: #cfc4b2;
+  --color-brand: #0e3a5b;
+  --color-brand-deep: #0a2a44;
+  --color-brand-soft: #e6eef6;
+  --color-gold: #b27f2c;
+  --color-gold-light: #d4a15e;
+  --color-gold-soft: #f3e9d8;
+  --font-display: "Cairo", "Noto Sans Arabic", sans-serif;
+  --font-body: "Cairo", "Noto Sans Arabic", "Segoe UI", system-ui, sans-serif;
   --font-mono: "IBM Plex Mono", ui-monospace, monospace;
 }
 

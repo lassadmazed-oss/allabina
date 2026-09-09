@@ -1,10 +1,14 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
+import '@/app/landing.css'
+import '@/app/landing-pages.css'
 import { db } from '@/lib/supabase/server'
 import { fmt, getDictionary, isLocale, path, type Locale } from '@/lib/i18n'
 import { groupByStage, photoPublicUrl, type CasePhoto } from '@/lib/photos'
 import { coverFor } from '@/lib/case-cover'
-import DemoBadge from '@/components/DemoBadge'
+import { IcArrow, IcPin } from '@/components/landing/icons'
+
+/* eslint-disable @next/next/no-img-element -- صور من مخزن Supabase */
 
 export const dynamic = 'force-dynamic'
 
@@ -47,6 +51,10 @@ export async function generateMetadata({
   return { title: `${title} — ${t.nav.brand}` }
 }
 
+/**
+ * صفحة الحالة المنجزة: صورة كبرى بالعنوان فوقها، أرقام المشروع،
+ * ثمّ الحكاية في ثلاث بطاقات (مشكلة ← حلّ ← نتيجة)، ثمّ الألبوم بمراحله.
+ */
 export default async function CaseDetailPage({
   params,
 }: {
@@ -63,7 +71,6 @@ export default async function CaseDetailPage({
     .eq('id', id)
     .eq('published', true)
     .maybeSingle()
-
   if (!caseRaw) notFound()
   const c = caseRaw as CaseStudy
 
@@ -88,130 +95,95 @@ export default async function CaseDetailPage({
   const result = (isFr && c.result_fr) || c.result_ar
   const place = (deleg as { name_ar: string } | null)?.name_ar ?? null
 
-  /** بطاقات المعطيات — رقم كبير وتسمية صغيرة، لا جدول */
   const stats = [
     c.area_m2 ? { label: t.cases.areaLabel, value: Math.round(Number(c.area_m2)), unit: t.cases.areaUnit } : null,
-    c.duration_months
-      ? { label: t.cases.durationLabel, value: c.duration_months, unit: t.cases.months }
-      : null,
+    c.duration_months ? { label: t.cases.durationLabel, value: c.duration_months, unit: t.cases.months } : null,
     photos.length ? { label: t.cases.photosShort, value: photos.length, unit: '' } : null,
     c.completed_at ? { label: t.cases.completedLabel, value: c.completed_at.slice(0, 4), unit: '' } : null,
   ].filter(Boolean) as { label: string; value: number | string; unit: string }[]
 
   const story = [
-    { label: t.cases.problemLabel, body: problem, tone: 'gold' },
-    { label: t.cases.solutionLabel, body: solution, tone: 'brand' },
-    ...(result ? [{ label: t.cases.resultLabel, body: result, tone: 'brand-deep' }] : []),
+    { label: t.cases.problemLabel, body: problem, navy: false },
+    { label: t.cases.solutionLabel, body: solution, navy: true },
+    ...(result ? [{ label: t.cases.resultLabel, body: result, navy: true }] : []),
   ]
 
   return (
-    <div className="mx-auto max-w-4xl px-4 py-8 sm:px-5 sm:py-12">
-      <Link
-        href={path(locale, '/realisations')}
-        className="inline-flex min-h-11 items-center text-sm text-brand hover:underline"
-      >
-        {t.cases.backToCases}
-      </Link>
+    <div className="lp">
+      <div className="wrap" style={{ paddingTop: 12 }}>
+        <Link href={path(locale, '/realisations')} className="back">
+          {t.cases.backToCases}
+        </Link>
 
-      {/* ---------- الترويسة ---------- */}
-      <div className="mt-2 flex flex-wrap items-center gap-3">
-        <span className="rounded-full bg-brand-soft px-3 py-1 text-xs font-medium text-brand">
-          {t.cases.kinds[c.kind] ?? c.kind}
-        </span>
-        {place && <span className="text-sm text-muted">{place}</span>}
-        {c.is_demo && <DemoBadge label={t.demoBadge} />}
-      </div>
-      <h1 className="display mt-3 text-3xl font-semibold leading-snug">{title}</h1>
-
-      {/* ---------- الصورة الكبرى ---------- */}
-      {cover && (
-        <div className="mt-6 overflow-hidden rounded-xl border border-line bg-surface-2">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={cover.url} alt={title} className="aspect-[16/10] w-full object-cover" />
-        </div>
-      )}
-
-      {/* ---------- بطاقات المعطيات ---------- */}
-      {stats.length > 0 && (
-        <dl className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
-          {stats.map((s) => (
-            <div
-              key={s.label}
-              className="rounded-xl border border-line bg-surface p-4 text-center"
-            >
-              <dd className="num text-2xl font-semibold text-brand">
-                {s.value}
-                {s.unit && <span className="ms-1 text-xs font-normal text-muted">{s.unit}</span>}
-              </dd>
-              <dt className="mt-1 text-xs text-muted">{s.label}</dt>
-            </div>
-          ))}
-        </dl>
-      )}
-
-      {/* ---------- المسار: مشكلة ← حلّ ← نتيجة ---------- */}
-      <section className="mt-10">
-        <h2 className="display text-lg font-semibold">{t.cases.storyTitle}</h2>
-        <ol className="mt-4 flex flex-col gap-3">
-          {story.map((step, i) => (
-            <li
-              key={step.label}
-              className={`rounded-xl border p-5 ${
-                step.tone === 'gold'
-                  ? 'border-gold/40 bg-gold-soft'
-                  : 'border-brand/25 bg-brand-soft'
-              }`}
-            >
-              <div className="flex items-baseline gap-3">
-                <span
-                  className={`num text-xs font-medium ${
-                    step.tone === 'gold' ? 'text-gold' : 'text-brand'
-                  }`}
-                >
-                  {String(i + 1).padStart(2, '0')}
+        <div className="dhero">
+          {cover ? <img src={cover.url} alt={title} /> : null}
+          <div className="dhero__shade" aria-hidden="true" />
+          <div className="dhero__txt">
+            <div className="tags">
+              <span className="tag">{t.cases.kinds[c.kind] ?? c.kind}</span>
+              {place && (
+                <span className="tag">
+                  <IcPin style={{ width: 14, height: 14 }} />
+                  {place}
                 </span>
-                <span className="text-sm font-semibold">{step.label}</span>
-              </div>
-              <p className="mt-2 leading-8 text-ink-soft">{step.body}</p>
-            </li>
-          ))}
-        </ol>
-      </section>
-
-      {/* ---------- الألبوم ---------- */}
-      {groups.length > 0 && (
-        <section className="mt-10">
-          <div className="flex flex-wrap items-baseline justify-between gap-2">
-            <h2 className="display text-lg font-semibold">{t.cases.albumTitle}</h2>
-            <span className="num text-xs text-faint">
-              {fmt(t.cases.photoCount, { n: photos.length })}
-            </span>
+              )}
+              {c.is_demo && <span className="tag">{t.demoBadge}</span>}
+            </div>
+            <h1>{title}</h1>
           </div>
-          <p className="mt-1 text-sm text-muted">{t.cases.albumLede}</p>
+        </div>
 
-          <div className="mt-5 flex flex-col gap-6">
+        {stats.length > 0 && (
+          <div className="kpis">
+            {stats.map((s) => (
+              <div className="kpi" key={s.label}>
+                <b>
+                  {s.value}
+                  {s.unit && <span>{s.unit}</span>}
+                </b>
+                <small>{s.label}</small>
+              </div>
+            ))}
+          </div>
+        )}
+
+        <section style={{ marginTop: 32 }}>
+          <span className="eyebrow">{t.cases.storyTitle}</span>
+          <div className="story">
+            {story.map((step, i) => (
+              <div className={`story__item${step.navy ? ' is-navy' : ''}`} key={step.label}>
+                <h3>
+                  {String(i + 1).padStart(2, '0')} · {step.label}
+                </h3>
+                <p>{step.body}</p>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {groups.length > 0 && (
+          <section style={{ marginTop: 36 }}>
+            <span className="eyebrow">{t.cases.albumTitle}</span>
+            <p className="lead" style={{ marginTop: 4 }}>
+              {t.cases.albumLede} · {fmt(t.cases.photoCount, { n: photos.length })}
+            </p>
             {groups.map((g) => (
               <div key={g.stage}>
-                <div className="mb-2 flex items-center gap-2">
-                  <span className="size-2 rounded-full bg-gold" aria-hidden="true" />
-                  <span className="text-xs font-medium text-gold">{t.cases.stage[g.stage]}</span>
-                </div>
-                <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                <div className="stage-title">{t.cases.stage[g.stage]}</div>
+                <div className="album">
                   {g.photos.map((ph) => {
                     const caption = (isFr && ph.caption_fr) || ph.caption_ar
                     return (
-                      <figure key={ph.id} className="overflow-hidden rounded-xl border border-line">
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <figure key={ph.id}>
                         <img
                           src={photoPublicUrl(baseUrl, ph.storage_path)}
                           alt={caption ?? t.cases.stage[g.stage]}
                           loading="lazy"
-                          className="aspect-[4/3] w-full object-cover"
                         />
                         {(caption || ph.taken_at) && (
-                          <figcaption className="flex items-baseline justify-between gap-2 bg-surface px-3 py-2 text-xs text-muted">
+                          <figcaption>
                             <span>{caption}</span>
-                            {ph.taken_at && <span className="num text-faint">{ph.taken_at}</span>}
+                            {ph.taken_at && <time>{ph.taken_at.slice(0, 7)}</time>}
                           </figcaption>
                         )}
                       </figure>
@@ -220,24 +192,22 @@ export default async function CaseDetailPage({
                 </div>
               </div>
             ))}
+          </section>
+        )}
+
+        <p className="fine">{t.cases.consentNote}</p>
+
+        <div className="cta-band">
+          <div>
+            <h2>{t.cases.ctaTitle}</h2>
+            <p>{t.cases.ctaBody}</p>
           </div>
-        </section>
-      )}
-
-      <p className="mt-8 text-xs leading-6 text-faint">{t.cases.consentNote}</p>
-
-      <section className="mt-8 flex flex-wrap items-center justify-between gap-4 rounded-xl border border-line bg-surface p-5 sm:p-6">
-        <div>
-          <h2 className="font-semibold">{t.cases.ctaTitle}</h2>
-          <p className="mt-1 text-sm text-muted">{t.cases.ctaBody}</p>
+          <Link href={path(locale, '/demande')} className="btn btn--gold">
+            {t.nav.cta}
+            <IcArrow className="arr" />
+          </Link>
         </div>
-        <Link
-          href={path(locale, '/demande')}
-          className="inline-flex min-h-11 items-center rounded bg-brand px-6 text-sm font-medium text-white transition hover:bg-brand-deep"
-        >
-          {t.nav.cta}
-        </Link>
-      </section>
+      </div>
     </div>
   )
 }

@@ -70,7 +70,9 @@
 .lp .hero__media::after { content: ''; position: absolute; inset: 0; background: linear-gradient(to top, var(--lp-cream) 0%, rgba(244, 239, 230, 0) 42%); }
 .lp .hero__shade { display: none; }
 .lp .hero__in { position: relative; width: 100%; display: grid; grid-template-columns: 1fr; margin-top: -56px; padding: 0 0 28px; }
-.lp .hero h1 { font-size: clamp(2.5rem, 10vw, 4.8rem); font-weight: 900; color: var(--lp-navy); line-height: 1.12; margin-top: 4px; }
+/* العنوان في سطر واحد دائماً: الحجم يتبع عرض الشاشة ولا يُكسر */
+.lp .hero h1 { font-size: clamp(2.1rem, 9.2vw, 4rem); font-weight: 900; color: var(--lp-navy); line-height: 1.15; margin-top: 4px; white-space: nowrap; }
+@media (min-width: 900px) { .lp .hero h1 { font-size: clamp(2.6rem, 3.9vw, 4rem); } }
 .lp .hero__sub { font-size: clamp(1.2rem, 4.5vw, 1.85rem); font-weight: 700; color: var(--lp-navy); margin-top: 8px; }
 .lp .hero__p { font-size: 1.05rem; color: var(--lp-muted); max-width: 32rem; margin-top: 14px; }
 .lp .hero__cta { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 24px; }
