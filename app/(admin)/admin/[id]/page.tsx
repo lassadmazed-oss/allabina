@@ -201,6 +201,8 @@ const LEDGER_EVENT_LABELS: Record<string, string> = {
 
 /** نصوص الخريطة حسب المسار — نفس ما يقرأه الحريف، بالعربية */
 const F = getDictionary('ar').form
+/** تصريح طلب المساندة — نفس تسميات الاستمارة */
+const H = getDictionary('ar').soutien.askHelp
 
 export default async function RequestDetail({ params }: { params: Promise<{ id: string }> }) {
   const me = await requireStaff()
@@ -214,6 +216,7 @@ export default async function RequestDetail({ params }: { params: Promise<{ id: 
     { data: fin },
     { data: land },
     { data: home },
+    { data: intake },
     { data: score },
     { data: events },
     { data: interactions },
@@ -243,6 +246,7 @@ export default async function RequestDetail({ params }: { params: Promise<{ id: 
     db.from('financial_profiles').select('*').eq('request_id', id).maybeSingle(),
     db.from('request_land').select('*').eq('request_id', id).maybeSingle(),
     db.from('request_home').select('*').eq('request_id', id).maybeSingle(),
+    db.from('support_intake').select('*').eq('request_id', id).maybeSingle(),
     db
       .from('scores')
       .select('*')
@@ -636,6 +640,56 @@ export default async function RequestDetail({ params }: { params: Promise<{ id: 
             <Row k={F.buildingAge} v={home.building_age_years != null ? `${home.building_age_years} سنة` : '—'} />
             <Row k="الوضعية العقارية" v={LABELS.titleStatus[String(home.title_status)] ?? '—'} />
             <Row k={F.homePermit} v={home.has_permit ? 'نعم' : 'لا'} />
+          </Card>
+        )}
+
+        {/* تصريح طلب المساندة — مرتّب على معايير الدراسة الستّة */}
+        {intake && (
+          <Card title="تفاصيل طلب المساندة">
+            {(() => {
+              const i = intake as Record<string, unknown>
+              const arr = (k: string) => (Array.isArray(i[k]) ? (i[k] as string[]) : [])
+              const lab = (m: Record<string, string>, k: unknown) => (k ? (m[String(k)] ?? String(k)) : '—')
+              const join = (m: Record<string, string>, k: string) => arr(k).map((x) => m[x] ?? x).join(' · ') || '—'
+              const yn = (k: string) => (i[k] ? 'نعم' : 'لا')
+              const Sub = ({ t }: { t: string }) => <div className="mt-3 mb-1 text-xs font-semibold text-brand">{t}</div>
+              return (
+                <>
+                  <Row k={H.forWhom} v={lab(H.forWhomLabels, i.for_whom)} />
+                  {i.beneficiary_name ? <Row k={H.beneficiaryName} v={String(i.beneficiary_name)} /> : null}
+                  <Sub t="الحاجة والاستعجال" />
+                  <Row k={H.needKinds} v={join(H.needKindLabels, 'need_kinds')} />
+                  <Row k={H.triggers} v={join(H.triggerLabels, 'triggers')} />
+                  <Sub t="فجوة السكن" />
+                  <Row k={H.roomsCount} v={i.rooms_count != null ? String(i.rooms_count) : '—'} />
+                  <Row k={H.yearsThere} v={i.years_there != null ? String(i.years_there) : '—'} />
+                  <Row k={H.utilities} v={join(H.utilityLabels, 'utilities')} />
+                  <Row k={H.buildingState} v={lab(H.buildingStateLabels, i.building_state)} />
+                  <Sub t="الهشاشة" />
+                  <Row k={H.childrenCount} v={i.children_count != null ? String(i.children_count) : '—'} />
+                  <Row k={H.elderlyCount} v={i.elderly_count != null ? String(i.elderly_count) : '—'} />
+                  <Row k={H.headStatus} v={lab(H.headStatusLabels, i.head_status)} />
+                  {i.disability_note ? <Row k={H.disabilityNote} v={String(i.disability_note)} /> : null}
+                  <Row k={H.incomeRange} v={lab(H.incomeRangeLabels, i.income_range)} />
+                  {i.main_earner_job ? <Row k={H.mainEarnerJob} v={String(i.main_earner_job)} /> : null}
+                  <Row k={H.socialCoverage} v={join(H.socialCoverageLabels, 'social_coverage')} />
+                  <Row k={H.existingAid} v={lab(H.yesNoLabels, i.existing_aid)} />
+                  <Sub t="الجهد الذاتي" />
+                  <Row k={H.landStatus} v={lab(H.landStatusLabels, i.land_status)} />
+                  <Row k={H.hasMaterials} v={yn('has_materials')} />
+                  <Row k={H.savingsRange} v={lab(H.savingsLabels, i.savings_range)} />
+                  <Row k={H.familyHelp} v={yn('family_help')} />
+                  <Row k={H.canWork} v={yn('can_work')} />
+                  <Row k={H.stepsTaken} v={join(H.stepsLabels, 'steps_taken')} />
+                  <Sub t="التثبّت" />
+                  <Row k={H.canVisit} v={yn('can_visit')} />
+                  <Row k={H.bestTime} v={lab(H.bestTimeLabels, i.best_time)} />
+                  {i.reference_note ? <Row k={H.referenceNote} v={String(i.reference_note)} /> : null}
+                  {i.alt_phone ? <Row k={H.altPhone} v={String(i.alt_phone)} /> : null}
+                  {i.address_note ? <Row k={H.addressNote} v={String(i.address_note)} /> : null}
+                </>
+              )
+            })()}
           </Card>
         )}
 

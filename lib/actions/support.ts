@@ -195,11 +195,24 @@ export async function submitSupportRequest(
   if ((formData.get('website') as string)?.length) return { ok: false, error: 'server' }
 
   const raw = Object.fromEntries(formData.entries())
+  const multi = (k: string) => formData.getAll(k).map(String).filter(Boolean)
+  const flag = (k: string) => raw[k] === 'on'
   const parsed = supportRequestSchema.safeParse({
     ...raw,
-    hasDisability: raw.hasDisability === 'on',
-    ownsLand: raw.ownsLand === 'on',
-    consent: raw.consent === 'on',
+    hasDisability: flag('hasDisability'),
+    ownsLand: flag('ownsLand'),
+    consent: flag('consent'),
+    // تفاصيل الدراسة
+    needKinds: multi('needKinds'),
+    triggers: multi('triggers'),
+    housingProblems: multi('housingProblems'),
+    utilities: multi('utilities'),
+    socialCoverage: multi('socialCoverage'),
+    stepsTaken: multi('stepsTaken'),
+    hasMaterials: flag('hasMaterials'),
+    familyHelp: flag('familyHelp'),
+    canWork: flag('canWork'),
+    canVisit: flag('canVisit'),
   })
 
   if (!parsed.success) {
@@ -257,10 +270,46 @@ export async function submitSupportRequest(
     has_disability: d.hasDisability,
     housing_condition: d.housingCondition,
     income_stability: d.incomeStability,
+    housing_problems: d.housingProblems.length ? d.housingProblems : null,
+    is_renting: d.housingCondition === 'renting',
+    rent_tnd: d.housingCondition === 'renting' ? d.rentTnd : null,
     notes: d.needText,
   })
   // الملفّ محفوظ حتى لو سقط التقييم — لا نضيّع طلب إنسان على سطر ثانوي
   if (socialErr) console.error('insert social_assessment', socialErr)
+
+  // تصريح صاحب الطلب كما صرّح به — مرتّب على معايير الدراسة، بلا قرار فيه
+  const { error: intakeErr } = await db.from('support_intake').insert({
+    request_id: inserted.id,
+    for_whom: d.forWhom,
+    beneficiary_name: d.beneficiaryName || null,
+    need_kinds: d.needKinds.length ? d.needKinds : null,
+    triggers: d.triggers.length ? d.triggers : null,
+    rooms_count: d.roomsCount,
+    years_there: d.yearsThere,
+    utilities: d.utilities.length ? d.utilities : null,
+    building_state: d.buildingState,
+    children_count: d.childrenCount,
+    elderly_count: d.elderlyCount,
+    disability_note: d.disabilityNote || null,
+    head_status: d.headStatus,
+    income_range: d.incomeRange,
+    main_earner_job: d.mainEarnerJob || null,
+    social_coverage: d.socialCoverage.length ? d.socialCoverage : null,
+    existing_aid: d.existingAid,
+    land_status: d.landStatus,
+    has_materials: d.hasMaterials,
+    savings_range: d.savingsRange,
+    family_help: d.familyHelp,
+    can_work: d.canWork,
+    steps_taken: d.stepsTaken.length ? d.stepsTaken : null,
+    can_visit: d.canVisit,
+    reference_note: d.referenceNote || null,
+    best_time: d.bestTime,
+    alt_phone: d.altPhone || null,
+    address_note: d.addressNote || null,
+  })
+  if (intakeErr) console.error('insert support_intake', intakeErr)
 
   revalidatePath('/admin')
   // الرمز على الهاتف كما في بقيّة الاستمارات — بعد الردّ، ولا يمسّ الطلب إن فشل
