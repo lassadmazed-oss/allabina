@@ -20,7 +20,7 @@ import {
   touchesScore,
   type ConfigRow,
   type FinanceRow,
-  type LandRow,
+  type HomeRow, LandRow,
   type RequestRow,
   type SocialRow,
 } from '@/lib/owner-edit'
@@ -123,7 +123,7 @@ export async function loadOwnRequest(): Promise<OwnRequest | null> {
   const { data: r } = await db.from('housing_requests').select(REQUEST_COLUMNS).eq('id', id).maybeSingle()
   if (!r) return null
 
-  const [{ data: fin }, { data: land }, { data: cfg }, { data: social }, { data: docs }] =
+  const [{ data: fin }, { data: land }, { data: cfg }, { data: social }, { data: docs }, { data: home }] =
     await Promise.all([
     db
       .from('financial_profiles')
@@ -135,19 +135,19 @@ export async function loadOwnRequest(): Promise<OwnRequest | null> {
       .maybeSingle(),
     db
       .from('request_land')
-      .select('area_m2, title_status, has_water, has_power, has_road, has_permit')
+      .select('area_m2, title_status, has_water, has_power, has_road, has_permit, in_urban_plan, existing_building, has_plans')
       .eq('request_id', id)
       .maybeSingle(),
     db
       .from('project_configs')
-      .select('levels, bathrooms, living_rooms, kitchens, garage, terrasse, jardin')
+      .select('levels, bathrooms, living_rooms, kitchens, garage, terrasse, jardin, cloture, majel, piscine, annexe, solar, ascenseur')
       .eq('request_id', id)
       .maybeSingle(),
     db
       .from('social_assessments')
       .select(
         'household_size, dependents, has_disability, housing_condition, income_stability, ' +
-          'is_renting, rent_tnd'
+          'is_renting, rent_tnd, housing_problems'
       )
       .eq('request_id', id)
       .maybeSingle(),
@@ -156,6 +156,11 @@ export async function loadOwnRequest(): Promise<OwnRequest | null> {
       .select('doc_code')
       .eq('request_id', id)
       .eq('declared', true),
+    db
+      .from('request_home')
+      .select('ownership, building_age_years, title_status, has_permit')
+      .eq('request_id', id)
+      .maybeSingle(),
   ])
 
   const row = r as unknown as RequestRow & {
@@ -177,7 +182,8 @@ export async function loadOwnRequest(): Promise<OwnRequest | null> {
       (social as SocialRow | null) ?? null,
       ((docs ?? []) as { doc_code: string | null }[])
         .map((x) => x.doc_code)
-        .filter((c): c is string => Boolean(c))
+        .filter((c): c is string => Boolean(c)),
+      (home as HomeRow | null) ?? null
     ),
     ownerUpdatedAt: row.owner_updated_at,
   }
@@ -215,6 +221,7 @@ export async function updateOwnRequest(_prev: unknown, formData: FormData): Prom
     ...raw,
     flexibility: formData.getAll('flexibility'),
     documents: formData.getAll('documents'),
+    housingProblems: formData.getAll('housingProblems'),
     govCode: current.values.govCode,
     hasWater: raw.hasWater === 'on',
     hasPower: raw.hasPower === 'on',
@@ -264,6 +271,13 @@ export async function updateOwnRequest(_prev: unknown, formData: FormData): Prom
       cnss_affiliated: d.cnssAffiliated,
       cnss_number_years: d.cnssYears,
       problem_type: d.problemType,
+      apartment_state: d.apartmentState,
+      floor_pref: d.floorPref,
+      elevator_needed: d.elevatorNeeded,
+      parking_needed: d.parkingNeeded,
+      renovation_works: d.works.length ? d.works : null,
+      current_area_m2: d.currentAreaM2,
+      extension_area_m2: d.extensionAreaM2,
       financing_state: d.cashReady ? 'self_funded' : d.financingState ?? 'not_started',
       cash_ready: d.cashReady,
       owns_land: d.requestType === 'build_on_land',
@@ -277,23 +291,26 @@ export async function updateOwnRequest(_prev: unknown, formData: FormData): Prom
     return { ok: false, error: 'server' }
   }
 
-  const { error: finErr } = await db.from('financial_profiles').upsert(
-    {
-      request_id: current.id,
-      monthly_income_tnd: d.monthlyIncome,
-      spouse_income_tnd: d.spouseIncome,
-      other_income_tnd: d.otherIncome,
-      existing_loans_tnd: d.existingLoans,
-      down_payment_tnd: d.downPayment,
-      max_monthly_tnd: d.maxMonthly || null,
-      employment: d.employment,
-      seniority_months: seniorityMonths,
-      is_expat: d.isExpat,
-      expat_country: d.expatCountry || null,
-    },
-    { onConflict: 'request_id' }
-  )
-  if (finErr) console.error('owner edit: financial_profiles', finErr)
+  // بلا وظيفة لا سطر مالي — «مشكل آخر» قد يطوي الخطوة المالية
+  if (d.employment) {
+    const { error: finErr } = await db.from('financial_profiles').upsert(
+      {
+        request_id: current.id,
+        monthly_income_tnd: d.monthlyIncome,
+        spouse_income_tnd: d.spouseIncome,
+        other_income_tnd: d.otherIncome,
+        existing_loans_tnd: d.existingLoans,
+        down_payment_tnd: d.downPayment,
+        max_monthly_tnd: d.maxMonthly || null,
+        employment: d.employment,
+        seniority_months: seniorityMonths,
+        is_expat: d.isExpat,
+        expat_country: d.expatCountry || null,
+      },
+      { onConflict: 'request_id' }
+    )
+    if (finErr) console.error('owner edit: financial_profiles', finErr)
+  }
 
   // الأرض تُحذف إن بدّل المسار: بقاؤها يعطي الإدارة معطى لا يخصّ المطلب
   if (d.requestType === 'build_on_land' && d.landAreaM2) {
@@ -306,12 +323,31 @@ export async function updateOwnRequest(_prev: unknown, formData: FormData): Prom
         has_power: d.hasPower,
         has_road: d.hasRoad,
         has_permit: d.hasPermit,
+      in_urban_plan: d.inUrbanPlan,
+      existing_building: d.existingBuilding,
+      has_plans: d.hasPlans,
       },
       { onConflict: 'request_id' }
     )
     if (landErr) console.error('owner edit: request_land', landErr)
   } else if (d.requestType !== 'build_on_land') {
     await db.from('request_land').delete().eq('request_id', current.id)
+  }
+
+  if (d.requestType === 'renovation') {
+    const { error: homeErr } = await db.from('request_home').upsert(
+      {
+        request_id: current.id,
+        ownership: d.ownership,
+        building_age_years: d.buildingAge,
+        title_status: d.homeTitleStatus,
+        has_permit: d.homePermit,
+      },
+      { onConflict: 'request_id' }
+    )
+    if (homeErr) console.error('owner edit: request_home', homeErr)
+  } else {
+    await db.from('request_home').delete().eq('request_id', current.id)
   }
 
   // نفس ما يكتبه الإنشاء: المواصفات والوضع العائلي والوثائق المصرَّح بها
@@ -356,7 +392,8 @@ export async function updateOwnRequest(_prev: unknown, formData: FormData): Prom
       existingLoans: d.existingLoans,
       downPayment: d.downPayment,
       maxMonthly: d.maxMonthly,
-      employment: d.employment,
+      // الشغل صار اختيارياً في المخطّط؛ التنقيط ينتظر نصّاً
+      employment: d.employment ?? '',
       seniorityMonths,
       horizon: d.horizon,
       ownsLand: d.requestType === 'build_on_land' || Boolean(d.landAreaM2),

@@ -7,6 +7,7 @@ import { updateOwnRequest, type EditState } from '@/lib/actions/request-edit'
 import ZoneInput, { type Zone } from '@/components/ZoneInput'
 import {
   REQUEST_TYPES,
+  SELECTABLE_REQUEST_TYPES,
   EMPLOYMENT_TYPES,
   HORIZONS,
   TITLE_STATUSES,
@@ -16,7 +17,7 @@ import {
   PROBLEM_KINDS,
   FINANCING_STATES,
 } from '@/lib/schema'
-import { HOUSING_CONDITIONS, INCOME_STABILITY } from '@/lib/support-schema'
+import { HOUSING_CONDITIONS, HOUSING_PROBLEMS, INCOME_STABILITY } from '@/lib/support-schema'
 import {
   applicableDocuments,
   groupDocuments,
@@ -27,6 +28,17 @@ import { computeCapacity, formatTND, type FinanceSettings } from '@/lib/finance'
 import { buildCostRange, tierByKey, type TierPrice } from '@/lib/pricing'
 import { fmt, path, type Dictionary, type Locale } from '@/lib/i18n'
 import type { ConstructionSystem } from '@/lib/construction'
+import {
+  APARTMENT_STATES,
+  EXISTING_BUILDING,
+  FLOOR_PREFS,
+  OWNERSHIPS,
+  PLAN_STATES,
+  RENOVATION_WORKS,
+  URBAN_PLAN_STATES,
+  elevatorMakesSense,
+  requestFlow,
+} from '@/lib/request-flow'
 import { areaLabel, currencyLabel, formatRange, perM2Label } from '@/lib/format'
 
 type Gov = { code: string; name_ar: string; is_active: boolean }
@@ -38,6 +50,8 @@ const initial: SubmitState = { ok: false }
 const AREAS = [60, 80, 100, 120]
 /** مقاسات القطع الشائعة في صفاقس */
 const LAND_AREAS = [200, 300, 400, 500]
+/** الزيادات — كلّ واحدة عمود في project_configs ومتغيّر في صيغ البوردرو */
+const EXTRAS = ['garage', 'terrasse', 'jardin', 'cloture', 'majel', 'piscine', 'annexe', 'solar', 'ascenseur'] as const
 
 /** أيّ خطوة يقع فيها كلّ حقل — يستعملها الرجوع التلقائي عند الخطأ */
 const FIELD_STEP: Record<string, number> = {
@@ -52,6 +66,18 @@ const FIELD_STEP: Record<string, number> = {
   horizon: 2,
   standing: 2,
   constructionSystem: 2,
+  apartmentState: 2,
+  floorPref: 2,
+  works: 2,
+  currentAreaM2: 2,
+  extensionAreaM2: 2,
+  inUrbanPlan: 3,
+  existingBuilding: 3,
+  hasPlans: 3,
+  ownership: 3,
+  buildingAge: 3,
+  homeTitleStatus: 3,
+  homePermit: 3,
   landAreaM2: 3,
   titleStatus: 3,
   hasWater: 3,
@@ -65,6 +91,8 @@ const FIELD_STEP: Record<string, number> = {
   householdSize: 4,
   dependents: 4,
   housingCondition: 4,
+  housingProblems: 4,
+  rentTnd: 4,
   incomeStability: 4,
   problemType: 4,
   financingState: 4,
@@ -84,6 +112,29 @@ const FIELD_STEP: Record<string, number> = {
   consent: 6,
 }
 
+
+/**
+ * أيقونة لكلّ مسار.
+ *
+ * كانت البطاقات السبع متطابقة: نفس الطوبة الحمراء فوق كلّ واحدة، والفرق
+ * بينها سطر نصّ. فتُقرأ البطاقات واحدة واحدة بدل أن تُميَّز بنظرة —
+ * وهذه أوّل شاشة يراها المواطن.
+ */
+const TYPE_ICON: Record<string, string> = {
+  // أرض وعليها بناء
+  build_on_land: 'M3 17h18v2H3v-2Zm2-2V9l7-5 7 5v6H5Zm4-2h6v-4H9v4Z',
+  // قطعة أرض بعلامة بحث
+  land_and_house: 'M2 19h20v2H2v-2ZM4 17V8l6-4 6 4v9H4Zm14.5-9a3.5 3.5 0 1 1 0 7 3.5 3.5 0 0 1 0-7Z',
+  // عمارة
+  apartment: 'M4 21V3h10v6h6v12H4Zm3-3h3v-3H7v3Zm0-5h3v-3H7v3Zm0-5h3V5H7v3Zm5 10h3v-3h-3v3Zm0-5h3v-3h-3v3Zm0-5h3V5h-3v3Zm5 10h2v-3h-2v3Zm0-5h2v-3h-2v3Z',
+  economic: 'M4 21V9l8-6 8 6v12H4Zm6-2h4v-6h-4v6Z',
+  rent_to_own: 'M3 20V8l9-6 9 6v12h-7v-6h-4v6H3Z',
+  // مطرقة على بيت
+  renovation: 'M3 19h18v2H3v-2ZM5 17V9l7-5 7 5v8H5Zm5-3 2-2 2 2-2 2-2-2Z',
+  // علامة استفهام
+  other: 'M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20Zm0 15.5a1.25 1.25 0 1 1 0-2.5 1.25 1.25 0 0 1 0 2.5Zm1.7-5.4c-.6.4-.7.6-.7 1v.4h-2v-.5c0-1.2.5-1.9 1.4-2.5.7-.5.9-.8.9-1.3 0-.7-.5-1.2-1.3-1.2s-1.4.5-1.4 1.4H8.6c0-2 1.4-3.3 3.4-3.3s3.3 1.2 3.3 3c0 1.2-.5 1.9-1.6 2.5Z',
+}
+
 /** اسم كلّ حقل كما يراه الحريف — يُستعمل في لافتة الخطأ */
 function fieldLabels(t: Dictionary['form']): Record<string, string> {
   return {
@@ -95,6 +146,19 @@ function fieldLabels(t: Dictionary['form']): Record<string, string> {
     bedrooms: t.bedrooms,
     standing: t.standingTitle,
     constructionSystem: t.systemTitle,
+    apartmentState: t.apartmentStateTitle,
+    floorPref: t.floorPref,
+    works: t.worksTitle,
+    currentAreaM2: t.currentArea,
+    extensionAreaM2: t.extensionArea,
+    inUrbanPlan: t.inUrbanPlan,
+    existingBuilding: t.existingBuilding,
+    hasPlans: t.hasPlans,
+    ownership: t.ownership,
+    buildingAge: t.buildingAge,
+    homeTitleStatus: t.titleStatus,
+    homePermit: t.homePermit,
+    landLocation: t.landLocation,
     landAreaM2: t.landArea,
     titleStatus: t.titleStatus,
     monthlyIncome: t.income,
@@ -228,6 +292,29 @@ export default function RequestForm({
     .split(',')
     .filter(Boolean)
 
+  const housingProblems = String(values.housingProblems ?? '')
+    .split(',')
+    .filter(Boolean)
+
+  /** «بالكراء» جواب في الحيازة، لا سؤال ثانٍ يناقضه */
+  const isRenting = values.housingCondition === 'renting'
+
+  /**
+   * المشاكل المعروضة تتبع الحيازة: «الكراء ثقيل» سؤال بلا معنى لمن
+   * يسكن في ملكه. نخفيه بدل أن يقرأه ويتخطّاه.
+   */
+  const shownProblems = HOUSING_PROBLEMS.filter(
+    (k) => k !== 'expensive' || isRenting
+  )
+
+  /** تبديل قيمة في حقل متعدّد مخزَّن كنصّ بفواصل */
+  const toggleIn = (field: string, code: string) =>
+    setValues((v) => {
+      const cur = String(v[field] ?? '').split(',').filter(Boolean)
+      const next = cur.includes(code) ? cur.filter((x) => x !== code) : [...cur, code]
+      return { ...v, [field]: next.join(',') }
+    })
+
   /**
    * الأوراق التي تخصّ هذا الملفّ بالذات، تُعاد كلّما تبدّل جواب يؤثّر
    * فيها: نوع المطلب، نوع الشغل، فلوس حاضرة، كاري، أقساط، فوبرولوس،
@@ -238,12 +325,15 @@ export default function RequestForm({
       requestType: String(values.requestType ?? ''),
       employment: String(values.employment ?? ''),
       cashReady: Boolean(values.cashReady),
-      isRenting: Boolean(values.isRenting),
+      isRenting,
       existingLoans: Number(values.existingLoans || 0),
       foprolosInterest: Boolean(values.foprolosInterest),
       hasDisability: Boolean(values.hasDisability),
       housingCondition: String(values.housingCondition ?? ''),
+      housingProblems,
       incomeStability: String(values.incomeStability ?? ''),
+      ownership: String(values.ownership ?? ''),
+      works: String(values.works ?? '').split(',').filter(Boolean),
     })
     return groupDocuments(applicable)
   }, [
@@ -251,12 +341,15 @@ export default function RequestForm({
     values.requestType,
     values.employment,
     values.cashReady,
-    values.isRenting,
+    isRenting,
     values.existingLoans,
     values.foprolosInterest,
     values.hasDisability,
     values.housingCondition,
+    values.housingProblems,
     values.incomeStability,
+    values.ownership,
+    values.works,
   ])
 
   const docProgress = requiredProgress(
@@ -264,12 +357,7 @@ export default function RequestForm({
     docs
   )
 
-  const toggleDoc = (code: string) =>
-    setValues((v) => {
-      const cur = String(v.documents ?? '').split(',').filter(Boolean)
-      const next = cur.includes(code) ? cur.filter((x) => x !== code) : [...cur, code]
-      return { ...v, documents: next.join(',') }
-    })
+  const toggleDoc = (code: string) => toggleIn('documents', code)
 
   /**
    * التبديل يقرأ الحالة السابقة لا اللقطة المرسومة: نقرتان متتاليتان قبل
@@ -282,19 +370,45 @@ export default function RequestForm({
       return { ...s, flexibility: next.join(',') }
     })
 
-  const isBuild = values.requestType === 'build_on_land'
-  const needsStanding = isBuild || values.requestType === 'land_and_house'
   /**
-   * «أرض ودار»: ما عندوش أرض بعدُ، عندو مقاس يدوّر عليه. نسألو عليه
-   * هنا مع بقية معايير البحث — لا في خطوة الأرض، فتلك لقطعة يملكها.
+   * الخريطة الواحدة: نوع المطلب → ما يظهر. كانت الشروط مبعثرة هنا
+   * (isBuild · needsStanding · needsSpecs · wantsLand) فتُقرأ الشفرة لا
+   * القاعدة. الآن lib/request-flow.ts يقرّر، والاستمارة تسأله.
    */
-  const wantsLand = values.requestType === 'land_and_house'
+  const worksList = String(values.works ?? '').split(',').filter(Boolean)
+  const flow = useMemo(
+    () =>
+      requestFlow({
+        requestType: String(values.requestType ?? ''),
+        apartmentState: String(values.apartmentState ?? ''),
+        works: String(values.works ?? '').split(',').filter(Boolean),
+        levels: Number(values.levels || 1),
+        ownership: String(values.ownership ?? ''),
+        hasDisability: Boolean(values.hasDisability),
+      }),
+    [
+      values.requestType,
+      values.apartmentState,
+      values.works,
+      values.levels,
+      values.ownership,
+      values.hasDisability,
+    ]
+  )
+  const toggleWork = (w: string) =>
+    setValues((v) => {
+      const cur = String(v.works ?? '').split(',').filter(Boolean)
+      const next = cur.includes(w) ? cur.filter((x) => x !== w) : [...cur, w]
+      return { ...v, works: next.join(',') }
+    })
 
-  /** من يبني أو يرمّم يعرف كم غرفة وكم طابق؛ من يشري شقّة جاهزة لا */
+  const wantsLand = flow.has('landArea')
+  const needsStanding = flow.has('standing')
   const needsSpecs =
-    isBuild ||
-    values.requestType === 'land_and_house' ||
-    values.requestType === 'renovation'
+    flow.has('levels') || flow.has('bathrooms') || flow.has('livingRooms') || flow.has('kitchens') || flow.has('extras')
+  /** الخطوة المالية مطويّة لمن اختار «مشكل آخر» حتى يفتحها بنفسه */
+  const [financeOpen, setFinanceOpen] = useState(false)
+
   const selectedTier = tierByKey(tiers, String(values.standing ?? ''))
   const areaForCost = Number(values.desiredAreaM2 || 0)
   const costRange =
@@ -303,11 +417,16 @@ export default function RequestForm({
     (i) => String(i.delegation_id) === String(values.delegationId ?? '')
   )
 
+  // الشريط العلوي يعرض خطوات هذا المسار فعلاً: «الأرض» لمن يملكها،
+  // «الدار الحالية» لمن يرمّم، ولا ثالثة لغيرهما
   const steps = useMemo(
-    () => (isBuild ? t.stepNames : t.stepNames.filter((_, i) => i !== 2)),
-    [isBuild, t.stepNames]
+    () =>
+      flow.steps.map((n) =>
+        n === 3 && flow.has('homeStep') ? t.stepHome : t.stepNames[n - 1]
+      ),
+    [flow, t.stepNames, t.stepHome]
   )
-  const order = isBuild ? [1, 2, 3, 4, 5, 6] : [1, 2, 4, 5, 6]
+  const order = flow.steps
   const stepIndex = order.indexOf(step)
 
   const capacity = computeCapacity({
@@ -321,7 +440,14 @@ export default function RequestForm({
 
   const canNext = () => {
     if (step === 1) return Boolean(values.requestType)
-    if (step === 2) return Boolean(values.govCode && values.horizon)
+    if (step === 2)
+      return Boolean(
+        values.govCode && values.horizon && (!flow.locationRequired || values.landLocation)
+      )
+    // المستأجر لا يرمّم: الخطوة تقف هنا وتقول له لماذا
+    if (step === 3) return flow.blocked === null
+    // «مشكل آخر»: الخطوة المالية مطويّة، والمرور بلا فتحها مقصود
+    if (step === 5 && flow.financeOptional && !financeOpen) return true
     // من صرّح أنّ فلوسه حاضرة يُسأل عن الميزانية المتوفّرة لا عن الدخل
     if (step === 5)
       return values.cashReady
@@ -396,6 +522,32 @@ export default function RequestForm({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state])
 
+  /** الاستعجال: أعلى الخطوة لمن يرمّم أو عنده مشكل، وفي مكانه المعتاد للبقيّة */
+  const urgencyGroup = () => (
+    <Group title={t.urgencyTitle} lede={t.urgencyLede}>
+      <div className="grid gap-2 sm:grid-cols-2">
+        {URGENCIES.map((u) => (
+          <Chip key={u} on={values.urgency === u} onClick={() => set('urgency', u)} block>
+            {labels.urgency[u]}
+          </Chip>
+        ))}
+      </div>
+      <input type="hidden" name="urgency" value={String(values.urgency ?? '')} />
+      <label className="mt-3 block">
+        <span className="mb-1.5 block text-xs text-muted">{t.urgencyNote}</span>
+        <input
+          type="text"
+          name="urgencyNote"
+          value={String(values.urgencyNote ?? '')}
+          onChange={(e) => set('urgencyNote', e.target.value)}
+          className={inputCls}
+          placeholder={t.urgencyNotePlaceholder}
+        />
+      </label>
+      <VoiceRecorder name="voiceUrgencyNote" t={voice} />
+    </Group>
+  )
+
   return (
     <form
       action={formAction}
@@ -458,536 +610,611 @@ export default function RequestForm({
       <fieldset className={step === 1 ? 'block' : 'hidden'}>
         <legend className="display mb-2 text-2xl font-semibold">{t.s1Title}</legend>
         <p className="mb-6 text-muted">{t.s1Lede}</p>
-        <div className="grid gap-3 sm:grid-cols-2">
-          {REQUEST_TYPES.map((rt) => (
-            <label
-              key={rt}
-              className={`cursor-pointer rounded border p-5 transition ${
-                values.requestType === rt
-                  ? 'border-brand bg-brand-soft'
-                  : 'border-line bg-surface hover:border-line-strong'
-              }`}
-            >
-              <input
-                type="radio"
-                name="requestType"
-                value={rt}
-                checked={values.requestType === rt}
-                onChange={(e) =>
-                  setValues((v) => ({ ...v, requestType: e.target.value, cashReady: false }))
-                }
-                className="sr-only"
-              />
-              <span className="brick mb-3 block" aria-hidden="true" />
-              <span className="block font-semibold">{labels.requestType[rt]}</span>
-            </label>
-          ))}
-        </div>
+        {/* بطاقة لكلّ مسار: أيقونة تميّزها بنظرة، وسطر يقول لمن هي.
+            «فلوسي حاضرة» خرجت من هنا: هي حالة تمويل لا نوع مطلب — كانت
+            تفرض «بناء فوق أرضي» على من عنده مال ويريد شقّة. */}
+        <div className="grid gap-2.5 sm:grid-cols-2 lg:grid-cols-3">
+          {SELECTABLE_REQUEST_TYPES.map((rt) => {
+            const on = values.requestType === rt
+            return (
+              <label
+                key={rt}
+                className={`group relative flex cursor-pointer gap-3 rounded-xl border p-3.5 transition ${
+                  on
+                    ? "border-brand bg-brand-soft shadow-[0_1px_0_0_var(--color-brand)]"
+                    : "border-line bg-surface hover:border-brand/40 hover:bg-brand-soft/40"
+                }`}
+              >
+                <input
+                  type="radio"
+                  name="requestType"
+                  value={rt}
+                  checked={on}
+                  onChange={(e) => set('requestType', e.target.value)}
+                  className="sr-only"
+                />
+                <span
+                  className={`flex size-9 shrink-0 items-center justify-center rounded-lg transition ${
+                    on ? "bg-brand text-white" : "bg-surface-2 text-muted group-hover:text-brand"
+                  }`}
+                  aria-hidden="true"
+                >
+                  <svg viewBox="0 0 24 24" className="size-5">
+                    <path fill="currentColor" d={TYPE_ICON[rt]} />
+                  </svg>
+                </span>
 
-        {/* مسار بلا بنك: من عنده التمويل حاضر لا يحتاج دراسة قدرة على
-            الاقتراض، يحتاج مقاولاً وعرضاً. اختياره يضبط نوع المطلب
-            «بناء فوق أرض» ويرفع الأسئلة البنكية من طريقه. */}
-        <label
-          className={`mt-3 flex cursor-pointer items-start gap-3 rounded border p-5 transition ${
-            values.cashReady
-              ? 'border-gold bg-gold-soft'
-              : 'border-line bg-surface hover:border-line-strong'
-          }`}
-        >
-          <input
-            type="checkbox"
-            name="cashReady"
-            checked={Boolean(values.cashReady)}
-            onChange={(e) =>
-              setValues((v) => ({
-                ...v,
-                cashReady: e.target.checked,
-                ...(e.target.checked
-                  ? { requestType: 'build_on_land', financingState: 'self_funded' }
-                  : { financingState: '' }),
-              }))
-            }
-            className="mt-1 size-4 accent-[#a8781f]"
-          />
-          <span className="min-w-0">
-            <span className="flex flex-wrap items-center gap-2">
-              <span className="font-semibold">{t.cashReadyTitle}</span>
-              <span className="rounded bg-gold px-2 py-0.5 text-xs font-medium text-white">
-                {t.cashReadyBadge}
-              </span>
-            </span>
-            <span className="mt-1 block text-sm leading-7 text-muted">{t.cashReadyBody}</span>
-          </span>
-        </label>
+                <span className="min-w-0 flex-1">
+                  <span className="block text-sm font-semibold leading-6">
+                    {labels.requestType[rt]}
+                  </span>
+                  <span className="mt-0.5 block text-xs leading-5 text-muted">
+                    {labels.requestTypeHint[rt]}
+                  </span>
+                </span>
+
+                {on && (
+                  <svg
+                    viewBox="0 0 20 20"
+                    className="absolute top-2.5 size-4 text-brand"
+                    style={{ insetInlineEnd: '0.625rem' }}
+                    aria-hidden="true"
+                  >
+                    <path
+                      fill="currentColor"
+                      d="M10 0a10 10 0 1 0 0 20 10 10 0 0 0 0-20Zm4.7 7.1-5.6 5.6a1 1 0 0 1-1.4 0L5.3 10.3a1 1 0 1 1 1.4-1.4l1.7 1.7 4.9-4.9a1 1 0 1 1 1.4 1.4Z"
+                    />
+                  </svg>
+                )}
+              </label>
+            )
+          })}
+        </div>
 
         {err('requestType') && (
           <p className="mt-3 text-sm text-[#8c2f22]">{err('requestType')}</p>
         )}
       </fieldset>
 
-      {/* 2 */}
+      {/* 2 — بحسب الخريطة: كلّ مسار يرى أسئلته */}
       <fieldset className={step === 2 ? 'block' : 'hidden'}>
-        <legend className="display mb-2 text-2xl font-semibold">{t.s2Title}</legend>
-        <p className="mb-6 text-muted">{t.s2Lede}</p>
+        <legend className="display mb-1 text-2xl font-semibold">
+          {flow.type === 'other' ? t.s2TitleOther : t.s2Title}
+        </legend>
+        <p className="mb-5 text-muted">{flow.type === 'other' ? t.s2LedeOther : t.s2Lede}</p>
 
-        <div className="grid gap-5 sm:grid-cols-2">
-          <Field label={t.governorate} error={err('govCode')}>
-            <select
-              name="govCode"
-              value={String(values.govCode ?? '')}
-              onChange={(e) => set('govCode', e.target.value)}
+        {/* «مشكل آخر»: الحكاية أوّلاً — هي سبب اختيار هذا المسار */}
+        {flow.type === 'other' && (
+          <Group title={t.problemTitle} lede={t.problemLede}>
+            <textarea
+              name="problemNote"
+              rows={5}
+              value={String(values.problemNote ?? '')}
+              onChange={(e) => set('problemNote', e.target.value)}
               className={inputCls}
-            >
-              {governorates.map((g) => (
-                <option key={g.code} value={g.code}>
-                  {g.name_ar}
-                  {g.is_active ? '' : ` ${t.comingSoon}`}
-                </option>
-              ))}
-            </select>
-          </Field>
-
-          {values.govCode === 'SFX' && (
-            <Field label={t.delegation} hint={t.optional}>
-              <select
-                name="delegationId"
-                value={String(values.delegationId ?? '')}
-                onChange={(e) => set('delegationId', e.target.value)}
-                className={inputCls}
-              >
-                <option value="">{t.choose}</option>
-                {delegations.map((d) => (
-                  <option key={d.id} value={d.id}>
-                    {d.name_ar}
-                  </option>
-                ))}
-              </select>
-            </Field>
-          )}
-
-          {delegationImadas.length > 0 && (
-            <Field label={t.imada} hint={t.optional}>
-              <select
-                name="imadaId"
-                value={String(values.imadaId ?? '')}
-                onChange={(e) => set('imadaId', e.target.value)}
-                className={inputCls}
-              >
-                <option value="">{t.choose}</option>
-                {delegationImadas.map((i) => (
-                  <option key={i.id} value={i.id}>
-                    {i.name_ar}
-                  </option>
-                ))}
-              </select>
-            </Field>
-          )}
-
-          <div className="sm:col-span-2">
-            <Field label={t.landLocation} hint={t.landLocationHint}>
-              <ZoneInput
-                name="landLocation"
-                zones={zones}
-                govCode={String(values.govCode ?? 'SFX')}
-                delegationId={String(values.delegationId ?? '')}
-                locale={locale}
-                value={String(values.landLocation ?? '')}
-                onChange={(v) => set('landLocation', v)}
-                className={inputCls}
-                placeholder={t.landLocationPlaceholder}
-              />
-            </Field>
-          </div>
-        </div>
-
-        <div className="mt-6">
-          <span className="mb-2 block text-sm font-medium">
-            {wantsLand ? t.builtArea : t.area}
-          </span>
-          <div className="flex flex-wrap gap-2">
-            {AREAS.map((a) => (
-              <button
-                key={a}
-                type="button"
-                onClick={() => set('desiredAreaM2', String(a))}
-                className={`rounded border px-5 py-2.5 text-sm transition ${
-                  String(values.desiredAreaM2) === String(a)
-                    ? 'border-brand bg-brand text-white'
-                    : 'border-line bg-surface hover:border-line-strong'
-                }`}
-              >
-                {a} {m2}
-              </button>
-            ))}
-            <input
-              type="number"
-              inputMode="numeric"
-              name="desiredAreaM2"
-              placeholder={t.otherArea}
-              value={String(values.desiredAreaM2 ?? '')}
-              onChange={(e) => set('desiredAreaM2', e.target.value)}
-              className={`${inputCls} w-36`}
+              placeholder={t.problemPlaceholder}
             />
-          </div>
-          {err('desiredAreaM2') && (
-            <p className="mt-2 text-sm text-[#8c2f22]">{err('desiredAreaM2')}</p>
-          )}
-        </div>
-
-        {wantsLand && (
-          <div className="mt-6">
-            <span className="mb-1 block text-sm font-medium">{t.desiredLandM2}</span>
-            <p className="mb-2 text-sm text-muted">{t.desiredLandHint}</p>
-            <div className="flex flex-wrap gap-2">
-              {LAND_AREAS.map((a) => (
-                <button
-                  key={a}
-                  type="button"
-                  onClick={() => set('desiredLandM2', String(a))}
-                  className={`min-h-11 rounded border px-5 text-sm transition ${
-                    String(values.desiredLandM2) === String(a)
-                      ? 'border-brand bg-brand text-white'
-                      : 'border-line bg-surface hover:border-line-strong'
-                  }`}
-                >
-                  {a} {m2}
-                </button>
-              ))}
-              <input
-                type="number"
-                inputMode="numeric"
-                name="desiredLandM2"
-                min={50}
-                max={5000}
-                placeholder={t.otherArea}
-                value={String(values.desiredLandM2 ?? '')}
-                onChange={(e) => set('desiredLandM2', e.target.value)}
-                className={`${inputCls} w-36`}
-              />
-            </div>
-            {err('desiredLandM2') && (
-              <p className="mt-2 text-sm text-[#8c2f22]">{err('desiredLandM2')}</p>
-            )}
-          </div>
+            <VoiceRecorder name="voiceProblemNote" t={voice} />
+          </Group>
         )}
 
-        <div className="mt-6 grid gap-5 sm:grid-cols-2">
-          <Field label={t.bedrooms} hint={t.optional} error={err('bedrooms')}>
-            <input
-              type="number"
-              inputMode="numeric"
-              name="bedrooms"
-              min={1}
-              max={6}
-              value={String(values.bedrooms ?? '')}
-              onChange={(e) => set('bedrooms', e.target.value)}
-              className={inputCls}
-            />
-          </Field>
-          <Field label={t.horizon} error={err('horizon')}>
-            <select
-              name="horizon"
-              value={String(values.horizon ?? '')}
-              onChange={(e) => set('horizon', e.target.value)}
-              className={inputCls}
-            >
-              <option value="">{t.choose}</option>
-              {HORIZONS.map((h) => (
-                <option key={h} value={h}>
-                  {labels.horizon[h]}
-                </option>
-              ))}
-            </select>
-          </Field>
-        </div>
+        {/* ---------- الاستعجال: أعلى الخطوة لمن يرمّم أو عنده مشكل ---------- */}
+        {(flow.type === 'other' || flow.type === 'renovation') && urgencyGroup()}
 
+        {flow.type === 'other' && (
+          <Group title={t.grpObstacle}>
+            <Field label={t.problemType} hint={t.optional} error={err('problemType')}>
+              <select
+                name="problemType"
+                value={String(values.problemType ?? '')}
+                onChange={(e) => set('problemType', e.target.value)}
+                className={`${inputCls} sm:max-w-md`}
+              >
+                <option value="">{t.choose}</option>
+                {PROBLEM_KINDS.map((k) => (
+                  <option key={k} value={k}>
+                    {t.problemLabels[k]}
+                  </option>
+                ))}
+              </select>
+            </Field>
+          </Group>
+        )}
 
-        {/* طريقة البناء — القسم 12. تظهر لمن يبني فقط: من يشتري بيتاً
-            قائماً لا يختار كيف بُني. */}
-        {isBuild && systems.length > 1 && (
-          <div className="mt-8">
-            <div className="mb-1 flex flex-wrap items-baseline justify-between gap-2">
-              <span className="text-sm font-medium">{t.systemTitle}</span>
+        {/* ---------- المكان: نفس الحقل، أربع حقائق ---------- */}
+        <Group title={t.grpPlace}>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <Field label={t.governorate} error={err('govCode')}>
+              <select
+                name="govCode"
+                value={String(values.govCode ?? '')}
+                onChange={(e) => set('govCode', e.target.value)}
+                className={inputCls}
+              >
+                {governorates.map((g) => (
+                  <option key={g.code} value={g.code}>
+                    {g.name_ar}
+                    {g.is_active ? '' : ` ${t.comingSoon}`}
+                  </option>
+                ))}
+              </select>
+            </Field>
+
+            {values.govCode === 'SFX' && (
+              <Field label={t.delegation} hint={t.optional}>
+                <select
+                  name="delegationId"
+                  value={String(values.delegationId ?? '')}
+                  onChange={(e) => set('delegationId', e.target.value)}
+                  className={inputCls}
+                >
+                  <option value="">{t.choose}</option>
+                  {delegations.map((d) => (
+                    <option key={d.id} value={d.id}>
+                      {d.name_ar}
+                    </option>
+                  ))}
+                </select>
+              </Field>
+            )}
+
+            {delegationImadas.length > 0 && (
+              <Field label={t.imada} hint={t.optional}>
+                <select
+                  name="imadaId"
+                  value={String(values.imadaId ?? '')}
+                  onChange={(e) => set('imadaId', e.target.value)}
+                  className={inputCls}
+                >
+                  <option value="">{t.choose}</option>
+                  {delegationImadas.map((i) => (
+                    <option key={i.id} value={i.id}>
+                      {i.name_ar}
+                    </option>
+                  ))}
+                </select>
+              </Field>
+            )}
+
+            <div className="sm:col-span-2">
+              <Field
+                label={
+                  flow.location === 'own_land'
+                    ? t.locationOwnLand
+                    : flow.location === 'existing_home'
+                      ? t.locationHome
+                      : flow.location === 'current'
+                        ? t.locationCurrent
+                        : t.locationWish
+                }
+                hint={flow.locationRequired ? undefined : t.landLocationHint}
+                error={err('landLocation')}
+              >
+                <ZoneInput
+                  name="landLocation"
+                  zones={zones}
+                  govCode={String(values.govCode ?? 'SFX')}
+                  delegationId={String(values.delegationId ?? '')}
+                  locale={locale}
+                  value={String(values.landLocation ?? '')}
+                  onChange={(v) => set('landLocation', v)}
+                  className={inputCls}
+                  placeholder={t.landLocationPlaceholder}
+                />
+              </Field>
+              {flow.locationRequired && (
+                <p className="mt-1.5 text-xs leading-6 text-muted">{t.locationRequiredHint}</p>
+              )}
+            </div>
+          </div>
+        </Group>
+
+        {/* ---------- الدار ---------- */}
+        {(flow.has('builtArea') || flow.has('currentArea') || flow.has('bedrooms') || flow.has('works')) && (
+          <Group title={t.grpHome}>
+            {/* الترميم: شنوّة بالضبط — السؤال الذي يفتح ويغلق كلّ ما بعده */}
+            {flow.has('works') && (
+              <div className="mb-5">
+                <span className="mb-1 block text-sm font-medium">{t.worksTitle}</span>
+                <p className="mb-2 text-xs text-muted">{t.worksLede}</p>
+                <div className="grid gap-2.5 sm:grid-cols-2">
+                  {RENOVATION_WORKS.map((w) => (
+                    <Choice
+                      key={w}
+                      name="works"
+                      value={w}
+                      multi
+                      on={worksList.includes(w)}
+                      onChange={() => toggleWork(w)}
+                      title={t.workLabels[w]}
+                      hint={t.workHints[w]}
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* الشقّة: جاهزة أم على المخطّط — الثانية تفتح التشطيب */}
+            {flow.has('apartmentState') && (
+              <div className="mb-5">
+                <span className="mb-2 block text-sm font-medium">{t.apartmentStateTitle}</span>
+                <div className="grid gap-2.5 sm:grid-cols-2">
+                  {APARTMENT_STATES.map((st) => (
+                    <Choice
+                      key={st}
+                      name="apartmentState"
+                      value={st}
+                      on={values.apartmentState === st}
+                      onChange={() => set('apartmentState', st)}
+                      title={t.apartmentStateLabels[st]}
+                      hint={t.apartmentStateHints[st]}
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <div className={`grid gap-5 ${wantsLand ? "lg:grid-cols-2" : ""}`}>
+              {flow.has('builtArea') && (
+                <div>
+                  <span className="mb-2 block text-sm font-medium">
+                    {flow.type === 'apartment' ? t.areaApartment : wantsLand ? t.builtArea : t.areaBuild}
+                  </span>
+                  <div className="flex flex-wrap gap-2">
+                    {AREAS.map((a) => (
+                      <Chip
+                        key={a}
+                        on={String(values.desiredAreaM2) === String(a)}
+                        onClick={() => set('desiredAreaM2', String(a))}
+                      >
+                        <span className="num">{a}</span> {m2}
+                      </Chip>
+                    ))}
+                    <input
+                      type="number"
+                      inputMode="numeric"
+                      name="desiredAreaM2"
+                      placeholder={t.otherArea}
+                      value={String(values.desiredAreaM2 ?? '')}
+                      onChange={(e) => set('desiredAreaM2', e.target.value)}
+                      className={`${inputCls} w-32`}
+                    />
+                  </div>
+                  {err('desiredAreaM2') && (
+                    <p className="mt-2 text-sm text-[#8c2f22]">{err('desiredAreaM2')}</p>
+                  )}
+                </div>
+              )}
+
+              {flow.has('currentArea') && (
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <Field label={t.currentArea} error={err('currentAreaM2')}>
+                    <input
+                      type="number"
+                      inputMode="numeric"
+                      name="currentAreaM2"
+                      min={20}
+                      max={2000}
+                      value={String(values.currentAreaM2 ?? '')}
+                      onChange={(e) => set('currentAreaM2', e.target.value)}
+                      className={inputCls}
+                    />
+                  </Field>
+                  {flow.has('extensionArea') && (
+                    <Field label={t.extensionArea} error={err('extensionAreaM2')}>
+                      <input
+                        type="number"
+                        inputMode="numeric"
+                        name="extensionAreaM2"
+                        min={5}
+                        max={500}
+                        value={String(values.extensionAreaM2 ?? '')}
+                        onChange={(e) => set('extensionAreaM2', e.target.value)}
+                        className={inputCls}
+                      />
+                    </Field>
+                  )}
+                </div>
+              )}
+
+              {wantsLand && (
+                <div>
+                  <span className="mb-2 block text-sm font-medium">{t.desiredLandM2}</span>
+                  <div className="flex flex-wrap gap-2">
+                    {LAND_AREAS.map((a) => (
+                      <Chip
+                        key={a}
+                        on={String(values.desiredLandM2) === String(a)}
+                        onClick={() => set('desiredLandM2', String(a))}
+                      >
+                        <span className="num">{a}</span> {m2}
+                      </Chip>
+                    ))}
+                    <input
+                      type="number"
+                      inputMode="numeric"
+                      name="desiredLandM2"
+                      min={50}
+                      max={5000}
+                      placeholder={t.otherArea}
+                      value={String(values.desiredLandM2 ?? '')}
+                      onChange={(e) => set('desiredLandM2', e.target.value)}
+                      className={`${inputCls} w-32`}
+                    />
+                  </div>
+                  <p className="mt-1.5 text-xs text-faint">{t.desiredLandHint}</p>
+                  {err('desiredLandM2') && (
+                    <p className="mt-2 text-sm text-[#8c2f22]">{err('desiredLandM2')}</p>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* الشقّة: أين في العمارة — معايير مطابقة مباشرة */}
+            {flow.has('floorPref') && (
+              <div className="mt-5">
+                <span className="mb-2 block text-sm font-medium">{t.floorPref}</span>
+                <div className="flex flex-wrap gap-2">
+                  {FLOOR_PREFS.map((fp) => (
+                    <Chip
+                      key={fp}
+                      on={values.floorPref === fp}
+                      onClick={() => set('floorPref', fp)}
+                    >
+                      {t.floorLabels[fp]}
+                    </Chip>
+                  ))}
+                  <Chip on={Boolean(values.elevatorNeeded)} onClick={() => set('elevatorNeeded', !values.elevatorNeeded)} check>
+                    {t.elevatorNeeded}
+                  </Chip>
+                  <Chip on={Boolean(values.parkingNeeded)} onClick={() => set('parkingNeeded', !values.parkingNeeded)} check>
+                    {t.parkingNeeded}
+                  </Chip>
+                </div>
+                <input type="hidden" name="floorPref" value={String(values.floorPref ?? '')} />
+                <input type="hidden" name="elevatorNeeded" value={values.elevatorNeeded ? "on" : ""} />
+                <input type="hidden" name="parkingNeeded" value={values.parkingNeeded ? "on" : ""} />
+                {flow.disabilityHint === 'ground_or_elevator' && (
+                  <p className="mt-2 rounded border border-gold/40 bg-gold-soft px-3 py-2 text-xs leading-6">{t.disabilityGround}</p>
+                )}
+              </div>
+            )}
+
+            {(flow.has('bedrooms') || flow.has('horizon')) && (
+              <div className="mt-5 grid gap-4 sm:grid-cols-2">
+                {flow.has('bedrooms') && (
+                  <Field label={t.bedrooms} hint={t.optional} error={err('bedrooms')}>
+                    <Stepper name="bedrooms" min={1} max={6} value={values.bedrooms} onChange={(v) => set('bedrooms', v)} />
+                  </Field>
+                )}
+                <Field label={t.horizon} error={err('horizon')}>
+                  <select
+                    name="horizon"
+                    value={String(values.horizon ?? '')}
+                    onChange={(e) => set('horizon', e.target.value)}
+                    className={inputCls}
+                  >
+                    <option value="">{t.choose}</option>
+                    {HORIZONS.map((h) => (
+                      <option key={h} value={h}>
+                        {labels.horizon[h]}
+                      </option>
+                    ))}
+                  </select>
+                </Field>
+              </div>
+            )}
+          </Group>
+        )}
+
+        {/* «مشكل آخر»: الأفق وحده من «الدار» */}
+        {flow.type === 'other' && (
+          <Group title={t.horizon}>
+            <Field label={t.horizon} error={err('horizon')}>
+              <select
+                name="horizon"
+                value={String(values.horizon ?? '')}
+                onChange={(e) => set('horizon', e.target.value)}
+                className={`${inputCls} sm:max-w-md`}
+              >
+                <option value="">{t.choose}</option>
+                {HORIZONS.map((h) => (
+                  <option key={h} value={h}>
+                    {labels.horizon[h]}
+                  </option>
+                ))}
+              </select>
+            </Field>
+          </Group>
+        )}
+
+        {/* ---------- طريقة البناء — لمن يبني شيئاً ---------- */}
+        {flow.has('constructionSystem') && systems.length > 1 && (
+          <Group
+            title={t.systemTitle}
+            lede={t.systemLede}
+            aside={
               <a
-                href={path(locale, "/systemes")}
+                href={path(locale, '/systemes')}
                 target="_blank"
                 rel="noopener"
                 className="text-xs text-brand underline underline-offset-2"
               >
                 {t.systemMore} ↗
               </a>
+            }
+          >
+            <div className="grid gap-2.5 sm:grid-cols-2">
+              {systems.map((sys) => (
+                <Choice
+                  key={sys.code}
+                  name="constructionSystem"
+                  value={sys.code}
+                  on={values.constructionSystem === sys.code}
+                  onChange={() => set('constructionSystem', sys.code)}
+                  title={(locale === 'fr' ? sys.name_fr : sys.name_ar) || sys.name_ar}
+                  hint={
+                    (locale === 'fr' ? sys.citizen_summary_fr : sys.citizen_summary_ar) ||
+                    sys.citizen_summary_ar
+                  }
+                />
+              ))}
             </div>
-            <p className="mb-3 text-sm text-muted">{t.systemLede}</p>
-            <div className="grid gap-3 sm:grid-cols-2">
-              {systems.map((sys) => {
-                const on = values.constructionSystem === sys.code
-                const summary =
-                  (locale === "fr" ? sys.citizen_summary_fr : sys.citizen_summary_ar) ||
-                  sys.citizen_summary_ar
-                return (
-                  <label
-                    key={sys.code}
-                    className={`cursor-pointer rounded border p-4 transition ${
-                      on ? "border-brand bg-brand-soft" : "border-line bg-surface hover:border-line-strong"
-                    }`}
-                  >
-                    <input
-                      type="radio"
-                      name="constructionSystem"
-                      value={sys.code}
-                      checked={on}
-                      onChange={(e) => set("constructionSystem", e.target.value)}
-                      className="sr-only"
-                    />
-                    <span className="flex items-baseline justify-between gap-2">
-                      <span className="font-semibold">
-                        {(locale === "fr" ? sys.name_fr : sys.name_ar) || sys.name_ar}
-                      </span>
-                      {on && <span className="text-xs text-brand">{t.systemChosen}</span>}
-                    </span>
-                    <span className="mt-1.5 block text-xs leading-6 text-muted">{summary}</span>
-                  </label>
-                )
-              })}
-            </div>
-            {err("constructionSystem") && (
-              <p className="mt-2 text-sm text-[#8c2f22]">{err("constructionSystem")}</p>
+            {err('constructionSystem') && (
+              <p className="mt-2 text-sm text-[#8c2f22]">{err('constructionSystem')}</p>
             )}
-          </div>
+          </Group>
         )}
 
+        {/* ---------- مستوى التشطيب — حين يُختار تشطيب ---------- */}
         {needsStanding && (
-          <div className="mt-8">
-            <span className="mb-1 block text-sm font-medium">{t.standingTitle}</span>
-            <p className="mb-3 text-sm text-muted">{t.standingLede}</p>
-            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          <Group title={t.standingTitle} lede={t.standingLede}>
+            <div className="grid gap-2.5 sm:grid-cols-2 lg:grid-cols-3">
               {tiers.map((tier) => (
-                <label
+                <Choice
                   key={tier.tier}
-                  className={`cursor-pointer rounded border p-4 transition ${
-                    values.standing === tier.tier
-                      ? 'border-brand bg-brand-soft'
-                      : 'border-line bg-surface hover:border-line-strong'
-                  }`}
-                >
-                  <input
-                    type="radio"
-                    name="standing"
-                    value={tier.tier}
-                    checked={values.standing === tier.tier}
-                    onChange={(e) => set('standing', e.target.value)}
-                    className="sr-only"
-                  />
-                  <span className="block font-semibold">{tier.label}</span>
-                  <span className="num mt-1 block text-sm text-brand">
-                    <bdi dir="ltr">{formatRange(tier.min, tier.max)}</bdi> {perM2}
-                  </span>
-                  <span className="mt-2 block text-xs leading-6 text-muted">
-                    {tier.description}
-                  </span>
-                </label>
+                  name="standing"
+                  value={tier.tier}
+                  on={values.standing === tier.tier}
+                  onChange={() => set('standing', tier.tier)}
+                  title={tier.label}
+                  meta={
+                    <span className="num text-brand">
+                      <bdi dir="ltr">{formatRange(tier.min, tier.max)}</bdi> {perM2}
+                    </span>
+                  }
+                  hint={tier.description}
+                />
               ))}
             </div>
 
             {costRange && selectedTier && (
-              <div className="mt-4 rounded border border-line bg-surface-2 p-4 text-sm">
-                {fmt(t.costFor, { area: areaForCost, tier: selectedTier.label })}{' '}
-                <span className="num font-semibold text-brand">
-                  <bdi dir="ltr">{formatRange(costRange.min, costRange.max)}</bdi>{' '}
+              <div className="mt-3 flex flex-wrap items-baseline gap-x-2 gap-y-1 rounded-lg border border-brand/20 bg-brand-soft px-4 py-3 text-sm">
+                <span>{fmt(t.costFor, { area: areaForCost, tier: selectedTier.label })}</span>
+                <b className="num text-brand">
+                  <bdi dir="ltr">{formatRange(costRange.min, costRange.max)}</bdi>{" "}
                   {currencyLabel(locale)}
-                </span>
-                <div className="mt-1 text-xs text-faint">{t.costNote}</div>
+                </b>
+                <span className="basis-full text-xs text-faint">{t.costNote}</span>
               </div>
             )}
-          </div>
+          </Group>
         )}
 
-        {/* درجة الاستعجال */}
-        <div className="mt-8">
-          <span className="mb-1 block text-sm font-medium">{t.urgencyTitle}</span>
-          <p className="mb-3 text-sm text-muted">{t.urgencyLede}</p>
-          <div className="grid gap-2 sm:grid-cols-2">
-            {URGENCIES.map((u) => (
-              <label
-                key={u}
-                className={`cursor-pointer rounded border px-4 py-3 text-sm transition ${
-                  values.urgency === u
-                    ? 'border-brand bg-brand-soft'
-                    : 'border-line bg-surface hover:border-line-strong'
-                }`}
-              >
-                <input
-                  type="radio"
-                  name="urgency"
-                  value={u}
-                  checked={values.urgency === u}
-                  onChange={(e) => set('urgency', e.target.value)}
-                  className="sr-only"
-                />
-                {labels.urgency[u]}
-              </label>
-            ))}
-          </div>
-          <label className="mt-3 block">
-            <span className="mb-1.5 block text-xs text-muted">{t.urgencyNote}</span>
-            <input
-              type="text"
-              name="urgencyNote"
-              value={String(values.urgencyNote ?? '')}
-              onChange={(e) => set('urgencyNote', e.target.value)}
-              className={inputCls}
-              placeholder={t.urgencyNotePlaceholder}
-            />
-          </label>
-        </div>
-
-        {/* المرونة */}
-        <div className="mt-8">
-          <span className="mb-1 block text-sm font-medium">{t.flexTitle}</span>
-          <p className="mb-3 text-sm text-muted">{t.flexLede}</p>
-          <div className="flex flex-wrap gap-2">
-            {FLEXIBILITIES.map((f) => {
-              const on = flexibility.includes(f)
-              return (
-                <label
-                  key={f}
-                  className={`cursor-pointer rounded border px-4 py-2 text-sm transition ${
-                    on
-                      ? 'border-brand bg-brand-soft'
-                      : 'border-line bg-surface hover:border-line-strong'
-                  }`}
-                >
-                  <input
-                    type="checkbox"
-                    name="flexibility"
-                    value={f}
-                    checked={on}
-                    onChange={() => toggleFlexibility(f)}
-                    className="sr-only"
-                  />
-                  {labels.flexibility[f]}
-                </label>
-              )
-            })}
-          </div>
-        </div>
-
-        {/* حكاية المشكل */}
-        <div className="mt-8">
-          <span className="mb-1 block text-sm font-medium">{t.problemTitle}</span>
-          <p className="mb-3 text-sm text-muted">{t.problemLede}</p>
-          <textarea
-            name="problemNote"
-            rows={4}
-            value={String(values.problemNote ?? '')}
-            onChange={(e) => set('problemNote', e.target.value)}
-            className={inputCls}
-            placeholder={t.problemPlaceholder}
-          />
-          <VoiceRecorder name="voiceProblemNote" t={voice} />
-        </div>
-
-        {/* مواصفات الدار — كانت تُعمَّر في اللوحة بعد مكالمة. صاحبها
-            يعرفها، وهي مدخل العرض التقديري. */}
+        {/* ---------- المواصفات — حين تُصمَّم دار ---------- */}
         {needsSpecs && (
-          <div className="mt-8 rounded border border-line bg-surface p-4 sm:p-5">
-            <span className="mb-1 block text-sm font-medium">{t.specsTitle}</span>
-            <p className="mb-4 text-sm leading-7 text-muted">{t.specsLede}</p>
+          <Group title={t.specsTitle} lede={t.specsLede}>
+            {flow.has('levels') && (
+              <>
+                <span className="mb-2 block text-sm font-medium">{t.levels}</span>
+                <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
+                  {LEVELS.map((lv) => (
+                    <Chip
+                      key={lv}
+                      on={String(values.levels ?? '') === String(lv)}
+                      onClick={() => set('levels', String(lv))}
+                      block
+                    >
+                      {t.levelLabels[lv]}
+                    </Chip>
+                  ))}
+                </div>
+                <input type="hidden" name="levels" value={String(values.levels ?? '')} />
+              </>
+            )}
 
-            <Field label={t.levels}>
-              <div className="grid gap-2 sm:grid-cols-2">
-                {LEVELS.map((lv) => (
-                  <label
-                    key={lv}
-                    className={`flex min-h-11 cursor-pointer items-center gap-2.5 rounded border px-3 text-sm transition ${
-                      String(values.levels ?? '') === String(lv)
-                        ? 'border-brand bg-brand-soft'
-                        : 'border-line hover:border-line-strong'
-                    }`}
-                  >
-                    <input
-                      type="radio"
-                      name="levels"
-                      value={lv}
-                      checked={String(values.levels ?? '') === String(lv)}
-                      onChange={() => set('levels', String(lv))}
-                      className="size-4 accent-[#1d3a5f]"
-                    />
-                    {t.levelLabels[lv]}
-                  </label>
-                ))}
+            {(flow.has('bathrooms') || flow.has('livingRooms') || flow.has('kitchens')) && (
+              <div className="mt-5 grid gap-4 sm:grid-cols-3">
+                {flow.has('bathrooms') && (
+                  <Field label={t.bathrooms} hint={t.optional} error={err('bathrooms')}>
+                    <Stepper name="bathrooms" min={1} max={6} value={values.bathrooms} onChange={(v) => set('bathrooms', v)} />
+                  </Field>
+                )}
+                {flow.has('livingRooms') && (
+                  <Field label={t.livingRooms} hint={t.optional} error={err('livingRooms')}>
+                    <Stepper name="livingRooms" min={1} max={4} value={values.livingRooms} onChange={(v) => set('livingRooms', v)} />
+                  </Field>
+                )}
+                {flow.has('kitchens') && (
+                  <Field label={t.kitchens} hint={t.optional} error={err('kitchens')}>
+                    <Stepper name="kitchens" min={1} max={3} value={values.kitchens} onChange={(v) => set('kitchens', v)} />
+                  </Field>
+                )}
               </div>
-            </Field>
+            )}
 
-            <div className="mt-5 grid gap-4 sm:grid-cols-3">
-              <Field label={t.bathrooms} hint={t.optional} error={err('bathrooms')}>
-                <input
-                  type="number"
-                  inputMode="numeric"
-                  name="bathrooms"
-                  min={1}
-                  max={6}
-                  value={String(values.bathrooms ?? '')}
-                  onChange={(e) => set('bathrooms', e.target.value)}
-                  className={inputCls}
-                />
-              </Field>
-              <Field label={t.livingRooms} hint={t.optional} error={err('livingRooms')}>
-                <input
-                  type="number"
-                  inputMode="numeric"
-                  name="livingRooms"
-                  min={1}
-                  max={4}
-                  value={String(values.livingRooms ?? '')}
-                  onChange={(e) => set('livingRooms', e.target.value)}
-                  className={inputCls}
-                />
-              </Field>
-              <Field label={t.kitchens} hint={t.optional} error={err('kitchens')}>
-                <input
-                  type="number"
-                  inputMode="numeric"
-                  name="kitchens"
-                  min={1}
-                  max={3}
-                  value={String(values.kitchens ?? '')}
-                  onChange={(e) => set('kitchens', e.target.value)}
-                  className={inputCls}
-                />
-              </Field>
-            </div>
+            {flow.has('extras') && (
+              <>
+                <span className="mt-5 mb-1 block text-sm font-medium">{t.extrasTitle}</span>
+                <p className="mb-2 text-xs text-muted">{t.extrasLede}</p>
+                <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+                  {flow.extras
+                    .filter((k) => k !== 'ascenseur' || elevatorMakesSense(Number(values.levels || 1)))
+                    .map((k) => (
+                      <Chip key={k} on={Boolean(values[k])} onClick={() => set(k, !values[k])} block check>
+                        {t[k]}
+                        {k === 'ascenseur' && (
+                          <span className="block text-[11px] font-normal text-faint">{t.ascenseurHint}</span>
+                        )}
+                      </Chip>
+                    ))}
+                </div>
+                {flow.disabilityHint === 'elevator' && (
+                  <p className="mt-2 rounded border border-gold/40 bg-gold-soft px-3 py-2 text-xs leading-6">{t.disabilityElevator}</p>
+                )}
+              </>
+            )}
+            {/* الزيادات تسافر كحقول مستقلّة: كلّ واحدة متغيّر في صيغ البوردرو */}
+            {EXTRAS.map((k) => (
+              <input key={k} type="hidden" name={k} value={flow.extras.includes(k) && values[k] ? "on" : ""} />
+            ))}
+          </Group>
+        )}
 
-            <div className="mt-5">
-              <span className="mb-2 block text-sm font-medium">{t.extrasTitle}</span>
-              <div className="flex flex-wrap gap-2">
-                {(['garage', 'terrasse', 'jardin'] as const).map((k) => (
-                  <label
-                    key={k}
-                    className={`flex min-h-11 cursor-pointer items-center gap-2 rounded border px-4 text-sm transition ${
-                      values[k]
-                        ? 'border-brand bg-brand-soft'
-                        : 'border-line hover:border-line-strong'
-                    }`}
-                  >
-                    <input
-                      type="checkbox"
-                      name={k}
-                      checked={Boolean(values[k])}
-                      onChange={(e) => set(k, e.target.checked)}
-                      className="size-4 accent-[#1d3a5f]"
-                    />
-                    {t[k]}
-                  </label>
-                ))}
-              </div>
+        {/* ---------- الاستعجال — للبقيّة في مكانه المعتاد ---------- */}
+        {flow.type !== 'other' && flow.type !== 'renovation' && urgencyGroup()}
+
+        {/* ---------- المرونة: خيارات هذا المسار وحده ---------- */}
+        {flow.flexibility.length > 0 && (
+          <Group title={t.flexTitle} lede={t.flexLede}>
+            <div className="grid gap-2.5 sm:grid-cols-2">
+              {flow.flexibility.map((f) => (
+                <Choice
+                  key={f}
+                  name="flexibility"
+                  value={f}
+                  multi
+                  on={flexibility.includes(f)}
+                  onChange={() => toggleFlexibility(f)}
+                  title={labels.flexibility[f]}
+                  hint={labels.flexibilityHint[f]}
+                />
+              ))}
             </div>
-          </div>
+            {flexibility.includes('title') && (
+              <p className="mt-2 rounded border border-gold/40 bg-gold-soft px-3 py-2 text-xs leading-6">{t.titleWarning}</p>
+            )}
+          </Group>
+        )}
+
+        {/* ---------- الحكاية — لكلّ المسارات، آخر الخطوة إلّا لصاحب المشكل ---------- */}
+        {flow.type !== 'other' && (
+          <Group title={t.problemTitle} lede={t.problemLede}>
+            <textarea
+              name="problemNote"
+              rows={4}
+              value={String(values.problemNote ?? '')}
+              onChange={(e) => set('problemNote', e.target.value)}
+              className={inputCls}
+              placeholder={t.problemPlaceholder}
+            />
+            <VoiceRecorder name="voiceProblemNote" t={voice} />
+          </Group>
         )}
       </fieldset>
 
-      {/* 3 */}
-      {isBuild && (
+      {/* 3 — الأرض لمن يملكها · الدار الحالية لمن يرمّم · لا ثالثة لغيرهما */}
+      {flow.has('landStep') && (
         <fieldset className={step === 3 ? 'block' : 'hidden'}>
           <legend className="display mb-2 text-2xl font-semibold">{t.s3Title}</legend>
           <p className="mb-6 text-muted">{t.s3Lede}</p>
@@ -1018,7 +1245,8 @@ export default function RequestForm({
               </select>
             </Field>
           </div>
-          <div className="mt-6 grid gap-3 sm:grid-cols-2">
+
+          <div className="mt-5 grid gap-2 sm:grid-cols-4">
             {(
               [
                 ['hasWater', t.hasWater],
@@ -1027,21 +1255,127 @@ export default function RequestForm({
                 ['hasPermit', t.hasPermit],
               ] as const
             ).map(([k, label]) => (
-              <label
-                key={k}
-                className="flex cursor-pointer items-center gap-3 rounded border border-line bg-surface p-4"
-              >
-                <input
-                  type="checkbox"
-                  name={k}
-                  checked={Boolean(values[k])}
-                  onChange={(e) => set(k, e.target.checked)}
-                  className="size-4 accent-[#1d3a5f]"
-                />
-                <span className="text-sm">{label}</span>
-              </label>
+              <Chip key={k} on={Boolean(values[k])} onClick={() => set(k, !values[k])} block check>
+                {label}
+              </Chip>
             ))}
           </div>
+          {(['hasWater', 'hasPower', 'hasRoad', 'hasPermit'] as const).map((k) => (
+            <input key={k} type="hidden" name={k} value={values[k] ? "on" : ""} />
+          ))}
+
+          {/* الأسئلة الثلاثة التي يسألها المستشار في أوّل مكالمة اليوم */}
+          <div className="mt-6 grid gap-5">
+            <div>
+              <span className="mb-1 block text-sm font-medium">{t.inUrbanPlan}</span>
+              <p className="mb-2 text-xs text-muted">{t.urbanHint}</p>
+              <div className="flex flex-wrap gap-2">
+                {URBAN_PLAN_STATES.map((v) => (
+                  <Chip key={v} on={values.inUrbanPlan === v} onClick={() => set('inUrbanPlan', v)}>
+                    {t.urbanLabels[v]}
+                  </Chip>
+                ))}
+              </div>
+              <input type="hidden" name="inUrbanPlan" value={String(values.inUrbanPlan ?? '')} />
+            </div>
+            <div>
+              <span className="mb-2 block text-sm font-medium">{t.existingBuilding}</span>
+              <div className="flex flex-wrap gap-2">
+                {EXISTING_BUILDING.map((v) => (
+                  <Chip key={v} on={values.existingBuilding === v} onClick={() => set('existingBuilding', v)}>
+                    {t.existingLabels[v]}
+                  </Chip>
+                ))}
+              </div>
+              <input type="hidden" name="existingBuilding" value={String(values.existingBuilding ?? '')} />
+            </div>
+            <div>
+              <span className="mb-2 block text-sm font-medium">{t.hasPlans}</span>
+              <div className="flex flex-wrap gap-2">
+                {PLAN_STATES.map((v) => (
+                  <Chip key={v} on={values.hasPlans === v} onClick={() => set('hasPlans', v)}>
+                    {t.plansLabels[v]}
+                  </Chip>
+                ))}
+              </div>
+              <input type="hidden" name="hasPlans" value={String(values.hasPlans ?? '')} />
+            </div>
+          </div>
+        </fieldset>
+      )}
+
+      {flow.has('homeStep') && (
+        <fieldset className={step === 3 ? 'block' : 'hidden'}>
+          <legend className="display mb-2 text-2xl font-semibold">{t.sHomeTitle}</legend>
+          <p className="mb-6 text-muted">{t.sHomeLede}</p>
+
+          <span className="mb-2 block text-sm font-medium">{t.ownership}</span>
+          <div className="grid gap-2.5 sm:grid-cols-3">
+            {OWNERSHIPS.map((o) => (
+              <Choice
+                key={o}
+                name="ownership"
+                value={o}
+                on={values.ownership === o}
+                onChange={() => set('ownership', o)}
+                title={t.ownershipLabels[o]}
+              />
+            ))}
+          </div>
+
+          {/* المستأجر لا يرمّم ما لا يملكه: نقولها بلطف ونفتح له المسار الصحيح */}
+          {flow.blocked === 'tenant' && (
+            <div className="mt-4 rounded-lg border border-gold/50 bg-gold-soft p-4 text-sm leading-7">
+              <p>{t.renterStop}</p>
+              <button
+                type="button"
+                onClick={() => setValues((v) => ({ ...v, requestType: 'other', ownership: '' }))}
+                className="mt-2 rounded bg-brand px-4 py-2 text-sm text-white hover:bg-brand-deep"
+              >
+                {t.renterStopCta}
+              </button>
+            </div>
+          )}
+
+          {flow.blocked === null && (
+            <div className="mt-6 grid gap-5 sm:grid-cols-2">
+              <Field label={t.buildingAge} hint={t.optional} error={err('buildingAge')}>
+                <input
+                  type="number"
+                  inputMode="numeric"
+                  name="buildingAge"
+                  min={0}
+                  max={200}
+                  value={String(values.buildingAge ?? '')}
+                  onChange={(e) => set('buildingAge', e.target.value)}
+                  className={inputCls}
+                />
+              </Field>
+              <Field label={t.titleStatus} hint={t.optional}>
+                <select
+                  name="homeTitleStatus"
+                  value={String(values.homeTitleStatus ?? '')}
+                  onChange={(e) => set('homeTitleStatus', e.target.value)}
+                  className={inputCls}
+                >
+                  <option value="">{t.choose}</option>
+                  {TITLE_STATUSES.map((ts) => (
+                    <option key={ts} value={ts}>
+                      {labels.titleStatus[ts]}
+                    </option>
+                  ))}
+                </select>
+              </Field>
+              {flow.structural && (
+                <div className="sm:col-span-2">
+                  <Chip on={Boolean(values.homePermit)} onClick={() => set('homePermit', !values.homePermit)} check>
+                    {t.homePermit}
+                  </Chip>
+                </div>
+              )}
+              <input type="hidden" name="homePermit" value={values.homePermit ? "on" : ""} />
+            </div>
+          )}
         </fieldset>
       )}
 
@@ -1109,40 +1443,96 @@ export default function RequestForm({
             </select>
           </Field>
 
-          {/* الكراء: أوضح دليل على القدرة الشهرية — يدفعه فعلاً كلّ شهر */}
-          <div className="mt-4 rounded border border-line bg-surface p-4 sm:p-5">
-            <label className="flex cursor-pointer items-start gap-3">
+          {/* الكراء يظهر مع جوابه لا في خانة منفصلة: من قال «بالكراء»
+              يُسأل عن مبلغه في نفس اللحظة، ومن بدّل جوابه يختفي السؤال.
+              سؤالان لنفس الشيء يعطيان جوابين متناقضين يوماً ما. */}
+          {isRenting && (
+            <Field label={t.rentTnd} hint={t.rentHint} error={err('rentTnd')}>
               <input
-                type="checkbox"
-                name="isRenting"
-                checked={Boolean(values.isRenting)}
-                onChange={(e) => set('isRenting', e.target.checked)}
-                className="mt-1 size-4 accent-[#1d3a5f]"
+                type="number"
+                inputMode="numeric"
+                name="rentTnd"
+                min={0}
+                max={20000}
+                value={String(values.rentTnd ?? '')}
+                onChange={(e) => set('rentTnd', e.target.value)}
+                className={`${inputCls} sm:max-w-xs`}
               />
-              <span className="text-sm leading-7 font-medium">{t.isRenting}</span>
-            </label>
+              <span className="mt-2 block text-xs leading-6 text-faint">{t.rentWhy}</span>
+            </Field>
+          )}
 
-            {values.isRenting && (
-              <div className="mt-4">
-                <Field label={t.rentTnd} hint={t.rentHint} error={err('rentTnd')}>
-                  <input
-                    type="number"
-                    inputMode="numeric"
-                    name="rentTnd"
-                    min={0}
-                    max={20000}
-                    value={String(values.rentTnd ?? '')}
-                    onChange={(e) => set('rentTnd', e.target.value)}
-                    className={`${inputCls} sm:max-w-xs`}
-                  />
-                </Field>
-                <p className="mt-2 text-xs leading-6 text-faint">{t.rentWhy}</p>
+          {/* المشاكل تجتمع: المسكن يكون ضيّقاً وغالياً وبعيداً في آن واحد.
+              خيار واحد كان يجبره يختار أثقلها ويسكت عن الباقي — ومن بلا
+              مسكن لا يُسأل أصلاً عمّا يضايقه في مسكنه. */}
+          {values.housingCondition && values.housingCondition !== 'homeless' && (
+            <div className="mt-5">
+              <span className="mb-1 block text-sm font-medium">{t.housingProblems}</span>
+              <p className="mb-3 text-sm leading-7 text-muted">{t.housingProblemsLede}</p>
+              <div className="flex flex-col gap-2">
+                {shownProblems.map((k) => {
+                  const on = housingProblems.includes(k)
+                  return (
+                    <label
+                      key={k}
+                      className={`flex min-h-12 cursor-pointer items-center gap-2.5 rounded border px-3 text-sm transition ${
+                        on ? 'border-brand bg-brand-soft' : 'border-line hover:border-line-strong'
+                      }`}
+                    >
+                      <input
+                        type="checkbox"
+                        name="housingProblems"
+                        value={k}
+                        checked={on}
+                        onChange={() => toggleIn('housingProblems', k)}
+                        className="size-4 shrink-0 accent-[#1d3a5f]"
+                      />
+                      {t.housingProblemLabels[k]}
+                    </label>
+                  )
+                })}
               </div>
-            )}
-          </div>
+            </div>
+          )}
         </Group>
 
         <Group title={t.grpIncome} lede={t.grpIncomeLede}>
+          {/* «فلوسي حاضرة» حالة تمويل لا نوع مطلب. كانت في الخطوة الأولى
+              بين مسارات السكن، وكانت تفرض «بناء فوق أرضي» على من اختارها —
+              فمن عنده المال ويريد شقّة كان يخرج بمطلب غير مطلبه. مكانها هنا:
+              تجاور «وين وصلت مع البنك؟» وتغنيه، وتسبق أسئلة الدخل. */}
+          <label
+            className={`mb-4 flex cursor-pointer items-start gap-3 rounded-xl border p-3.5 transition ${
+              values.cashReady
+                ? "border-gold bg-gold-soft"
+                : "border-line bg-surface hover:border-gold/50"
+            }`}
+          >
+            <input
+              type="checkbox"
+              name="cashReady"
+              checked={Boolean(values.cashReady)}
+              onChange={(e) =>
+                setValues((v) => ({
+                  ...v,
+                  cashReady: e.target.checked,
+                  // التصريح يحسم وضع التمويل، ولا يمسّ نوع المطلب
+                  financingState: e.target.checked ? 'self_funded' : '',
+                }))
+              }
+              className="mt-0.5 size-4 accent-[#a8781f]"
+            />
+            <span className="min-w-0">
+              <span className="flex flex-wrap items-center gap-2">
+                <span className="text-sm font-semibold">{t.cashReadyTitle}</span>
+                <span className="rounded bg-gold px-2 py-0.5 text-[11px] font-medium text-white">
+                  {t.cashReadyBadge}
+                </span>
+              </span>
+              <span className="mt-0.5 block text-xs leading-6 text-muted">{t.cashReadyBody}</span>
+            </span>
+          </label>
+
           <div className="grid gap-5 sm:grid-cols-2">
             <Field label={t.incomeStability} hint={t.optional} error={err('incomeStability')}>
               <select
@@ -1179,6 +1569,7 @@ export default function RequestForm({
           </div>
         </Group>
 
+        {flow.type !== 'other' && (
         <Group title={t.grpObstacle}>
           <Field label={t.problemType} hint={t.optional} error={err('problemType')}>
             <select
@@ -1196,12 +1587,27 @@ export default function RequestForm({
             </select>
           </Field>
         </Group>
+        )}
       </fieldset>
 
       {/* 5 — القدرة المالية */}
       <fieldset className={step === 5 ? 'block' : 'hidden'}>
         <legend className="display mb-2 text-2xl font-semibold">{t.s4Title}</legend>
         <p className="mb-6 text-muted">{t.s4Lede}</p>
+        {flow.financeOptional && !financeOpen ? (
+          <div className="rounded-lg border border-line bg-surface p-4">
+            <b className="block text-sm">{t.financeOptionalTitle}</b>
+            <p className="mt-1 text-sm leading-7 text-muted">{t.financeOptionalLede}</p>
+            <button
+              type="button"
+              onClick={() => setFinanceOpen(true)}
+              className="mt-3 rounded border border-brand px-4 py-2 text-sm text-brand hover:bg-brand-soft"
+            >
+              {t.financeOptionalOpen}
+            </button>
+          </div>
+        ) : (
+          <>
         {values.cashReady && (
           <p className="mb-6 rounded border border-gold/40 bg-gold-soft px-4 py-3 text-sm leading-7 text-gold">
             {t.cashReadyNote}
@@ -1379,6 +1785,8 @@ export default function RequestForm({
 
           <p className="mt-4 text-xs leading-6 text-faint">{t.socialNote}</p>
         </div>
+          </>
+        )}
       </fieldset>
 
       {/* 6 — الاتصال والوثائق */}
@@ -1589,18 +1997,199 @@ const inputCls =
 function Group({
   title,
   lede,
+  aside,
   children,
 }: {
   title: string
   lede?: string
+  /** عنصر في طرف العنوان — رابط شرح مثلاً */
+  aside?: React.ReactNode
   children: React.ReactNode
 }) {
   return (
     <section className="mt-7 border-t border-line pt-5 first:mt-0 first:border-0 first:pt-0">
-      <h3 className="text-sm font-semibold">{title}</h3>
+      <div className="flex flex-wrap items-baseline justify-between gap-2">
+        <h3 className="text-sm font-semibold">{title}</h3>
+        {aside}
+      </div>
       {lede && <p className="mt-0.5 text-sm leading-7 text-muted">{lede}</p>}
       <div className="mt-3">{children}</div>
     </section>
+  )
+}
+
+
+/**
+ * خيار يُنقر.
+ *
+ * كانت الخيارات مستطيلات رمادية بحدّ رفيع لا تقول إن كانت أزراراً أو
+ * عناوين. الشكل الواحد لكلّ ما يُختار — حدّ واضح، امتلاء عند الاختيار،
+ * علامة صحّ حين يكون الاختيار متعدّداً — يجعل «هذا يُنقر» بديهياً.
+ */
+function Chip({
+  on,
+  onClick,
+  block = false,
+  check = false,
+  children,
+}: {
+  on: boolean
+  onClick: () => void
+  /** يملأ عرض خانته في شبكة */
+  block?: boolean
+  /** علامة صحّ — للاختيار المتعدّد حيث «مختار» لا يعني «الوحيد» */
+  check?: boolean
+  children: React.ReactNode
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-pressed={on}
+      className={`inline-flex min-h-11 items-center gap-2 rounded-lg border px-4 text-sm transition active:scale-[0.98] ${
+        block ? 'w-full justify-start text-start' : ''
+      } ${
+        on
+          ? 'border-brand bg-brand text-white shadow-sm'
+          : 'border-line bg-surface text-ink hover:border-brand/50 hover:bg-brand-soft/60'
+      }`}
+    >
+      {check && (
+        <span
+          className={`flex size-4 shrink-0 items-center justify-center rounded border ${
+            on ? 'border-white/70 bg-white/20' : 'border-line-strong'
+          }`}
+          aria-hidden="true"
+        >
+          {on && (
+            <svg viewBox="0 0 12 12" className="size-3">
+              <path fill="currentColor" d="M10.3 2.3 4.8 7.8 1.7 4.7.3 6.1l4.5 4.5 7-7z" />
+            </svg>
+          )}
+        </span>
+      )}
+      <span className="min-w-0">{children}</span>
+    </button>
+  )
+}
+
+/**
+ * بطاقة اختيار بعنوان وسطر شرح — نفس شكل بطاقات الخطوة الأولى.
+ * الاختيار الفرديّ radio والمتعدّد checkbox: المتصفّح يبعث القيمة بنفسه.
+ */
+function Choice({
+  name,
+  value,
+  on,
+  onChange,
+  title,
+  hint,
+  meta,
+  multi = false,
+}: {
+  name: string
+  value: string
+  on: boolean
+  onChange: () => void
+  title: string
+  hint?: string
+  /** سطر بارز تحت العنوان — سعر مثلاً */
+  meta?: React.ReactNode
+  multi?: boolean
+}) {
+  return (
+    <label
+      className={`relative flex cursor-pointer gap-3 rounded-xl border p-3.5 transition ${
+        on
+          ? 'border-brand bg-brand-soft shadow-[0_1px_0_0_var(--color-brand)]'
+          : 'border-line bg-surface hover:border-brand/40 hover:bg-brand-soft/40'
+      }`}
+    >
+      <input
+        type={multi ? 'checkbox' : 'radio'}
+        name={name}
+        value={value}
+        checked={on}
+        onChange={onChange}
+        className="sr-only"
+      />
+      <span
+        className={`mt-0.5 flex size-5 shrink-0 items-center justify-center border transition ${
+          multi ? 'rounded' : 'rounded-full'
+        } ${
+          on ? 'border-brand bg-brand text-white' : 'border-line-strong bg-surface'
+        }`}
+        aria-hidden="true"
+      >
+        {on && (
+          <svg viewBox="0 0 12 12" className="size-3">
+            <path fill="currentColor" d="M10.3 2.3 4.8 7.8 1.7 4.7.3 6.1l4.5 4.5 7-7z" />
+          </svg>
+        )}
+      </span>
+      <span className="min-w-0 flex-1">
+        <span className="block text-sm font-semibold leading-6">{title}</span>
+        {meta && <span className="mt-0.5 block text-sm">{meta}</span>}
+        {hint && <span className="mt-0.5 block text-xs leading-5 text-muted">{hint}</span>}
+      </span>
+    </label>
+  )
+}
+
+/**
+ * عدّاد − n +.
+ *
+ * خانة رقم فارغة لعدد الحمّامات تُقرأ كسؤال بلا جواب. زرّان واضحان
+ * والرقم بينهما يقولان «اضغط» — ومن يفضّل الكتابة يكتب في الوسط.
+ */
+function Stepper({
+  name,
+  value,
+  min,
+  max,
+  onChange,
+}: {
+  name: string
+  value: string | boolean | undefined
+  min: number
+  max: number
+  onChange: (v: string) => void
+}) {
+  const n = Number(value || 0)
+  const cls =
+    'flex size-11 shrink-0 items-center justify-center text-lg text-muted transition hover:bg-brand-soft hover:text-brand disabled:opacity-30'
+  return (
+    <div className="inline-flex h-11 items-stretch overflow-hidden rounded-lg border border-line bg-surface">
+      <button
+        type="button"
+        onClick={() => onChange(String(Math.max(min, n - 1)))}
+        disabled={n <= min}
+        className={cls}
+        aria-label="−"
+      >
+        −
+      </button>
+      <input
+        type="number"
+        inputMode="numeric"
+        name={name}
+        min={min}
+        max={max}
+        value={value ? String(value) : ''}
+        onChange={(e) => onChange(e.target.value)}
+        className="num w-14 border-x border-line bg-transparent text-center text-[15px] outline-none [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+        placeholder="—"
+      />
+      <button
+        type="button"
+        onClick={() => onChange(String(Math.min(max, (n || min - 1) + 1)))}
+        disabled={n >= max}
+        className={cls}
+        aria-label="+"
+      >
+        +
+      </button>
+    </div>
   )
 }
 

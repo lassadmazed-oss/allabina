@@ -25,6 +25,12 @@ export async function writeClientAnswers(requestId: string, d: RequestData): Pro
     d.garage ||
     d.terrasse ||
     d.jardin ||
+    d.cloture ||
+    d.majel ||
+    d.piscine ||
+    d.annexe ||
+    d.solar ||
+    d.ascenseur ||
     d.desiredAreaM2 !== null ||
     d.constructionSystem !== null
 
@@ -59,6 +65,12 @@ export async function writeClientAnswers(requestId: string, d: RequestData): Pro
         garage: d.garage,
         terrasse: d.terrasse,
         jardin: d.jardin,
+        cloture: d.cloture,
+        majel: d.majel,
+        piscine: d.piscine,
+        annexe: d.annexe,
+        solar: d.solar,
+        ascenseur: d.ascenseur,
         standing: d.standing,
         system_code: systemCode,
         updated_at: new Date().toISOString(),
@@ -74,7 +86,7 @@ export async function writeClientAnswers(requestId: string, d: RequestData): Pro
     d.hasDisability ||
     d.housingCondition !== null ||
     d.incomeStability !== null ||
-    d.isRenting
+    d.housingProblems.length > 0
 
   if (hasSocial) {
     const { error } = await db.from('social_assessments').upsert(
@@ -84,10 +96,15 @@ export async function writeClientAnswers(requestId: string, d: RequestData): Pro
         dependents: d.dependents,
         has_disability: d.hasDisability,
         housing_condition: d.housingCondition,
+        housing_problems: d.housingProblems,
         income_stability: d.incomeStability,
-        is_renting: d.isRenting,
-        // الكراء بلا «كاري» لا معنى له: من رفع التأشيرة يُمحى مبلغه
-        rent_tnd: d.isRenting ? d.rentTnd : null,
+        /**
+         * «كاري» يُشتقّ من الحيازة ولا يُسأل مرّتين. يبقى عموداً لأنّ
+         * دليل الوثائق والشاشات تقرأه، لكنّ مصدره جواب واحد.
+         */
+        is_renting: d.housingCondition === 'renting',
+        // الكراء بلا كراء لا معنى له: من بدّل حيازته يُمحى مبلغه
+        rent_tnd: d.housingCondition === 'renting' ? d.rentTnd : null,
         updated_at: new Date().toISOString(),
       },
       { onConflict: 'request_id' }

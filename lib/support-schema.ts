@@ -9,16 +9,52 @@ import { parseLooseInt } from '@/lib/property-schema'
  * يجي في المكالمة مع الفريق. هنا نسألو على الحاجة والوضعية برك.
  */
 
+/**
+ * صفة الحيازة — «وين تسكن توّة؟». واحدة ومتنافية.
+ *
+ * كانت القائمة تخلطها بحالة المسكن، فمن يسكن مع أهله في مسكن ضيّق
+ * يجد جوابين صحيحين ويختار واحداً فنخسر النصف. الحالة صارت قائمة
+ * مستقلّة (HOUSING_PROBLEMS) تُختار منها أكثر من واحدة.
+ */
 export const HOUSING_CONDITIONS = [
-  'unsafe',
-  'overcrowded',
-  'rented_unstable',
+  'owner',
+  'renting',
   'with_family',
+  'employer',
+  'temporary',
   'homeless',
   'other',
 ] as const
 
-export const INCOME_STABILITY = ['none', 'irregular', 'low_stable', 'other'] as const
+/**
+ * ما يضايقه في مسكنه الحالي — متعدّد ومجتمع كما هو في الواقع:
+ * المسكن يكون ضيّقاً وغالياً وبعيداً في آن واحد.
+ */
+export const HOUSING_PROBLEMS = [
+  'overcrowded',
+  'unsafe',
+  'no_utilities',
+  'expensive',
+  'unstable',
+  'far',
+  'not_accessible',
+] as const
+
+/**
+ * كيف يصل الدخل — لا كم يبلغ.
+ *
+ * القائمة القديمة كانت: بلا دخل · غير قارّ · قارّ لكن **ضعيف** · أخرى.
+ * ما فيهاش خانة لأجر قارّ عادي، فصاحب الأجر المحترم يختار «أخرى»؛
+ * و«ضعيف» حكم على الناس والمقدار يُسأل في خطوة الدخل أصلاً. الانتظام
+ * والمقدار بُعدان يقرؤهما البنك مستقلّين، فنسأل عن الانتظام وحده.
+ */
+export const INCOME_STABILITY = [
+  'monthly_fixed',
+  'monthly_variable',
+  'seasonal',
+  'irregular',
+  'none',
+] as const
 
 export const URGENCY_LEVELS = ['planning', 'within_year', 'urgent', 'critical'] as const
 

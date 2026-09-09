@@ -31,6 +31,14 @@ export type RequestRow = {
   problem_type: string | null
   financing_state: string | null
   cash_ready: boolean | null
+  // الخريطة حسب المسار
+  apartment_state?: string | null
+  floor_pref?: string | null
+  elevator_needed?: boolean | null
+  parking_needed?: boolean | null
+  renovation_works?: string[] | null
+  current_area_m2?: number | null
+  extension_area_m2?: number | null
 }
 
 export type FinanceRow = {
@@ -54,6 +62,12 @@ export type ConfigRow = {
   garage: boolean | null
   terrasse: boolean | null
   jardin: boolean | null
+  cloture: boolean | null
+  majel: boolean | null
+  piscine: boolean | null
+  annexe: boolean | null
+  solar: boolean | null
+  ascenseur: boolean | null
 }
 
 export type SocialRow = {
@@ -61,6 +75,7 @@ export type SocialRow = {
   dependents: number | null
   has_disability: boolean | null
   housing_condition: string | null
+  housing_problems: string[] | null
   income_stability: string | null
   is_renting: boolean | null
   rent_tnd: number | null
@@ -72,6 +87,17 @@ export type LandRow = {
   has_water: boolean | null
   has_power: boolean | null
   has_road: boolean | null
+  has_permit: boolean | null
+  in_urban_plan?: string | null
+  existing_building?: string | null
+  has_plans?: string | null
+}
+
+/** الدار الحالية — لمن يرمّم */
+export type HomeRow = {
+  ownership: string | null
+  building_age_years: number | null
+  title_status: string | null
   has_permit: boolean | null
 }
 
@@ -98,7 +124,8 @@ export function toFormValues(
   land: LandRow | null,
   cfg: ConfigRow | null = null,
   social: SocialRow | null = null,
-  declaredDocs: readonly string[] = []
+  declaredDocs: readonly string[] = [],
+  home: HomeRow | null = null
 ): FormValues {
   return {
     requestType: r.request_type,
@@ -115,6 +142,13 @@ export function toFormValues(
     urgencyNote: r.urgency_note ?? '',
     flexibility: (r.flexibility ?? []).join(','),
     problemNote: r.problem_note ?? '',
+    apartmentState: r.apartment_state ?? '',
+    floorPref: r.floor_pref ?? '',
+    elevatorNeeded: b(r.elevator_needed),
+    parkingNeeded: b(r.parking_needed),
+    works: (r.renovation_works ?? []).join(','),
+    currentAreaM2: s(r.current_area_m2),
+    extensionAreaM2: s(r.extension_area_m2),
 
     foprolosInterest: b(r.foprolos_interest),
     isFirstHome: b(r.is_first_home),
@@ -129,13 +163,20 @@ export function toFormValues(
     garage: b(cfg?.garage),
     terrasse: b(cfg?.terrasse),
     jardin: b(cfg?.jardin),
+    cloture: b(cfg?.cloture),
+    majel: b(cfg?.majel),
+    piscine: b(cfg?.piscine),
+    annexe: b(cfg?.annexe),
+    solar: b(cfg?.solar),
+    ascenseur: b(cfg?.ascenseur),
 
     householdSize: s(social?.household_size ?? null),
     dependents: s(social?.dependents ?? null),
     hasDisability: b(social?.has_disability),
     housingCondition: social?.housing_condition ?? '',
     incomeStability: social?.income_stability ?? '',
-    isRenting: b(social?.is_renting),
+    // «كاري» تُقرأ من الحيازة: عمود is_renting مشتقّ لا مصدر
+    housingProblems: [...(social?.housing_problems ?? [])].sort().join(','),
     rentTnd: s(social?.rent_tnd ?? null),
     problemType: r.problem_type ?? '',
     financingState: r.financing_state ?? '',
@@ -150,6 +191,13 @@ export function toFormValues(
     hasPower: b(land?.has_power),
     hasRoad: b(land?.has_road),
     hasPermit: b(land?.has_permit),
+    inUrbanPlan: land?.in_urban_plan ?? '',
+    existingBuilding: land?.existing_building ?? '',
+    hasPlans: land?.has_plans ?? '',
+    ownership: home?.ownership ?? '',
+    buildingAge: s(home?.building_age_years ?? null),
+    homeTitleStatus: home?.title_status ?? '',
+    homePermit: b(home?.has_permit),
 
     monthlyIncome: s(f?.monthly_income_tnd ?? null),
     spouseIncome: s(f?.spouse_income_tnd ?? null),
@@ -247,12 +295,32 @@ export const OWNER_FIELDS = [
   'garage',
   'terrasse',
   'jardin',
+  'cloture',
+  'majel',
+  'piscine',
+  'annexe',
+  'solar',
+  'ascenseur',
+  'apartmentState',
+  'floorPref',
+  'elevatorNeeded',
+  'parkingNeeded',
+  'works',
+  'currentAreaM2',
+  'extensionAreaM2',
+  'inUrbanPlan',
+  'existingBuilding',
+  'hasPlans',
+  'ownership',
+  'buildingAge',
+  'homeTitleStatus',
+  'homePermit',
   'householdSize',
   'dependents',
   'hasDisability',
   'housingCondition',
   'incomeStability',
-  'isRenting',
+  'housingProblems',
   'rentTnd',
   'problemType',
   'financingState',
@@ -339,12 +407,39 @@ export const FIELD_LABELS_AR: Record<string, string> = {
   garage: 'جراج',
   terrasse: 'تراس',
   jardin: 'حديقة',
+
+
+  cloture: 'سور الأرض',
+
+  majel: 'ماجل',
+
+  piscine: 'مسبح',
+
+  annexe: 'بيت خارجي / ملحق',
+
+  solar: 'ألواح شمسية',
+
+  ascenseur: 'مصعد',
+  apartmentState: 'حالة الشقّة',
+  floorPref: 'الطابق',
+  elevatorNeeded: 'مصعد ضروري',
+  parkingNeeded: 'موقف سيارة ضروري',
+  works: 'نوع الأشغال',
+  currentAreaM2: 'المساحة الحالية',
+  extensionAreaM2: 'المساحة المضافة',
+  inUrbanPlan: 'داخل مثال التهيئة',
+  existingBuilding: 'بناء قائم',
+  hasPlans: 'رسم معماري',
+  ownership: 'ملكية الدار',
+  buildingAge: 'عمر البناء',
+  homeTitleStatus: 'وضعية ملكية الدار',
+  homePermit: 'رخصة التوسعة',
   householdSize: 'عدد أفراد العائلة',
   dependents: 'عدد المُعالين',
   hasDisability: 'إعاقة أو مرض مزمن',
   housingCondition: 'وضعية السكن الحالية',
   incomeStability: 'استقرار الدخل',
-  isRenting: 'كاري',
+  housingProblems: 'مشاكل السكن الحالي',
   rentTnd: 'الكراء الشهري',
   problemType: 'أكبر عائق',
   financingState: 'وضع التمويل',

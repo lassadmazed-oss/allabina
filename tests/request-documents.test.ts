@@ -46,6 +46,7 @@ const base: DocContext = {
   foprolosInterest: false,
   hasDisability: false,
   housingCondition: '',
+  housingProblems: [],
   incomeStability: '',
 }
 
@@ -105,11 +106,20 @@ describe('الشروط', () => {
     expect(codes({ ...base, foprolosInterest: true })).toContain('non_property_cert')
   })
 
-  it('الضائقة تُستنتج من وضع السكن أو انعدام الدخل', () => {
+  it('الضائقة تُستنتج ولا تُسأل: من فيها لا يصنّف نفسه', () => {
     expect(codes(base)).not.toContain('omda_cert')
-    expect(codes({ ...base, housingCondition: 'unsafe' })).toContain('omda_cert')
     expect(codes({ ...base, housingCondition: 'homeless' })).toContain('omda_cert')
+    expect(codes({ ...base, housingProblems: ['unsafe'] })).toContain('omda_cert')
+    expect(codes({ ...base, housingProblems: ['no_utilities'] })).toContain('omda_cert')
     expect(codes({ ...base, incomeStability: 'none' })).toContain('omda_cert')
+    // ضيّق وغالٍ مشكلان حقيقيّان، لكنّهما ليسا ضائقة توجب شهادة العمدة
+    expect(codes({ ...base, housingProblems: ['overcrowded', 'expensive'] })).not.toContain(
+      'omda_cert'
+    )
+  })
+
+  it('«بالكراء» في الحيازة يكفي لعقد الكراء، بلا سؤال ثانٍ', () => {
+    expect(codes({ ...base, housingCondition: 'renting' })).toContain('rent_contract')
   })
 
   it('الإعاقة تفتح بطاقة الإعاقة وحدها', () => {

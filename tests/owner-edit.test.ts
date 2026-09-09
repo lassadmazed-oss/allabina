@@ -57,8 +57,9 @@ const social = {
   household_size: 5,
   dependents: 3,
   has_disability: false,
-  housing_condition: 'rented_unstable',
-  income_stability: 'low_stable',
+  housing_condition: 'renting',
+  housing_problems: ['unstable', 'expensive'],
+  income_stability: 'monthly_fixed',
   is_renting: true,
   rent_tnd: 620,
 }
@@ -106,8 +107,14 @@ describe('toFormValues', () => {
   })
 
   it('الكراء يعبر كما هو — دليل القدرة الشهرية', () => {
-    expect(v.isRenting).toBe(true)
     expect(v.rentTnd).toBe('620')
+  })
+
+  it('مشاكل السكن مجموعة مرتّبة: الترتيب ليس معطى', () => {
+    // نفس المشاكل بترتيب مقلوب ليست تبديلاً
+    expect(v.housingProblems).toBe('expensive,unstable')
+    const flipped = diffValues(v, { ...v, housingProblems: ['unstable', 'expensive'] }, OWNER_FIELDS)
+    expect(flipped).not.toHaveProperty('housingProblems')
   })
 
   it('«فلوسي حاضرة» تُقرأ من المطلب لا من وضع التمويل', () => {
@@ -121,7 +128,7 @@ describe('toFormValues', () => {
     expect(bare.monthlyIncome).toBe('')
     expect(bare.landAreaM2).toBe('')
     expect(bare.hasWater).toBe(false)
-    expect(bare.isRenting).toBe(false)
+    expect(bare.housingProblems).toBe('')
     expect(bare.rentTnd).toBe('')
   })
 })

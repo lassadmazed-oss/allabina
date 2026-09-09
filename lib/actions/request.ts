@@ -1,6 +1,7 @@
 'use server'
 
 import { redirect } from 'next/navigation'
+import { attachVoiceNotes } from '@/lib/actions/voice-note'
 import { after } from 'next/server'
 import { sendRequestConfirmation } from '@/lib/sms/winsms'
 import { headers } from 'next/headers'
@@ -58,6 +59,7 @@ export async function submitRequest(
     ...raw,
     flexibility: formData.getAll('flexibility'),
     documents: formData.getAll('documents'),
+    housingProblems: formData.getAll('housingProblems'),
     hasWater: raw.hasWater === 'on',
     hasPower: raw.hasPower === 'on',
     hasRoad: raw.hasRoad === 'on',
@@ -115,7 +117,7 @@ export async function submitRequest(
     existingLoans: d.existingLoans,
     downPayment: d.downPayment,
     maxMonthly: d.maxMonthly,
-    employment: d.employment,
+    employment: d.employment ?? '',
     seniorityMonths,
     horizon: d.horizon,
     ownsLand: d.requestType === 'build_on_land' || Boolean(d.landAreaM2),
@@ -149,6 +151,14 @@ export async function submitRequest(
       flexibility: d.flexibility.length ? d.flexibility : null,
       problem_note: d.problemNote || null,
       problem_type: d.problemType,
+      // الخريطة حسب المسار — كلّ حقل يخصّ مساره وحده، والباقي null
+      apartment_state: d.apartmentState,
+      floor_pref: d.floorPref,
+      elevator_needed: d.elevatorNeeded,
+      parking_needed: d.parkingNeeded,
+      renovation_works: d.works.length ? d.works : null,
+      current_area_m2: d.currentAreaM2,
+      extension_area_m2: d.extensionAreaM2,
       // «فلوسي حاضرة» تحسم وضع التمويل: لا بنك ولا دراسة اقتراض
       financing_state: d.cashReady ? 'self_funded' : d.financingState ?? 'not_started',
       cash_ready: d.cashReady,
@@ -173,22 +183,37 @@ export async function submitRequest(
 
   const requestId = inserted.id as string
 
-  const { error: finErr } = await db.from('financial_profiles').insert({
-    request_id: requestId,
-    monthly_income_tnd: d.monthlyIncome,
-    spouse_income_tnd: d.spouseIncome,
-    other_income_tnd: d.otherIncome,
-    existing_loans_tnd: d.existingLoans,
-    down_payment_tnd: d.downPayment,
-    max_monthly_tnd: d.maxMonthly || null,
-    employment: d.employment,
-    seniority_months: seniorityMonths,
-    is_expat: d.isExpat,
-    expat_country: d.expatCountry || null,
-  })
-  if (finErr) console.error('insert financial_profiles', finErr)
+  // التسجيل الصوتي: رُفع إلى المسوّدة قبل وجود السطر، فيُنقل إليه الآن.
+  // لا يوقف شيئاً إن فشل — الملفّ محفوظ، والصوت خدمة فوقه.
+  // خانتان تقبلان الصوت: الحكاية والتوضيح — كلّ تسجيل يُنسب إلى خانته
+  for (const [hidden, field] of [
+    ['voiceProblemNote', 'problemNote'],
+    ['voiceUrgencyNote', 'urgencyNote'],
+  ] as const) {
+    const voiceToken = String(formData.get(hidden) ?? '')
+    if (voiceToken) await attachVoiceNotes('request', requestId, voiceToken, field)
+  }
 
-  if (d.requestType === 'build_on_land' && d.landAreaM2) {
+  // «مشكل آخر» قد يطوي الخطوة المالية: بلا وظيفة لا سطر مالي — العمود لا يقبل الفراغ
+  if (d.employment) {
+    const { error: finErr } = await db.from('financial_profiles').insert({
+      request_id: requestId,
+      monthly_income_tnd: d.monthlyIncome,
+      spouse_income_tnd: d.spouseIncome,
+      other_income_tnd: d.otherIncome,
+      existing_loans_tnd: d.existingLoans,
+      down_payment_tnd: d.downPayment,
+      max_monthly_tnd: d.maxMonthly || null,
+      employment: d.employment,
+      seniority_months: seniorityMonths,
+      is_expat: d.isExpat,
+      expat_country: d.expatCountry || null,
+    })
+    if (finErr) console.error('insert financial_profiles', finErr)
+  }
+
+  const hasLand = d.landAreaM2 || d.titleStatus || d.inUrbanPlan || d.existingBuilding || d.hasPlans
+  if (d.requestType === 'build_on_land' && hasLand) {
     const { error: landErr } = await db.from('request_land').insert({
       request_id: requestId,
       area_m2: d.landAreaM2,
@@ -197,8 +222,25 @@ export async function submitRequest(
       has_power: d.hasPower,
       has_road: d.hasRoad,
       has_permit: d.hasPermit,
+      in_urban_plan: d.inUrbanPlan,
+      existing_building: d.existingBuilding,
+      has_plans: d.hasPlans,
     })
     if (landErr) console.error('insert request_land', landErr)
+  }
+
+  // الدار الحالية — لمن يرمّم. الكاري يُوقَف في الاستمارة قبل الوصول هنا،
+  // ونحرس ثانيةً: لو وصل، يُسجَّل كما صرّح ويراه المستشار موسوماً.
+  const hasHome = d.ownership || d.buildingAge !== null || d.homeTitleStatus || d.homePermit
+  if (d.requestType === 'renovation' && hasHome) {
+    const { error: homeErr } = await db.from('request_home').insert({
+      request_id: requestId,
+      ownership: d.ownership,
+      building_age_years: d.buildingAge,
+      title_status: d.homeTitleStatus,
+      has_permit: d.homePermit,
+    })
+    if (homeErr) console.error('insert request_home', homeErr)
   }
 
   // المواصفات والوضع العائلي والوثائق: كانت تُعمَّر في اللوحة بعد

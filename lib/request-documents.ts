@@ -44,8 +44,15 @@ export type DocContext = {
   existingLoans: number
   foprolosInterest: boolean
   hasDisability: boolean
+  /** صفة الحيازة — واحدة */
   housingCondition: string
+  /** ما يضايقه في مسكنه — متعدّد */
+  housingProblems: readonly string[]
   incomeStability: string
+  /** الترميم: من يملك الدار؟ الكاري لا يرمّم ولا يُطلَب منه إثبات ملكية */
+  ownership?: string
+  /** الترميم: نوع الأشغال — الرخصة تلزم حين يُبنى شيء */
+  works?: readonly string[]
 }
 
 const EMPLOYED = new Set(['public', 'private'])
@@ -73,20 +80,30 @@ function holds(condition: string, c: DocContext): boolean {
     case 'cash_ready':
       return c.cashReady
     case 'renting':
-      return c.isRenting
+      return c.isRenting || c.housingCondition === 'renting'
     case 'has_loans':
       return c.existingLoans > 0
     case 'foprolos':
       return c.foprolosInterest
     case 'owns_land':
       return c.requestType === 'build_on_land'
+    /** إثبات الملكية لمن يملك — وفي غير الترميم لا معنى للسؤال فيمرّ */
+    case 'home_owner':
+      return c.requestType !== 'renovation' || c.ownership === 'owner' || c.ownership === 'heirs'
+    /** رخصة الأشغال تلزم حين يُبنى شيء: توسعة أو طابق */
+    case 'structural':
+      return Boolean(c.works?.includes('extension') || c.works?.includes('add_floor'))
     case 'disability':
       return c.hasDisability
-    // ضائقة: لا نسأل عليها مباشرة، نستنتجها من وضع السكن أو الدخل
+    /**
+     * ضائقة: لا نسأل عليها مباشرة — من في ضائقة لا يصنّف نفسه.
+     * نستنتجها من ثلاثة: بلا مسكن، أو مسكن خطر/بلا مرافق، أو بلا دخل.
+     */
     case 'hardship':
       return (
-        c.housingCondition === 'unsafe' ||
         c.housingCondition === 'homeless' ||
+        c.housingProblems.includes('unsafe') ||
+        c.housingProblems.includes('no_utilities') ||
         c.incomeStability === 'none'
       )
     default:

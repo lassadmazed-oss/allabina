@@ -17,6 +17,7 @@ import {
 import { assembliesForSpan, suggestAssembly, type SpanLimit } from '@/lib/construction'
 import { setFloorAssemblyAction, setProjectSystemAction } from '@/lib/actions/construction'
 import { LABELS } from '@/lib/schema'
+import { getDictionary } from '@/lib/i18n'
 import { formatTND } from '@/lib/finance'
 import { labelEmployment, seniorityYearsLabel } from '@/lib/scoring'
 import { publicStateOf } from '@/lib/public-state'
@@ -68,20 +69,35 @@ const STUDY_TRACKS: Record<string, string> = {
   social: 'حالة اجتماعية تحتاج مساراً خاصاً',
 }
 
+/** صفة الحيازة — واحدة. حالة المسكن في HOUSING_PROBLEM_LABELS. */
 const HOUSING_CONDITIONS: Record<string, string> = {
-  unsafe: 'مسكن غير آمن',
-  overcrowded: 'اكتظاظ',
-  rented_unstable: 'كراء غير مستقرّ',
-  with_family: 'عند العائلة',
+  owner: 'في ملكه أو ملك العائلة',
+  renting: 'بالكراء',
+  with_family: 'عند العائلة بلا كراء',
+  employer: 'سكن وظيفي',
+  temporary: 'سكن مؤقّت',
   homeless: 'بلا مأوى',
   other: 'أخرى',
 }
 
+/** ما يضايقه في مسكنه — متعدّد ومجتمع */
+const HOUSING_PROBLEM_LABELS: Record<string, string> = {
+  overcrowded: 'ضيّق ومكتظّ',
+  unsafe: 'بناء متصدّع أو خطر',
+  no_utilities: 'بلا ماء أو كهرباء أو صرف',
+  expensive: 'كراء ثقيل',
+  unstable: 'حيازة غير مستقرّة',
+  far: 'بعيد عن الخدمة أو المدرسة',
+  not_accessible: 'لا يناسب إعاقة أو مرضاً',
+}
+
+/** كيف يصل الدخل — لا كم يبلغ */
 const INCOME_STABILITY: Record<string, string> = {
-  none: 'بلا دخل',
-  irregular: 'دخل غير منتظم',
-  low_stable: 'دخل ضعيف لكن قارّ',
-  other: 'أخرى',
+  monthly_fixed: 'كلّ شهر بمبلغ ثابت',
+  monthly_variable: 'كلّ شهر بمبلغ متبدّل',
+  seasonal: 'موسمي',
+  irregular: 'غير منتظم',
+  none: 'بلا دخل قارّ',
 }
 
 const CONTRIBUTION_KINDS: Record<string, string> = {
@@ -183,6 +199,9 @@ const LEDGER_EVENT_LABELS: Record<string, string> = {
   cancelled: 'ملغى',
 }
 
+/** نصوص الخريطة حسب المسار — نفس ما يقرأه المواطن، بالعربية */
+const F = getDictionary('ar').form
+
 export default async function RequestDetail({ params }: { params: Promise<{ id: string }> }) {
   const me = await requireStaff()
   const canEdit = can(me.role, 'requests.update')
@@ -194,6 +213,7 @@ export default async function RequestDetail({ params }: { params: Promise<{ id: 
   const [
     { data: fin },
     { data: land },
+    { data: home },
     { data: score },
     { data: events },
     { data: interactions },
@@ -222,6 +242,7 @@ export default async function RequestDetail({ params }: { params: Promise<{ id: 
   ] = await Promise.all([
     db.from('financial_profiles').select('*').eq('request_id', id).maybeSingle(),
     db.from('request_land').select('*').eq('request_id', id).maybeSingle(),
+    db.from('request_home').select('*').eq('request_id', id).maybeSingle(),
     db
       .from('scores')
       .select('*')
@@ -408,7 +429,10 @@ export default async function RequestDetail({ params }: { params: Promise<{ id: 
     existingLoans: Number(fin?.existing_loans_tnd ?? 0),
     foprolosInterest: Boolean(r.foprolos_interest),
     hasDisability: Boolean(social?.has_disability),
+    ownership: String(home?.ownership ?? ''),
+    works: Array.isArray(r.renovation_works) ? (r.renovation_works as string[]) : [],
     housingCondition: String(social?.housing_condition ?? ''),
+    housingProblems: (social?.housing_problems ?? []) as string[],
     incomeStability: String(social?.income_stability ?? ''),
   })
   const docSections = groupDocuments(applicableDocs)
@@ -465,6 +489,18 @@ export default async function RequestDetail({ params }: { params: Promise<{ id: 
           <Row k="المعتمدية" v={(geo as GeoRow | null)?.delegations?.name_ar ?? '—'} />
           <Row k="العمادة" v={(geo as GeoRow | null)?.imadas?.name_ar ?? '—'} />
           <Row k="موقع الأرض" v={r.land_location || '—'} />
+          {/* الشقّة */}
+          {r.apartment_state && <Row k={F.apartmentStateTitle} v={F.apartmentStateLabels[String(r.apartment_state)] ?? String(r.apartment_state)} />}
+          {r.floor_pref && <Row k={F.floorPref} v={F.floorLabels[String(r.floor_pref)] ?? String(r.floor_pref)} />}
+          {(r.elevator_needed || r.parking_needed) && (
+            <Row k="شروط" v={[r.elevator_needed ? F.elevatorNeeded : null, r.parking_needed ? F.parkingNeeded : null].filter(Boolean).join(' · ')} />
+          )}
+          {/* الترميم */}
+          {Array.isArray(r.renovation_works) && r.renovation_works.length > 0 && (
+            <Row k={F.worksTitle} v={(r.renovation_works as string[]).map((w) => F.workLabels[w] ?? w).join(' · ')} />
+          )}
+          {r.current_area_m2 && <Row k={F.currentArea} v={`${r.current_area_m2} م²`} />}
+          {r.extension_area_m2 && <Row k={F.extensionArea} v={`${r.extension_area_m2} م²`} />}
           <Row
             k={r.request_type === 'land_and_house' ? 'مساحة الدار المغطات' : 'المساحة'}
             v={r.desired_area_m2 ? `${r.desired_area_m2} م²` : '—'}
@@ -506,6 +542,16 @@ export default async function RequestDetail({ params }: { params: Promise<{ id: 
               r.cash_ready
                 ? 'فلوسو حاضرة — مسار بلا بنك'
                 : FINANCING_STATE_LABELS[r.financing_state as string] ?? '—'
+            }
+          />
+          <Row
+            k="ما يضايقه في سكنه"
+            v={
+              ((social?.housing_problems ?? []) as string[]).length
+                ? ((social?.housing_problems ?? []) as string[])
+                    .map((x) => HOUSING_PROBLEM_LABELS[x] ?? x)
+                    .join(' · ')
+                : '—'
             }
           />
           <Row
@@ -574,6 +620,22 @@ export default async function RequestDetail({ params }: { params: Promise<{ id: 
             <Row k="كهرباء" v={land.has_power ? 'نعم' : 'لا'} />
             <Row k="منفذ على الطريق" v={land.has_road ? 'نعم' : 'لا'} />
             <Row k="رخصة بناء" v={land.has_permit ? 'نعم' : 'لا'} />
+            {land.in_urban_plan && <Row k={F.inUrbanPlan} v={F.urbanLabels[String(land.in_urban_plan)] ?? String(land.in_urban_plan)} />}
+            {land.existing_building && <Row k={F.existingBuilding} v={F.existingLabels[String(land.existing_building)] ?? String(land.existing_building)} />}
+            {land.has_plans && <Row k={F.hasPlans} v={F.plansLabels[String(land.has_plans)] ?? String(land.has_plans)} />}
+          </Card>
+        )}
+
+        {/* الدار الحالية — لمن يرمّم. الكاري موسوم: لا يرمّم ما لا يملكه */}
+        {home && (
+          <Card title={F.sHomeTitle}>
+            <Row k={F.ownership} v={F.ownershipLabels[String(home.ownership)] ?? '—'} />
+            {home.ownership === 'tenant' && (
+              <p className="mb-2 rounded border border-gold/40 bg-gold-soft px-3 py-2 text-xs leading-6">كاري — لا يرمّم ما لا يملكه. الملفّ يحتاج توجيهاً لا تقديراً.</p>
+            )}
+            <Row k={F.buildingAge} v={home.building_age_years != null ? `${home.building_age_years} سنة` : '—'} />
+            <Row k="الوضعية العقارية" v={LABELS.titleStatus[String(home.title_status)] ?? '—'} />
+            <Row k={F.homePermit} v={home.has_permit ? 'نعم' : 'لا'} />
           </Card>
         )}
 

@@ -1,5 +1,14 @@
 import { z } from 'zod'
-import { HOUSING_CONDITIONS, INCOME_STABILITY } from '@/lib/support-schema'
+import { HOUSING_CONDITIONS, HOUSING_PROBLEMS, INCOME_STABILITY } from '@/lib/support-schema'
+import {
+  APARTMENT_STATES,
+  EXISTING_BUILDING,
+  FLOOR_PREFS,
+  OWNERSHIPS,
+  PLAN_STATES,
+  RENOVATION_WORKS,
+  URBAN_PLAN_STATES,
+} from '@/lib/request-flow'
 
 export const REQUEST_TYPES = [
   'build_on_land',
@@ -11,11 +20,33 @@ export const REQUEST_TYPES = [
   'other',
 ] as const
 
+/**
+ * ما يختاره المواطن اليوم.
+ *
+ * `economic` و`rent_to_own` خرجا من الاختيار ولم يخرجا من النوع: ستّة
+ * مطالب قائمة تحملهما، وحذفهما من التعداد يجعل ملفّاتها غير مقروءة في
+ * اللوحة. القائمة المعروضة شيء، وعقد القاعدة شيء آخر.
+ */
+export const SELECTABLE_REQUEST_TYPES = REQUEST_TYPES.filter(
+  (t) => t !== 'economic' && t !== 'rent_to_own'
+)
+
 /** درجة الاستعجال — ترتّب عمل المستشار، فالحرج يطلع فوق مهما كان تاريخه */
 export const URGENCIES = ['planning', 'within_year', 'urgent', 'critical'] as const
 
 /** على شنوّة الحريف مستعدّ يتنازل — هذا اللي يفتح الحلول البديلة */
-export const FLEXIBILITIES = ['area', 'zone', 'standing', 'timing', 'type', 'budget'] as const
+export const FLEXIBILITIES = [
+  'area',
+  'zone',
+  'standing',
+  'timing',
+  'type',
+  'budget',
+  'levels',
+  'phased',
+  'title',
+  'lot',
+] as const
 
 export const EMPLOYMENT_TYPES = [
   'public',
@@ -146,6 +177,12 @@ export const requestSchema = z.object({
   garage: optionalFlag,
   terrasse: optionalFlag,
   jardin: optionalFlag,
+  cloture: optionalFlag,
+  majel: optionalFlag,
+  piscine: optionalFlag,
+  annexe: optionalFlag,
+  solar: optionalFlag,
+  ascenseur: optionalFlag,
 
   // 3 — الأرض (مسار البناء)
   landAreaM2: nullableNum(50, 5000),
@@ -154,6 +191,27 @@ export const requestSchema = z.object({
   hasPower: optionalFlag,
   hasRoad: optionalFlag,
   hasPermit: optionalFlag,
+  // ما ينقص من يبني: ثلاثة أسئلة يسألها المستشار في أوّل مكالمة اليوم
+  inUrbanPlan: nullableEnum(URBAN_PLAN_STATES),
+  existingBuilding: nullableEnum(EXISTING_BUILDING),
+  hasPlans: nullableEnum(PLAN_STATES),
+
+  // 2-ter — الشقّة: جاهزة أم على المخطّط، وأين في العمارة
+  apartmentState: nullableEnum(APARTMENT_STATES),
+  floorPref: nullableEnum(FLOOR_PREFS),
+  elevatorNeeded: optionalFlag,
+  parkingNeeded: optionalFlag,
+
+  // 2-quater — الترميم: شنوّة بالضبط، وقدّاش الحالي وقدّاش الزيادة
+  works: multiEnum(RENOVATION_WORKS),
+  currentAreaM2: nullableNum(20, 2000),
+  extensionAreaM2: nullableNum(5, 500),
+
+  // 3-bis — الدار الحالية (مسار الترميم): تعوّض خطوة الأرض
+  ownership: nullableEnum(OWNERSHIPS),
+  buildingAge: nullableNum(0, 200),
+  homeTitleStatus: nullableEnum(TITLE_STATUSES),
+  homePermit: optionalFlag,
 
   // 4 — القدرة المالية
   monthlyIncome: num(0, 100000),
@@ -162,7 +220,8 @@ export const requestSchema = z.object({
   existingLoans: optionalNum(0, 100000),
   downPayment: optionalNum(0, 5000000),
   maxMonthly: optionalNum(0, 100000),
-  employment: z.enum(EMPLOYMENT_TYPES),
+  // اختيارية: «مشكل آخر» يطوي الخطوة المالية كلّها — بلا وظيفة لا سطر مالي
+  employment: nullableEnum(EMPLOYMENT_TYPES),
   /** تُدخَل بالسنين وتُخزَّن بالأشهر — انظر lib/actions/request.ts */
   seniorityYears: optionalNum(0, 50),
   isExpat: optionalFlag,
@@ -180,13 +239,19 @@ export const requestSchema = z.object({
   householdSize: nullableNum(1, 30),
   dependents: nullableNum(0, 25),
   hasDisability: optionalFlag,
+  /** صفة الحيازة — «وين تسكن توّة؟». واحدة ومتنافية. */
   housingCondition: nullableEnum(HOUSING_CONDITIONS),
+  /** ما يضايقه فيه — متعدّد ومجتمع كما هو في الواقع */
+  housingProblems: multiEnum(HOUSING_PROBLEMS),
   incomeStability: nullableEnum(INCOME_STABILITY),
   /**
    * الكراء الحالي: أوضح دليل على ما يقدر يدفعه شهرياً — هو يدفعه فعلاً.
    * وهو عبء يزول يوم يملك، فلا يُخصم من القدرة كما تُخصم الأقساط.
+   *
+   * «كاري» لم يعد سؤالاً مستقلّاً: صار قيمة من قيم الحيازة، ويُشتقّ
+   * منها في lib/actions/client-answers.ts. سؤالان لنفس الشيء يعطيان
+   * جوابين متناقضين يوماً ما.
    */
-  isRenting: optionalFlag,
   rentTnd: nullableNum(0, 20000),
   problemType: nullableEnum(PROBLEM_KINDS),
   financingState: nullableEnum(FINANCING_STATES),
