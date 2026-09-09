@@ -3,7 +3,7 @@ import '../../landing.css'
 import { isLocale, type Locale } from '@/lib/i18n'
 import { landingCopy } from '@/components/landing/copy'
 import { PHOTOS } from '@/components/landing/photos'
-import TunisiaMap from '@/components/landing/TunisiaMap'
+import SfaxMap, { SFAX_MAPS_URL } from '@/components/landing/SfaxMap'
 import StickyCta from '@/components/landing/StickyCta'
 import {
   IcArrow,
@@ -140,10 +140,13 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
           </Link>
         </div>
         <div className="about__map">
-          <TunisiaMap />
+          <SfaxMap locale={locale} title={c.about.mapFrameTitle} />
           <div className="map__cap">
             <b>{c.about.mapTitle}</b>
             <span>{c.about.mapSub}</span>
+            <a href={SFAX_MAPS_URL} target="_blank" rel="noopener noreferrer">
+              {c.about.mapOpen}
+            </a>
           </div>
         </div>
       </section>

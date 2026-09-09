@@ -58,6 +58,8 @@ const AR = {
     photoCta: 'شاهد الحالات المنجزة',
     mapTitle: 'كل مشروع لبنة لبناء المستقبل',
     mapSub: 'صفاقس · المرحلة التجريبية',
+    mapFrameTitle: 'خريطة تونس — صفاقس',
+    mapOpen: 'افتحها في خرائط Google',
     alt: 'بيت أبيض بباب أزرق يطلّ على البحر',
   },
   how: {
@@ -145,6 +147,8 @@ const FR: LandingCopy = {
     photoCta: 'Voir les réalisations',
     mapTitle: "Chaque projet est une brique pour bâtir l'avenir",
     mapSub: 'Sfax · phase pilote',
+    mapFrameTitle: 'Carte de la Tunisie — Sfax',
+    mapOpen: 'Ouvrir dans Google Maps',
     alt: 'Maison blanche à porte bleue face à la mer',
   },
   how: {

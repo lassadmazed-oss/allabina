@@ -1,0 +1,13 @@
+# ما لا يُرفع مع النشر من سطر الأوامر (vercel deploy لا يقرأ .gitignore).
+# الأسرار تأتي من إعدادات Vercel لا من ملفّ محلّي.
+.env
+.env.*
+!.env.example
+
+# ملفّات عمل لا يحتاجها البناء
+*.log
+tsconfig.tsbuildinfo
+.claude/
+design/
+docs/
+scratchpad-tmp/
