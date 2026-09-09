@@ -1,6 +1,7 @@
 import { Suspense } from 'react'
 import { formatPercent } from '@/lib/format'
 import { checkSmsBalance } from '@/lib/sms/winsms'
+import { smsEnvAllows } from '@/lib/sms'
 import Link from 'next/link'
 import { requireStaff } from '@/lib/auth'
 import { can } from '@/lib/permissions'
@@ -53,6 +54,24 @@ export default async function AdminPage({
   const requests = (requestsRaw ?? []) as Row[]
 
   const smsBalancePromise = checkSmsBalance()
+
+  /**
+   * نقيس الحاجزين هنا لا داخل المكوّن: القراءة من القاعدة وقراءة
+   * البيئة كلتاهما خادمية، والمكوّن يعرض ما نعطيه.
+   */
+  const { data: smsFlag } = await db
+    .from('app_settings')
+    .select('value')
+    .eq('key', 'sms.enabled')
+    .maybeSingle()
+  const smsOff = !smsEnvAllows({
+    SMS_ENABLED: process.env.SMS_ENABLED,
+    VERCEL_ENV: process.env.VERCEL_ENV,
+  })
+    ? 'الإرسال مغلق خارج الإنتاج (SMS_ENABLED في متغيّرات البيئة)'
+    : smsFlag?.value === false
+      ? 'المفتاح sms.enabled مطفأ في «المعطيات المرجعية»'
+      : null
   const [{ data: delegs }, { data: openItems }, { data: dueActions }] = await Promise.all([
     db.from('delegations').select('id, name_ar').eq('gov_code', 'SFX'),
     db.from('request_interactions').select('id, request_id, kind, body').eq('resolved', false),
@@ -145,7 +164,7 @@ export default async function AdminPage({
           </p>
         }
       >
-        <SmsBalance promise={smsBalancePromise} />
+        <SmsBalance promise={smsBalancePromise} sendingOff={smsOff} />
       </Suspense>
 
       {topGovs.length > 0 && (
@@ -360,8 +379,21 @@ function Filter({ active, href, label }: { active: boolean; href: string; label:
 }
 
 
-/** رصيد WinSMS — تنبيه تحت الحدّ المضبوط في الإعدادات */
-async function SmsBalance({ promise }: { promise: Promise<{ balance: number; licence: string } | null> }) {
+/**
+ * رصيد WinSMS وحالة الإرسال.
+ *
+ * الرصيد وحده لا يكفي: الإرسال يمرّ بحاجزين قبله (البيئة، ومفتاح
+ * `sms.enabled`). حاجز مغلق يعني أنّ رسائل التأكيد كلّها تُسجَّل
+ * «لم تُرسل» — والفريق كان لازم يفتح مطلباً واحداً واحداً حتى يكتشف
+ * ذلك. السبب يظهر هنا، على أوّل شاشة.
+ */
+async function SmsBalance({
+  promise,
+  sendingOff,
+}: {
+  promise: Promise<{ balance: number; licence: string } | null>
+  sendingOff: string | null
+}) {
   const bal = await promise
   if (!bal) {
     return (
@@ -372,6 +404,12 @@ async function SmsBalance({ promise }: { promise: Promise<{ balance: number; lic
   }
   const low = bal.balance < 100
   return (
+    <>
+      {sendingOff && (
+        <p className="mt-4 rounded border border-[#e0b4ac] bg-[#fbeeeb] px-4 py-3 text-sm leading-7 text-[#8c2f22]">
+          الإرسال موقوف — ما من رسالة تأكيد تخرج توّا. السبب: {sendingOff}
+        </p>
+      )}
     <div
       className={`mt-4 flex flex-wrap items-baseline justify-between gap-3 rounded border px-4 py-3 text-sm ${
         low ? 'border-gold/50 bg-gold-soft' : 'border-line bg-surface'
@@ -384,5 +422,6 @@ async function SmsBalance({ promise }: { promise: Promise<{ balance: number; lic
       </span>
       <span className="num text-xs text-faint">الرخصة حتى {bal.licence}</span>
     </div>
+    </>
   )
 }

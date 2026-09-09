@@ -17,6 +17,15 @@ import { THIN_NBSP, formatMoney, formatNumber, formatRange, formatSignedMoney } 
  * الواجهة يسقط البناء قبل أن يصل إلى شاشة أحد.
  */
 
+/**
+ * معطيات مسار SVG: نصّ يبدأ بأمر رسم ولا يحمل إلّا أوامر وأرقاماً.
+ *
+ * نميّزها بشكلها لا بموضعها، فتُستثنى أينما كُتبت — في سمة `d` أو في
+ * جدول أيقونات. أوّل مرّة استثنينا الوسم وحده، فسقط الاختبار حين
+ * انتقلت نفس المسارات إلى ثابت.
+ */
+const SVG_PATH_LITERAL = /["'`]\s*[Mm][\d\s.,MmLlHhVvCcSsQqTtAaZz-]{12,}["'`]/
+
 /** رقم + فراغ عادي (أو غير قابل للكسر) + رقم = قنبلة موقوتة */
 const PLAIN_SPACE_BETWEEN_DIGITS = /[0-9][  ][0-9]/
 
@@ -75,6 +84,8 @@ describe('المكوّنات والصفحات', () => {
       src.split('\n').forEach((line, i) => {
         // مسارات SVG وviewBox أرقام تقنية لا تُقرأ، ونفس الشيء للتعليقات
         if (/viewBox|\bd="M|strokeWidth|<path|^\s*\*|^\s*\/\//.test(line)) return
+        // ومسار SVG مخزّن في ثابت — نفس الأرقام، خارج الوسم
+        if (SVG_PATH_LITERAL.test(line)) return
         if (PLAIN_SPACE_BETWEEN_DIGITS.test(line)) {
           bad.push(`${f.replace(/\\/g, '/')}:${i + 1}  ${line.trim().slice(0, 90)}`)
         }
