@@ -80,3 +80,18 @@ export const IcPlay = (p: P) => (
     <path d="M8 5v14l11-7z" fill="currentColor" />
   </svg>
 )
+
+/** تتبّع الملفّ: لوحة بعلامة صحّ */
+export const IcTrack = (p: P) => (
+  <svg {...base} {...p}>
+    <rect x="5" y="4" width="14" height="17" rx="2" />
+    <path d="M9 4V3h6v1" />
+    <path d="M9 13l2 2 4-4" />
+  </svg>
+)
+
+export const IcChevron = (p: P) => (
+  <svg {...base} {...p}>
+    <path d="M6 9l6 6 6-6" />
+  </svg>
+)

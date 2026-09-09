@@ -67,8 +67,10 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
               {c.stats.map((s, i) => (
                 <div className="stat" key={i}>
                   <span className="stat__i">{statIcons[i]}</span>
-                  {s.n ? <span className="stat__n">{s.n}</span> : null}
-                  <span className="stat__l">{s.l}</span>
+                  <span className="stat__t">
+                    {s.n ? <span className="stat__n">{s.n}</span> : null}
+                    <span className="stat__l">{s.l}</span>
+                  </span>
                 </div>
               ))}
             </div>

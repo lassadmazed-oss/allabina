@@ -6,6 +6,8 @@ import { notFound } from 'next/navigation'
 import '../../globals.css'
 import LangSwitch from '@/components/LangSwitch'
 import MobileNav from '@/components/MobileNav'
+import DesktopNav, { type DesktopNavItem } from '@/components/DesktopNav'
+import { IcArrow, IcTrack } from '@/components/landing/icons'
 import { LOCALES, dirOf, getDictionary, isLocale, otherLocale, path, type Locale } from '@/lib/i18n'
 import { canonicalUrl, languageAlternates, siteUrl } from '@/lib/site'
 import { landingCopy } from '@/components/landing/copy'
@@ -118,22 +120,25 @@ export default async function SiteLayout({
   ]
 
   /**
-   * ثمانية روابط + اللغة + الزرّ لا تتّسع تحت 1350 بكسل: كانت تركب على
-   * الشعار، ثمّ تقصّ الزرّ. الأولوية بدل الحشر — روابط «انضمّ» الثلاثة
-   * في التذييل وفي القائمة، وتظهر فوق حين يتّسع المكان.
+   * قائمة الحاسوب: أربعة عناصر بدل تسعة روابط في سطر — رابطان مباشران
+   * وقائمتان منسدلتان بنفس تجميع قائمة التليفون. «ابدا من هنا» على الزرّ
+   * وفي «تتبّع مطلبي» بجانبه، فلا تُكرَّر في القائمة.
    */
-  const NAV_LINKS: { href: string; label: string; hideBelow?: 'xl' | '2xl' }[] = [
-    { href: p('/a-propos'), label: landingCopy[locale].nav.about },
-    { href: p('/simulateur'), label: t.nav.simulator },
-    { href: p('/suivi'), label: t.nav.track },
-    { href: p('/systemes'), label: t.systemsPage.navLink },
-    { href: p('/standing'), label: t.standingPage.navLink },
-    { href: p('/realisations'), label: t.cases.navLink },
-    { href: p('/soutien'), label: t.soutien.navLink, hideBelow: '2xl' },
-    { href: p('/proprietaire'), label: t.proprietaire.navCta, hideBelow: 'xl' },
-    { href: p('/reseau'), label: t.reseau.navCta, hideBelow: 'xl' },
+  const DESKTOP_NAV: DesktopNavItem[] = [
+    { kind: 'link', href: p('/a-propos'), label: landingCopy[locale].nav.about },
+    { kind: 'link', href: p('/realisations'), label: t.cases.navLink, showFrom: 'xl' },
+    {
+      kind: 'menu',
+      label: t.nav.groupLearn,
+      links: [
+        { href: p('/simulateur'), label: t.nav.simulator },
+        { href: p('/realisations'), label: t.cases.navLink, hideFrom: 'xl' },
+        { href: p('/systemes'), label: t.systemsPage.navLink },
+        { href: p('/standing'), label: t.standingPage.navLink },
+      ],
+    },
+    { kind: 'menu', label: t.nav.groupJoin, links: NAV_GROUPS[2].links },
   ]
-  const hideCls = { xl: 'hidden xl:inline-flex', '2xl': 'hidden 2xl:inline-flex' } as const
 
   return (
     <html lang={locale} dir={dirOf(locale)}>
@@ -146,42 +151,52 @@ export default async function SiteLayout({
         />
       </head>
       <body>
-        <header className="sticky top-0 z-40 border-b border-line bg-surface/95 backdrop-blur">
-          <div className="mx-auto flex max-w-6xl 2xl:max-w-7xl items-center gap-3 px-4 py-3 sm:px-5 sm:py-4">
-            {/* min-h-11: الشعار رابط للرئيسية، وارتفاع 23px لا يُصاب بالإبهام */}
-            {/* الشعار: المصباح والمباني — ملفّ مستخرَج من لوحة الهوية (public/landing) */}
-            {/* shrink-0: الشعار لا ينضغط أبداً — كان min-w-0 يتركه ينكمش فتفيض حروفه تحت القائمة */}
-            <Link href={p()} className="flex min-h-11 shrink-0 items-center" aria-label={t.nav.brand}>
-              <BrandLogo brand={t.nav.brand} sub={t.nav.brandSub} size={48} subFrom="xl" />
+        <header className="sticky top-0 z-40 border-b border-line/70 bg-ground/85 backdrop-blur-xl transition-shadow duration-300 data-scrolled:shadow-[0_12px_32px_-20px_rgba(14,58,91,0.4)]">
+          <div className="mx-auto flex h-16 max-w-[1240px] items-center gap-3 px-5 2xl:max-w-[1400px] lg:h-20 lg:gap-4 lg:px-8 xl:gap-6 xl:px-10">
+            {/* الشعار: المَعلَم + الاسم نصّاً، والاسم الفرعي من مقاس الحاسوب. shrink-0: لا ينضغط أبداً */}
+            <Link href={p()} className="flex shrink-0 items-center" aria-label={t.nav.brand}>
+              <BrandLogo brand={t.nav.brand} sub={t.nav.brandSub} size={44} subFrom="xl" />
             </Link>
 
-            {/* قائمة الحاسوب — تظهر من lg فما فوق */}
-            <nav className="ms-auto hidden min-w-0 items-center gap-0.5 overflow-x-auto text-[13px] [scrollbar-width:none] lg:flex xl:text-sm">
-              {NAV_LINKS.map((l) => (
-                <Link
-                  key={l.href}
-                  href={l.href}
-                  className={`whitespace-nowrap rounded-full px-2 py-1.5 font-semibold text-brand transition hover:bg-brand-soft xl:px-3 ${l.hideBelow ? hideCls[l.hideBelow] : ''}`}
-                >
-                  {l.label}
-                </Link>
-              ))}
+            {/* قائمة الحاسوب — من lg فما فوق، في وسط الشريط */}
+            <nav className="hidden min-w-0 flex-1 justify-center lg:flex" aria-label={t.nav.menuTitle}>
+              <DesktopNav items={DESKTOP_NAV} />
+            </nav>
+
+            {/* الحاسوب: تتبّع · اللغة · زرّ التسجيل */}
+            <div className="ms-auto hidden shrink-0 items-center gap-2 lg:flex">
+              <Link
+                href={p('/suivi')}
+                title={t.nav.track}
+                className="inline-flex h-10 items-center gap-2 rounded-full border border-line-strong/60 bg-surface/70 px-3 text-sm font-semibold text-brand transition hover:border-brand hover:bg-surface 2xl:px-4"
+              >
+                <IcTrack className="size-[18px]" />
+                <span className="hidden 2xl:inline">{t.nav.track}</span>
+              </Link>
               <Suspense fallback={null}>
-                <LangSwitch current={locale} other={other} label={t.otherLangName} />
+                <LangSwitch
+                  current={locale}
+                  other={other}
+                  label={t.otherLangName}
+                  className="inline-flex h-10 items-center rounded-full px-3 text-xs font-bold text-muted transition hover:bg-surface hover:text-brand"
+                />
               </Suspense>
               <Link
                 href={p('/demande')}
-                className="ms-1 whitespace-nowrap rounded-full bg-brand px-5 py-2.5 font-bold text-white shadow-md shadow-brand/20 transition hover:bg-brand-deep"
+                className="group inline-flex h-11 items-center gap-2.5 rounded-full bg-brand ps-5 pe-1.5 text-[15px] font-bold text-white shadow-[0_14px_30px_-12px_rgba(14,58,91,0.65)] transition hover:-translate-y-px hover:bg-brand-deep"
               >
                 {t.nav.cta}
+                <span className="flex size-8 items-center justify-center rounded-full bg-gold-light text-brand-deep transition group-hover:bg-white">
+                  <IcArrow className="size-4 rtl:-scale-x-100" />
+                </span>
               </Link>
-            </nav>
+            </div>
 
             {/* التليفون: فعل واحد ظاهر + قائمة كاملة */}
             <div className="ms-auto flex items-center gap-2 lg:hidden">
               <Link
                 href={p('/demande')}
-                className="flex min-h-11 items-center whitespace-nowrap rounded-full bg-brand px-4 text-sm font-bold text-white transition active:bg-brand-deep"
+                className="inline-flex h-10 items-center whitespace-nowrap rounded-full bg-brand px-4 text-[13px] font-bold text-white shadow-[0_10px_24px_-10px_rgba(14,58,91,0.6)] transition active:bg-brand-deep"
               >
                 {t.nav.cta}
               </Link>
@@ -208,7 +223,7 @@ export default async function SiteLayout({
 
         <footer className="mt-16 rounded-t-[40px] bg-gradient-to-b from-brand to-brand-deep text-white sm:mt-24">
           <div
-            className="mx-auto max-w-6xl px-4 py-10 text-sm text-white/80 sm:px-5"
+            className="mx-auto max-w-[1240px] px-5 py-10 text-sm text-white/80 lg:px-10"
             style={{ paddingBottom: 'max(2.5rem, env(safe-area-inset-bottom))' }}
           >
             <div className="flex flex-col gap-8 sm:flex-row sm:flex-wrap sm:items-start sm:justify-between">

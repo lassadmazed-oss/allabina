@@ -58,7 +58,7 @@ export default function MobileNav({
         onClick={() => setOpen(true)}
         aria-label={labels.menuOpen}
         aria-expanded={open}
-        className="inline-flex size-11 items-center justify-center rounded-lg border border-line text-ink transition active:scale-95 lg:hidden"
+        className="inline-flex size-10 items-center justify-center rounded-full border border-line-strong/60 bg-surface/70 text-brand transition active:scale-95 lg:hidden"
       >
         <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
           <path d="M3 5h14M3 10h14M3 15h14" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />

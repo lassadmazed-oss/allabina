@@ -7,6 +7,8 @@
  * مربّع ثابت، والاسم نصّ حقيقي بخطّ الموقع: حادّ في كلّ مقاس، على خطّ
  * قاعدة واحد، ويُترجَم.
  */
+const SUB_FROM = { lg: 'hidden lg:block', xl: 'hidden xl:block' } as const
+
 export default function BrandLogo({
   brand,
   sub,
@@ -21,7 +23,7 @@ export default function BrandLogo({
   /** على أرضية فاتحة (الرأس) أو داكنة (التذييل) */
   tone?: 'light' | 'dark'
   /** الاسم الفرعي يظهر من هذا المقاس فما فوق — تحته يكفي الاسم وحده */
-  subFrom?: 'xl'
+  subFrom?: 'lg' | 'xl'
 }) {
   const ink = tone === 'dark' ? 'text-white' : 'text-brand-deep'
   const muted = tone === 'dark' ? 'text-white/70' : 'text-muted'
@@ -49,7 +51,7 @@ export default function BrandLogo({
         </b>
         {sub && (
           <small
-            className={`mt-0.5 ${muted} ${subFrom === 'xl' ? 'hidden xl:block' : ''}`}
+            className={`mt-0.5 ${muted} ${subFrom ? SUB_FROM[subFrom] : ''}`}
             style={{ fontSize: Math.max(10, Math.round(size * 0.26)), lineHeight: 1.2 }}
           >
             {sub}
