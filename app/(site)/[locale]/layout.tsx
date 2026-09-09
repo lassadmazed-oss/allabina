@@ -1,6 +1,7 @@
 import { Suspense } from 'react'
 import type { Metadata, Viewport } from 'next'
 import Link from 'next/link'
+import BrandLogo from '@/components/BrandLogo'
 import { notFound } from 'next/navigation'
 import '../../globals.css'
 import LangSwitch from '@/components/LangSwitch'
@@ -114,16 +115,22 @@ export default async function SiteLayout({
     },
   ]
 
-  const NAV_LINKS = [
+  /**
+   * ثمانية روابط + اللغة + الزرّ لا تتّسع تحت 1350 بكسل: كانت تركب على
+   * الشعار، ثمّ تقصّ الزرّ. الأولوية بدل الحشر — روابط «انضمّ» الثلاثة
+   * في التذييل وفي القائمة، وتظهر فوق حين يتّسع المكان.
+   */
+  const NAV_LINKS: { href: string; label: string; hideBelow?: 'xl' | '2xl' }[] = [
     { href: p('/simulateur'), label: t.nav.simulator },
     { href: p('/suivi'), label: t.nav.track },
     { href: p('/systemes'), label: t.systemsPage.navLink },
     { href: p('/standing'), label: t.standingPage.navLink },
     { href: p('/realisations'), label: t.cases.navLink },
-    { href: p('/soutien'), label: t.soutien.navLink },
-    { href: p('/proprietaire'), label: t.proprietaire.navCta },
-    { href: p('/reseau'), label: t.reseau.navCta },
+    { href: p('/soutien'), label: t.soutien.navLink, hideBelow: '2xl' },
+    { href: p('/proprietaire'), label: t.proprietaire.navCta, hideBelow: 'xl' },
+    { href: p('/reseau'), label: t.reseau.navCta, hideBelow: 'xl' },
   ]
+  const hideCls = { xl: 'hidden xl:inline-flex', '2xl': 'hidden 2xl:inline-flex' } as const
 
   return (
     <html lang={locale} dir={dirOf(locale)}>
@@ -137,28 +144,21 @@ export default async function SiteLayout({
       </head>
       <body>
         <header className="sticky top-0 z-40 border-b border-line bg-surface/95 backdrop-blur">
-          <div className="mx-auto flex max-w-6xl items-center gap-3 px-4 py-3 sm:px-5 sm:py-4">
+          <div className="mx-auto flex max-w-6xl 2xl:max-w-7xl items-center gap-3 px-4 py-3 sm:px-5 sm:py-4">
             {/* min-h-11: الشعار رابط للرئيسية، وارتفاع 23px لا يُصاب بالإبهام */}
             {/* الشعار: المصباح والمباني — ملفّ مستخرَج من لوحة الهوية (public/landing) */}
-            <Link href={p()} className="flex min-h-11 min-w-0 items-center" aria-label={t.nav.brand}>
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src="/landing/logo-light.png"
-                alt={`${t.nav.brand} ${t.nav.brandSub}`}
-                className="w-auto"
-                style={{ height: 52 }}
-                width={440}
-                height={268}
-              />
+            {/* shrink-0: الشعار لا ينضغط أبداً — كان min-w-0 يتركه ينكمش فتفيض حروفه تحت القائمة */}
+            <Link href={p()} className="flex min-h-11 shrink-0 items-center" aria-label={t.nav.brand}>
+              <BrandLogo brand={t.nav.brand} sub={t.nav.brandSub} size={48} subFrom="xl" />
             </Link>
 
             {/* قائمة الحاسوب — تظهر من lg فما فوق */}
-            <nav className="ms-auto hidden items-center gap-0.5 text-sm lg:flex">
+            <nav className="ms-auto hidden min-w-0 items-center gap-0.5 overflow-x-auto text-[13px] [scrollbar-width:none] lg:flex xl:text-sm">
               {NAV_LINKS.map((l) => (
                 <Link
                   key={l.href}
                   href={l.href}
-                  className="whitespace-nowrap rounded-full px-2.5 py-1.5 font-semibold text-brand transition hover:bg-brand-soft xl:px-3"
+                  className={`whitespace-nowrap rounded-full px-2 py-1.5 font-semibold text-brand transition hover:bg-brand-soft xl:px-3 ${l.hideBelow ? hideCls[l.hideBelow] : ''}`}
                 >
                   {l.label}
                 </Link>
@@ -210,14 +210,16 @@ export default async function SiteLayout({
           >
             <div className="flex flex-col gap-8 sm:flex-row sm:flex-wrap sm:items-start sm:justify-between">
               <div className="max-w-md">
+                {/* الشعار الكامل — حروفه بيضاء، فمكانه الأرضية الداكنة وحدها */}
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
-                  src="/landing/logo-dark.png"
+                  src="/landing/logo-full.png"
                   alt={`${t.nav.brand} ${t.nav.brandSub}`}
                   className="w-auto"
-                  style={{ height: 72 }}
-                  width={400}
-                  height={276}
+                  style={{ height: 96 }}
+                  width={612}
+                  height={408}
+                  decoding="async"
                 />
                 <div className="mb-2 mt-3 text-sm text-gold-light">{t.nav.slogan}</div>
                 <p className="leading-7">{t.footer.about}</p>
