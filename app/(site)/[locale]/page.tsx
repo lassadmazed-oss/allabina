@@ -5,6 +5,7 @@ import { landingCopy } from '@/components/landing/copy'
 import { PHOTOS } from '@/components/landing/photos'
 import SfaxMap, { SFAX_MAPS_URL } from '@/components/landing/SfaxMap'
 import StickyCta from '@/components/landing/StickyCta'
+import VideoModal from '@/components/landing/VideoModal'
 import {
   IcArrow,
   IcBuilding,
@@ -54,12 +55,14 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
                 {c.hero.cta1}
                 <IcArrow className="arr" />
               </Link>
-              <a href="#services" className="btn btn--ghost">
-                {c.hero.cta2}
-                <span className="playdot">
-                  <IcPlay />
-                </span>
-              </a>
+              <VideoModal
+                label={c.hero.cta2}
+                title={c.hero.videoTitle}
+                note={c.hero.videoNote}
+                closeLabel={c.hero.close}
+                src={PHOTOS.intro}
+                poster={PHOTOS.introPoster}
+              />
             </div>
             {/* «قدّاش تاخذو منّي؟» أوّل سؤال يوقف الناس — جوابه تحت الزرّ */}
             <p className="hero__free">{c.hero.free}</p>

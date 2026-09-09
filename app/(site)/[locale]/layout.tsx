@@ -6,6 +6,8 @@ import { notFound } from 'next/navigation'
 import '../../globals.css'
 import LangSwitch from '@/components/LangSwitch'
 import MobileNav from '@/components/MobileNav'
+import BackButton from '@/components/BackButton'
+import MobileCta from '@/components/MobileCta'
 import DesktopNav, { type DesktopNavItem } from '@/components/DesktopNav'
 import { IcArrow, IcTrack } from '@/components/landing/icons'
 import { LOCALES, dirOf, getDictionary, isLocale, otherLocale, path, type Locale } from '@/lib/i18n'
@@ -85,6 +87,7 @@ export default async function SiteLayout({
   const t = getDictionary(locale)
   const other = otherLocale(locale)
   const p = (s = '') => path(locale, s)
+  const lc = landingCopy[locale]
 
   /**
    * مصدر واحد لروابط الموقع: الترويسة والقائمة والذيل. مجمّعة بمنطق رحلة
@@ -153,6 +156,9 @@ export default async function SiteLayout({
       <body>
         <header className="sticky top-0 z-40 border-b border-line/70 bg-ground/85 backdrop-blur-xl transition-shadow duration-300 data-scrolled:shadow-[0_12px_32px_-20px_rgba(14,58,91,0.4)]">
           <div className="mx-auto flex h-16 max-w-[1240px] items-center gap-3 px-5 2xl:max-w-[1400px] lg:h-20 lg:gap-4 lg:px-8 xl:gap-6 xl:px-10">
+            {/* التليفون: رجوع خارج الرئيسية — سهم النظام يخرج من الموقع أو يغيب */}
+            <BackButton home={p()} label={lc.nav.back} />
+
             {/* الشعار: المَعلَم + الاسم نصّاً، والاسم الفرعي من مقاس الحاسوب. shrink-0: لا ينضغط أبداً */}
             <Link href={p()} className="flex shrink-0 items-center" aria-label={t.nav.brand}>
               <BrandLogo brand={t.nav.brand} sub={t.nav.brandSub} size={44} subFrom="xl" />
@@ -192,14 +198,9 @@ export default async function SiteLayout({
               </Link>
             </div>
 
-            {/* التليفون: فعل واحد ظاهر + قائمة كاملة */}
+            {/* التليفون: زرّ التسجيل في الرئيسية (خارجها زرّ الرجوع مكانه) + قائمة كاملة */}
             <div className="ms-auto flex items-center gap-2 lg:hidden">
-              <Link
-                href={p('/demande')}
-                className="inline-flex h-10 items-center whitespace-nowrap rounded-full bg-brand px-4 text-[13px] font-bold text-white shadow-[0_10px_24px_-10px_rgba(14,58,91,0.6)] transition active:bg-brand-deep"
-              >
-                {t.nav.cta}
-              </Link>
+              <MobileCta home={p()} href={p('/demande')} label={lc.nav.ctaShort} />
               <MobileNav
                 groups={NAV_GROUPS}
                 cta={{ href: p('/demande'), label: t.nav.cta }}
@@ -221,48 +222,72 @@ export default async function SiteLayout({
 
         <main>{children}</main>
 
+        {/* التذييل: دعوة أخيرة، ثمّ الهوية وثلاث مجموعات روابط بعناوينها، ثمّ السطر القانوني */}
         <footer className="mt-16 rounded-t-[40px] bg-gradient-to-b from-brand to-brand-deep text-white sm:mt-24">
           <div
-            className="mx-auto max-w-[1240px] px-5 py-10 text-sm text-white/80 lg:px-10"
-            style={{ paddingBottom: 'max(2.5rem, env(safe-area-inset-bottom))' }}
+            className="mx-auto max-w-[1240px] px-5 pt-8 lg:px-10 lg:pt-12"
+            style={{ paddingBottom: 'max(2rem, env(safe-area-inset-bottom))' }}
           >
-            <div className="flex flex-col gap-8 sm:flex-row sm:flex-wrap sm:items-start sm:justify-between">
-              <div className="max-w-md">
+            <div className="flex flex-col gap-5 rounded-3xl bg-white/[0.06] p-6 ring-1 ring-white/10 sm:flex-row sm:items-center sm:justify-between sm:p-8">
+              <div>
+                <b className="display block text-xl font-bold sm:text-2xl">{lc.footer.ctaTitle}</b>
+                <p className="mt-1 max-w-xl text-sm leading-7 text-white/70 sm:text-base">{lc.footer.ctaText}</p>
+              </div>
+              <Link
+                href={p('/demande')}
+                className="inline-flex h-12 shrink-0 items-center justify-center gap-2 rounded-full bg-gold-light px-6 font-bold text-brand-deep shadow-[0_12px_28px_-10px_rgba(212,161,94,0.7)] transition hover:bg-white"
+              >
+                {t.nav.cta}
+                <IcArrow className="size-4 rtl:-scale-x-100" />
+              </Link>
+            </div>
+
+            {/* على التليفون: الهوية بعرض الصفحة ثمّ المجموعات عمودين؛ على الحاسوب أربعة أعمدة */}
+            <div className="mt-10 grid grid-cols-2 gap-x-6 gap-y-10 md:grid-cols-[1.4fr_1fr_1fr_1fr] md:gap-8 lg:mt-14">
+              <div className="col-span-2 max-w-sm md:col-span-1">
                 {/* الشعار الكامل — حروفه بيضاء، فمكانه الأرضية الداكنة وحدها */}
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src="/landing/logo-full.png"
                   alt={`${t.nav.brand} ${t.nav.brandSub}`}
                   className="w-auto"
-                  style={{ height: 96 }}
+                  style={{ height: 84 }}
                   width={612}
                   height={408}
                   decoding="async"
                 />
-                <div className="mb-2 mt-3 text-sm text-gold-light">{t.nav.slogan}</div>
-                <p className="leading-7">{t.footer.about}</p>
+                <div className="mt-4 text-sm font-semibold text-gold-light">{t.nav.slogan}</div>
+                <p className="mt-2 text-sm leading-7 text-white/70">{t.footer.about}</p>
               </div>
-
-              {/* عمودان على التليفون: عمود واحد بأحد عشر رابطاً يطوّل الصفحة بلا فائدة */}
-              <nav className="grid w-full grid-cols-2 gap-x-4 gap-y-1 sm:w-auto sm:grid-cols-1 sm:gap-y-2">
-                {[...NAV_GROUPS.flatMap((g) => g.links), { href: p('/confidentialite'), label: t.footer.privacy }].map(
-                  (l) => (
-                    <Link
-                      key={l.href}
-                      href={l.href}
-                      className="flex min-h-11 items-center font-medium text-white/85 transition hover:text-gold-light sm:min-h-0"
-                    >
-                      {l.label}
-                    </Link>
-                  )
-                )}
-              </nav>
+              {NAV_GROUPS.map((g) => (
+                <nav key={g.title} aria-label={g.title}>
+                  <h3 className="text-xs font-bold text-gold-light ltr:uppercase ltr:tracking-[0.16em]">{g.title}</h3>
+                  <ul className="mt-3 flex flex-col">
+                    {g.links.map((l) => (
+                      <li key={l.href}>
+                        <Link
+                          href={l.href}
+                          className="flex min-h-10 items-center text-[15px] leading-snug text-white/85 transition hover:text-white"
+                        >
+                          {l.label}
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                </nav>
+              ))}
             </div>
-            <div className="mt-8 flex flex-col gap-2 border-t border-white/10 pt-5 text-xs text-white/60 sm:flex-row sm:items-center sm:justify-between">
+
+            <div className="mt-10 flex flex-col gap-3 border-t border-white/10 pt-5 text-xs text-white/60 sm:flex-row sm:items-center sm:justify-between">
               <span>{t.footer.legal}</span>
-              <span className="tracking-[0.2em] text-white/70" dir="ltr">
-                SAME ROOTS · BRIGHTER TOMORROWS
-              </span>
+              <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
+                <Link href={p('/confidentialite')} className="transition hover:text-white">
+                  {t.footer.privacy}
+                </Link>
+                <span className="tracking-[0.2em] text-white/60" dir="ltr">
+                  SAME ROOTS · BRIGHTER TOMORROWS
+                </span>
+              </div>
             </div>
           </div>
         </footer>

@@ -3,8 +3,8 @@
    أزرار حبّة، عناوين Cairo ثقيلة، شارات ذهبية. كلّ القواعد تحت .lp
    (تُستورد مع app/landing.css)
    ================================================================ */
-.lp .phero { padding: 36px 0 8px; }
-@media (min-width: 900px) { .lp .phero { padding: 56px 0 12px; } }
+.lp .phero { padding-top: 36px; padding-bottom: 8px; }
+@media (min-width: 900px) { .lp .phero { padding-top: 56px; padding-bottom: 12px; } }
 .lp .phero h1 { font-size: clamp(1.9rem, 5vw, 3rem); font-weight: 900; color: var(--lp-navy); margin-top: 6px; }
 .lp .phero .lead { font-size: 1.05rem; max-width: 42rem; }
 .lp .note { margin-top: 18px; padding: 12px 16px; border-radius: 14px; background: var(--lp-gold-soft); color: var(--lp-gold-deep); font-size: 0.9rem; line-height: 1.6; }

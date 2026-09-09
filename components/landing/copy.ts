@@ -17,6 +17,8 @@ const AR = {
     menuTitle: 'القائمة',
     menuOpen: 'افتح القائمة',
     menuClose: 'أغلق القائمة',
+    back: 'رجوع',
+    ctaShort: 'سجّل مطلبك',
     group: 'الصفحات',
   },
   hero: {
@@ -26,6 +28,9 @@ const AR = {
     cta1: 'ابدأ مشروعك الآن',
     cta2: 'تعرّف على خدماتنا',
     free: 'التسجيل بدون معاليم — ما ناخذو حتّى مليم من الحريف',
+    videoTitle: 'تعرّف على خدماتنا',
+    videoNote: 'فيديو تعريفي مؤقّت — النسخة النهائية قريباً',
+    close: 'إغلاق',
     alt: 'بيوت بيضاء وأبواب زرقاء تحت شمس تونس',
   },
   stats: [
@@ -87,6 +92,8 @@ const AR = {
     tagline: 'Same roots · Brighter tomorrows',
     legal: 'اللبنة للبناء والإعمار · AL-LUBNA — نسخة تجريبية',
     privacy: 'حماية المعطيات',
+    ctaTitle: 'جاهز تبدأ مشروعك؟',
+    ctaText: 'سجّل مطلبك في دقائق، بدون معاليم، ونرجعولك بالحلّ اللي يناسبك.',
   },
 }
 
@@ -105,6 +112,8 @@ const FR: LandingCopy = {
     menuTitle: 'Menu',
     menuOpen: 'Ouvrir le menu',
     menuClose: 'Fermer le menu',
+    back: 'Retour',
+    ctaShort: 'Commencer',
     group: 'Pages',
   },
   hero: {
@@ -114,6 +123,9 @@ const FR: LandingCopy = {
     cta1: 'Commencer mon projet',
     cta2: 'Découvrir nos services',
     free: "Dépôt sans frais — nous ne prenons rien au citoyen",
+    videoTitle: 'Découvrir nos services',
+    videoNote: 'Vidéo de présentation provisoire — la version finale arrive bientôt',
+    close: 'Fermer',
     alt: 'Maisons blanches et portes bleues sous le soleil tunisien',
   },
   stats: [
@@ -175,6 +187,8 @@ const FR: LandingCopy = {
     tagline: 'Same roots · Brighter tomorrows',
     legal: 'AL-LUBNA — Construction & Développement — version pilote',
     privacy: 'Protection des données',
+    ctaTitle: 'Prêt à commencer votre projet ?',
+    ctaText: 'Déposez votre demande en quelques minutes, sans frais : nous revenons vers vous avec la solution adaptée.',
   },
 }
 

@@ -12,5 +12,8 @@ export const PHOTOS = {
   /** كيف نعمل — بالترتيب: الطلب من الهاتف · دراسة الملفّ · المخطّط والعرض · المفتاح */
   steps: ['/landing/s1.jpg', '/landing/s2.jpg', '/landing/s3.jpg', '/landing/s4.jpg'],
   logoLight: '/landing/logo-light.png',
+  /** فيديو «تعرّف على خدماتنا» — نسخة مؤقّتة مولَّدة من صور الموقع؛ يُبدَّل بالحقيقي هنا */
+  intro: '/landing/intro.mp4',
+  introPoster: '/landing/intro-poster.jpg',
   logoDark: '/landing/logo-dark.png',
 }
