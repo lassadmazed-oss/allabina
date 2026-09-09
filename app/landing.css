@@ -176,21 +176,54 @@
 [dir='rtl'] .lp .play { padding: 6px 6px 6px 16px; }
 .lp .play__b { width: 36px; height: 36px; border-radius: 999px; background: #fff; color: var(--lp-navy); display: inline-flex; align-items: center; justify-content: center; }
 .lp .play__b svg { width: 16px; height: 16px; }
-.lp .feats { display: flex; gap: 14px; margin-top: 20px; flex-wrap: wrap; }
-.lp .feat { display: flex; flex-direction: column; align-items: center; gap: 8px; font-size: 0.85rem; color: var(--lp-navy); font-weight: 700; min-width: 84px; text-align: center; }
-.lp .feat .ic { width: 56px; height: 56px; border-radius: 18px; background: #fff; display: inline-flex; align-items: center; justify-content: center; color: var(--lp-navy); box-shadow: 0 6px 18px rgba(14, 58, 91, 0.08); }
-.lp .feat .ic svg { width: 26px; height: 26px; }
+/**
+ * ضمانات «من نحن».
+ *
+ * كانت أعمدة متمركزة بعرض أدنى 84px، والنصوص أطول منها بكثير
+ * (123 · 176 · 96 بكسل داخل 396): فينكسر الصفّ 2+1 وتتناثر الأيقونات
+ * في ارتفاعات مختلفة. الجملة هنا هي المحتوى لا الأيقونة، فالأيقونة
+ * تجاورها ولا تعلوها — سطر لكلّ ضمانة، بعرض واحد ومحاذاة واحدة.
+ */
+.lp .feats { display: grid; gap: 10px; margin-top: 20px; }
+.lp .feat {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  border-radius: 16px;
+  background: var(--lp-cream-2);
+  border: 1px solid var(--lp-line);
+  font-size: 0.95rem;
+  color: var(--lp-navy);
+  font-weight: 700;
+  text-align: start;
+}
+.lp .feat .ic {
+  width: 40px;
+  height: 40px;
+  flex: 0 0 auto;
+  border-radius: 12px;
+  background: #fff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--lp-gold-deep);
+  box-shadow: 0 4px 12px rgba(14, 58, 91, 0.07);
+}
+.lp .feat .ic svg { width: 20px; height: 20px; }
+@media (min-width: 560px) and (max-width: 899px) {
+  /* متّسع للسطرين جنباً إلى جنب قبل أن يضيق العمود */
+  .lp .feats { grid-template-columns: 1fr 1fr; }
+}
 .lp .about__txt .btn { margin-top: 22px; }
 .lp .about__map { display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center; }
-.lp .about__map svg { width: min(220px, 60vw); height: auto; }
+.lp .map__frame { position: relative; width: 100%; max-width: 380px; aspect-ratio: 4 / 5; border-radius: 22px; overflow: hidden; border: 1px solid rgba(212, 161, 94, 0.45); box-shadow: var(--lp-shadow); background: var(--lp-cream); }
+.lp .map__frame iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; display: block; }
+.lp .map__cap { display: flex; flex-direction: column; align-items: center; gap: 2px; }
+.lp .map__cap a { margin-top: 6px; font-size: 0.8rem; font-weight: 800; color: var(--lp-gold-deep); text-decoration: none; border-bottom: 1px dashed currentColor; }
+.lp .map__cap a:hover { color: var(--lp-navy); }
 .lp .map__cap b { display: block; color: var(--lp-navy); font-weight: 900; font-size: 1.05rem; }
 .lp .map__cap span { font-size: 0.82rem; color: var(--lp-muted); font-weight: 600; }
-.lp .map__ring { transform-box: fill-box; transform-origin: center; animation: lp-pulse 2.2s ease-out infinite; }
-@keyframes lp-pulse {
-  0% { transform: scale(1); opacity: 0.9; }
-  70% { transform: scale(2.6); opacity: 0; }
-  100% { transform: scale(2.6); opacity: 0; }
-}
 
 /* كيف نعمل */
 .lp .how { margin-top: 48px; }
