@@ -3,7 +3,9 @@ import { notFound } from 'next/navigation'
 import { requireStaff } from '@/lib/auth'
 import { DOC_TYPE_LABELS } from '@/lib/documents'
 import { can } from '@/lib/permissions'
-import { db, getFinancingProducts, getStandingLevels } from '@/lib/supabase/server'
+import { db, getConstructionSystems, getFinancingProducts, getStandingLevels } from '@/lib/supabase/server'
+import { assembliesForSpan, suggestAssembly, type SpanLimit } from '@/lib/construction'
+import { setFloorAssemblyAction, setProjectSystemAction } from '@/lib/actions/construction'
 import { LABELS } from '@/lib/schema'
 import { formatTND } from '@/lib/finance'
 import { labelEmployment, seniorityYearsLabel } from '@/lib/scoring'
@@ -197,6 +199,8 @@ export default async function RequestDetail({ params }: { params: Promise<{ id: 
     { data: savedMatches },
     products,
     { data: geo },
+    constructionSystems,
+    { data: floorOfferings },
   ] = await Promise.all([
     db.from('financial_profiles').select('*').eq('request_id', id).maybeSingle(),
     db.from('request_land').select('*').eq('request_id', id).maybeSingle(),
@@ -260,7 +264,43 @@ export default async function RequestDetail({ params }: { params: Promise<{ id: 
       .select('delegations(name_ar), imadas(name_ar)')
       .eq('id', id)
       .maybeSingle(),
+    getConstructionSystems(),
+    // عروض الأسقف وحدودها: مصدر جدول البحور الذي يُقارَن به قرار المهندس
+    db
+      .from('system_offerings')
+      .select(
+        'id, system_code, span_limits(usage_code, usage_ar, load_kn_m2, assembly_code, span_max_m, reinforcement)'
+      )
+      .eq('element_scope', 'plancher')
+      .neq('status', 'draft'),
   ])
+
+  // ---------- طريقة البناء والسقف ----------
+  // الحدود تُقرأ من عرض السقف الخاصّ بالنظام المختار: لا يُقارَن قرار
+  // بجدول نظام آخر.
+  const projectSystem = (config?.system_code as string | null) ?? null
+  const floorOffering = ((floorOfferings ?? []) as {
+    id: number
+    system_code: string
+    span_limits: SpanLimit[] | null
+  }[]).find((o) => o.system_code === projectSystem)
+  const spanLimits: SpanLimit[] = (floorOffering?.span_limits ?? []).map((l) => ({
+    ...l,
+    load_kn_m2: Number(l.load_kn_m2),
+    span_max_m: Number(l.span_max_m),
+  }))
+  const floorUsage = (config?.floor_usage_code as string | null) ?? "habitation"
+  const projectSpan = config?.max_span_m === null || config?.max_span_m === undefined
+    ? 0
+    : Number(config.max_span_m)
+  const chosenAssembly = (config?.floor_assembly as string | null) ?? null
+  const spanVerdicts = assembliesForSpan(spanLimits, floorUsage, projectSpan)
+  const spanSuggestion = suggestAssembly(spanLimits, floorUsage, projectSpan)
+  // التحذير الوحيد الذي يعني شيئاً: تركيبة مختارة خارج حدّها
+  const chosenVerdict = spanVerdicts.find((v) => v.assembly === chosenAssembly)
+  const assemblyOutOfRange = Boolean(projectSpan > 0 && chosenVerdict && !chosenVerdict.fits)
+  const floorUsages = [...new Map(spanLimits.map((l) => [l.usage_code, l])).values()]
+  const assemblyCodes = [...new Set(spanLimits.map((l) => l.assembly_code))].sort()
 
   // ---------- اقتراحات المطابقة ----------
   const propertyPool: MatchProperty[] = ((approvedProperties ?? []) as Record<string, unknown>[]).map(
@@ -370,7 +410,17 @@ export default async function RequestDetail({ params }: { params: Promise<{ id: 
           <Row k="المعتمدية" v={(geo as GeoRow | null)?.delegations?.name_ar ?? '—'} />
           <Row k="العمادة" v={(geo as GeoRow | null)?.imadas?.name_ar ?? '—'} />
           <Row k="موقع الأرض" v={r.land_location || '—'} />
-          <Row k="المساحة" v={r.desired_area_m2 ? `${r.desired_area_m2} م²` : '—'} />
+          <Row
+            k={r.request_type === 'land_and_house' ? 'مساحة الدار المطلوبة' : 'المساحة'}
+            v={r.desired_area_m2 ? `${r.desired_area_m2} م²` : '—'}
+          />
+          {/* مقاس أرض يدوّر عليه — لا قطعة يملكها. المملوكة في بطاقة «الأرض» */}
+          {r.request_type === 'land_and_house' && (
+            <Row
+              k="مساحة الأرض المطلوبة"
+              v={r.desired_land_m2 ? `${r.desired_land_m2} م²` : '—'}
+            />
+          )}
           <Row k="عدد الغرف" v={r.bedrooms ? String(r.bedrooms) : '—'} />
           <Row k="مستوى التشطيب" v={standingLevels.find((l) => l.code === r.standing)?.nameAr ?? '—'} />
           <Row k="الأفق الزمني" v={LABELS.horizon[r.horizon] ?? '—'} />
@@ -557,6 +607,155 @@ export default async function RequestDetail({ params }: { params: Promise<{ id: 
           المواصفات هي مدخل حساب العرض. العرض يتولّد من البوردرو وأسعاره وقت التوليد، ويبقى
           محفوظاً بها حتى لو تبدّلت الأسعار بعد.
         </p>
+
+
+        {/* ---------- طريقة البناء والسقف ---------- */}
+        {/* الآلة ترتّب وتحسب، والإنسان يقرّر ويُسجَّل قراره — نفس مبدأ
+            التنقيط والمطابقة. اشتقاق التركيبة من المساحة وحدها قد يعطي
+            سقفاً خارج حدوده، فالقرار يبقى للمهندس منسوباً إليه. */}
+        <div className="mt-4 rounded border border-line bg-ground p-3">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <b className="text-sm">طريقة البناء</b>
+            <form action={setProjectSystemAction} className="flex items-center gap-2">
+              <input type="hidden" name="request_id" value={r.id} />
+              <select
+                name="system_code"
+                defaultValue={projectSystem ?? ''}
+                className="rounded border border-line bg-surface px-2.5 py-1.5 text-sm"
+              >
+                <option value="">— غير محدّدة —</option>
+                {constructionSystems.map((sys) => (
+                  <option key={sys.code} value={sys.code}>
+                    {sys.name_ar}
+                  </option>
+                ))}
+              </select>
+              <button className="rounded border border-line px-3 py-1.5 text-xs text-muted hover:border-brand hover:text-brand">
+                حفظ
+              </button>
+            </form>
+          </div>
+
+          {spanLimits.length === 0 ? (
+            <p className="mt-2 text-xs leading-6 text-faint">
+              {projectSystem
+                ? 'ما ثمّة حدود بحور مسجّلة لسقف هذا النظام — تُضاف من «طرق البناء».'
+                : 'حدّد طريقة البناء أوّلاً: حدود السقف تُقرأ من عرض النظام المختار.'}
+            </p>
+          ) : (
+            <>
+              <form action={setFloorAssemblyAction} className="mt-3 grid gap-3 sm:grid-cols-4">
+                <input type="hidden" name="request_id" value={r.id} />
+                <label className="block">
+                  <span className="mb-1 block text-xs text-muted">أكبر بحر حرّ (م)</span>
+                  <input
+                    name="max_span_m"
+                    type="number"
+                    step="0.01"
+                    defaultValue={projectSpan || ''}
+                    className="w-full rounded border border-line bg-surface px-3 py-2 text-sm"
+                  />
+                </label>
+                <label className="block">
+                  <span className="mb-1 block text-xs text-muted">استعمال السقف</span>
+                  <select
+                    name="floor_usage_code"
+                    defaultValue={floorUsage}
+                    className="w-full rounded border border-line bg-surface px-3 py-2 text-sm"
+                  >
+                    {floorUsages.map((u) => (
+                      <option key={u.usage_code} value={u.usage_code}>
+                        {u.usage_ar}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <label className="block">
+                  <span className="mb-1 block text-xs text-muted">التركيبة المعتمدة</span>
+                  <select
+                    name="floor_assembly"
+                    defaultValue={chosenAssembly ?? ''}
+                    className="w-full rounded border border-line bg-surface px-3 py-2 text-sm"
+                  >
+                    <option value="">— لم تُحدَّد —</option>
+                    {assemblyCodes.map((a) => (
+                      <option key={a} value={a}>
+                        {a}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <label className="block">
+                  <span className="mb-1 block text-xs text-muted">مبرّر القرار</span>
+                  <input
+                    name="assembly_note"
+                    defaultValue={(config?.assembly_note as string | null) ?? ''}
+                    className="w-full rounded border border-line bg-surface px-3 py-2 text-sm"
+                  />
+                </label>
+                <button className="justify-self-start rounded bg-brand px-4 py-2 text-sm text-white hover:bg-brand-deep sm:col-span-4">
+                  سجّل قرار السقف
+                </button>
+              </form>
+
+              {/* أين يقف كلّ خيار من الحدّ — بلا أن يقرّر البرنامج */}
+              {projectSpan > 0 && (
+                <div className="mt-3 flex flex-wrap items-center gap-1.5 text-xs">
+                  {spanVerdicts.map((v) => (
+                    <span
+                      key={v.assembly}
+                      className={`rounded border px-2 py-1 ${
+                        v.assembly === chosenAssembly
+                          ? v.fits
+                            ? 'border-brand bg-brand-soft text-brand'
+                            : 'border-[#8c2f22] bg-[#8c2f22]/10 text-[#8c2f22]'
+                          : v.fits
+                            ? 'border-line bg-surface'
+                            : 'border-line bg-surface text-faint line-through'
+                      }`}
+                    >
+                      <b className="num">{v.assembly}</b>
+                      <span className="num ms-1">≤ {formatNumber(v.spanMax, 2)} م</span>
+                    </span>
+                  ))}
+                  {spanSuggestion && spanSuggestion.assembly !== chosenAssembly && (
+                    <span className="text-faint">
+                      المنصة تقترح <b className="num text-ink">{spanSuggestion.assembly}</b> —
+                      والقرار للمهندس
+                    </span>
+                  )}
+                  {!spanSuggestion && (
+                    <span className="text-[#8c2f22]">
+                      ما من تركيبة في هذا النظام تحتمل بحراً بهذا الطول — يلزم نظام آخر أو
+                      تقسيم البحر
+                    </span>
+                  )}
+                </div>
+              )}
+
+              {assemblyOutOfRange && (
+                <p className="mt-2 rounded border border-[#8c2f22]/40 bg-[#8c2f22]/10 px-3 py-2 text-xs leading-6 text-[#8c2f22]">
+                  <b>خارج الحدّ:</b> التركيبة <span className="num">{chosenAssembly}</span> حدّها
+                  <span className="num"> {formatNumber(chosenVerdict?.spanMax ?? 0, 2)} م</span> في «
+                  {floorUsages.find((u) => u.usage_code === floorUsage)?.usage_ar}»، والبحر
+                  المسجّل <span className="num">{formatNumber(projectSpan, 2)} م</span>.
+                </p>
+              )}
+
+              {chosenAssembly && config?.assembly_at && (
+                <p className="mt-2 text-xs text-faint">
+                  قرار مسجّل:{' '}
+                  <b className="text-muted">
+                    {(team ?? []).find(
+                      (m: Record<string, unknown>) => m.user_id === config.assembly_by
+                    )?.full_name ?? 'عضو الفريق'}
+                  </b>{' '}
+                  <span className="num">{String(config.assembly_at).slice(0, 10)}</span>
+                </p>
+              )}
+            </>
+          )}
+        </div>
 
         <form action={updateProjectConfigAction} className="mt-4 grid gap-3 sm:grid-cols-4">
           <input type="hidden" name="id" value={r.id} />

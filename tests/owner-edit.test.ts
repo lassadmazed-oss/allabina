@@ -22,6 +22,7 @@ const request: RequestRow = {
   land_location: 'نهج الحبيب بورقيبة',
   request_type: 'build_on_land',
   desired_area_m2: 120,
+  desired_land_m2: null,
   bedrooms: 3,
   horizon: '12m',
   standing: 'B03',

@@ -19,7 +19,8 @@ import { HOUSING_CONDITIONS, INCOME_STABILITY } from '@/lib/support-schema'
 import { CLIENT_DOC_CODES } from '@/lib/documents'
 import { computeCapacity, formatTND, type FinanceSettings } from '@/lib/finance'
 import { buildCostRange, tierByKey, type TierPrice } from '@/lib/pricing'
-import { fmt, type Dictionary, type Locale } from '@/lib/i18n'
+import { fmt, path, type Dictionary, type Locale } from '@/lib/i18n'
+import type { ConstructionSystem } from '@/lib/construction'
 import { areaLabel, currencyLabel, formatRange, perM2Label } from '@/lib/format'
 
 type Gov = { code: string; name_ar: string; is_active: boolean }
@@ -29,6 +30,8 @@ type Imada = { id: number; delegation_id: number; name_ar: string }
 const STORAGE_KEY = 'allabina.demande.v2'
 const initial: SubmitState = { ok: false }
 const AREAS = [60, 80, 100, 120]
+/** مقاسات القطع الشائعة في صفاقس */
+const LAND_AREAS = [200, 300, 400, 500]
 
 /** أيّ خطوة يقع فيها كلّ حقل — يستعملها الرجوع التلقائي عند الخطأ */
 const FIELD_STEP: Record<string, number> = {
@@ -38,9 +41,11 @@ const FIELD_STEP: Record<string, number> = {
   imadaId: 2,
   landLocation: 2,
   desiredAreaM2: 2,
+  desiredLandM2: 2,
   bedrooms: 2,
   horizon: 2,
   standing: 2,
+  constructionSystem: 2,
   landAreaM2: 3,
   titleStatus: 3,
   hasWater: 3,
@@ -80,8 +85,10 @@ function fieldLabels(t: Dictionary['form']): Record<string, string> {
     govCode: t.governorate,
     horizon: t.horizon,
     desiredAreaM2: t.area,
+    desiredLandM2: t.desiredLandM2,
     bedrooms: t.bedrooms,
     standing: t.standingTitle,
+    constructionSystem: t.systemTitle,
     landAreaM2: t.landArea,
     titleStatus: t.titleStatus,
     monthlyIncome: t.income,
@@ -122,6 +129,7 @@ export default function RequestForm({
   assumptions,
   bankTermsNote,
   tiers,
+  systems = [],
   initialType = '',
   mode = 'create',
   initialValues,
@@ -136,6 +144,8 @@ export default function RequestForm({
   assumptions: FinanceSettings
   bankTermsNote: string
   tiers: TierPrice[]
+  /** أنظمة البناء المتاحة — فارغة تعني إخفاء الاختيار لا تعطيله */
+  systems?: ConstructionSystem[]
   initialType?: string
   /** 'edit' = صاحب المطلب يصلّح مطلباً موجوداً، لا يبعث واحداً جديداً */
   mode?: 'create' | 'edit'
@@ -214,6 +224,12 @@ export default function RequestForm({
 
   const isBuild = values.requestType === 'build_on_land'
   const needsStanding = isBuild || values.requestType === 'land_and_house'
+  /**
+   * «أرض ودار»: ما عندوش أرض بعدُ، عندو مقاس يدوّر عليه. نسألو عليه
+   * هنا مع بقية معايير البحث — لا في خطوة الأرض، فتلك لقطعة يملكها.
+   */
+  const wantsLand = values.requestType === 'land_and_house'
+
   /** من يبني أو يرمّم يعرف كم غرفة وكم طابق؛ من يشري شقّة جاهزة لا */
   const needsSpecs =
     isBuild ||
@@ -494,7 +510,9 @@ export default function RequestForm({
         </div>
 
         <div className="mt-6">
-          <span className="mb-2 block text-sm font-medium">{t.area}</span>
+          <span className="mb-2 block text-sm font-medium">
+            {wantsLand ? t.builtArea : t.area}
+          </span>
           <div className="flex flex-wrap gap-2">
             {AREAS.map((a) => (
               <button
@@ -525,6 +543,43 @@ export default function RequestForm({
           )}
         </div>
 
+        {wantsLand && (
+          <div className="mt-6">
+            <span className="mb-1 block text-sm font-medium">{t.desiredLandM2}</span>
+            <p className="mb-2 text-sm text-muted">{t.desiredLandHint}</p>
+            <div className="flex flex-wrap gap-2">
+              {LAND_AREAS.map((a) => (
+                <button
+                  key={a}
+                  type="button"
+                  onClick={() => set('desiredLandM2', String(a))}
+                  className={`min-h-11 rounded border px-5 text-sm transition ${
+                    String(values.desiredLandM2) === String(a)
+                      ? 'border-brand bg-brand text-white'
+                      : 'border-line bg-surface hover:border-line-strong'
+                  }`}
+                >
+                  {a} {m2}
+                </button>
+              ))}
+              <input
+                type="number"
+                inputMode="numeric"
+                name="desiredLandM2"
+                min={50}
+                max={5000}
+                placeholder={t.otherArea}
+                value={String(values.desiredLandM2 ?? '')}
+                onChange={(e) => set('desiredLandM2', e.target.value)}
+                className={`${inputCls} w-36`}
+              />
+            </div>
+            {err('desiredLandM2') && (
+              <p className="mt-2 text-sm text-[#8c2f22]">{err('desiredLandM2')}</p>
+            )}
+          </div>
+        )}
+
         <div className="mt-6 grid gap-5 sm:grid-cols-2">
           <Field label={t.bedrooms} hint={t.optional} error={err('bedrooms')}>
             <input
@@ -554,6 +609,61 @@ export default function RequestForm({
             </select>
           </Field>
         </div>
+
+
+        {/* طريقة البناء — القسم 12. تظهر لمن يبني فقط: من يشتري بيتاً
+            قائماً لا يختار كيف بُني. */}
+        {isBuild && systems.length > 1 && (
+          <div className="mt-8">
+            <div className="mb-1 flex flex-wrap items-baseline justify-between gap-2">
+              <span className="text-sm font-medium">{t.systemTitle}</span>
+              <a
+                href={path(locale, "/systemes")}
+                target="_blank"
+                rel="noopener"
+                className="text-xs text-brand underline underline-offset-2"
+              >
+                {t.systemMore} ↗
+              </a>
+            </div>
+            <p className="mb-3 text-sm text-muted">{t.systemLede}</p>
+            <div className="grid gap-3 sm:grid-cols-2">
+              {systems.map((sys) => {
+                const on = values.constructionSystem === sys.code
+                const summary =
+                  (locale === "fr" ? sys.citizen_summary_fr : sys.citizen_summary_ar) ||
+                  sys.citizen_summary_ar
+                return (
+                  <label
+                    key={sys.code}
+                    className={`cursor-pointer rounded border p-4 transition ${
+                      on ? "border-brand bg-brand-soft" : "border-line bg-surface hover:border-line-strong"
+                    }`}
+                  >
+                    <input
+                      type="radio"
+                      name="constructionSystem"
+                      value={sys.code}
+                      checked={on}
+                      onChange={(e) => set("constructionSystem", e.target.value)}
+                      className="sr-only"
+                    />
+                    <span className="flex items-baseline justify-between gap-2">
+                      <span className="font-semibold">
+                        {(locale === "fr" ? sys.name_fr : sys.name_ar) || sys.name_ar}
+                      </span>
+                      {on && <span className="text-xs text-brand">{t.systemChosen}</span>}
+                    </span>
+                    <span className="mt-1.5 block text-xs leading-6 text-muted">{summary}</span>
+                  </label>
+                )
+              })}
+            </div>
+            {err("constructionSystem") && (
+              <p className="mt-2 text-sm text-[#8c2f22]">{err("constructionSystem")}</p>
+            )}
+          </div>
+        )}
 
         {needsStanding && (
           <div className="mt-8">
@@ -849,37 +959,54 @@ export default function RequestForm({
         <legend className="display mb-2 text-2xl font-semibold">{t.s6Title}</legend>
         <p className="mb-6 leading-8 text-muted">{t.s6Lede}</p>
 
-        <div className="grid gap-5 sm:grid-cols-2">
-          <Field label={t.householdSize} hint={t.optional} error={err('householdSize')}>
+        <Group title={t.grpFamily} lede={t.grpFamilyLede}>
+          <div className="grid gap-5 sm:grid-cols-2">
+            <Field label={t.householdSize} hint={t.optional} error={err('householdSize')}>
+              <input
+                type="number"
+                inputMode="numeric"
+                name="householdSize"
+                min={1}
+                max={30}
+                value={String(values.householdSize ?? '')}
+                onChange={(e) => set('householdSize', e.target.value)}
+                className={inputCls}
+              />
+            </Field>
+            <Field label={t.dependents} hint={t.optional} error={err('dependents')}>
+              <input
+                type="number"
+                inputMode="numeric"
+                name="dependents"
+                min={0}
+                max={25}
+                value={String(values.dependents ?? '')}
+                onChange={(e) => set('dependents', e.target.value)}
+                className={inputCls}
+              />
+            </Field>
+          </div>
+
+          <label className="mt-4 flex cursor-pointer items-start gap-3 rounded border border-line bg-surface p-4">
             <input
-              type="number"
-              inputMode="numeric"
-              name="householdSize"
-              min={1}
-              max={30}
-              value={String(values.householdSize ?? '')}
-              onChange={(e) => set('householdSize', e.target.value)}
-              className={inputCls}
+              type="checkbox"
+              name="hasDisability"
+              checked={Boolean(values.hasDisability)}
+              onChange={(e) => set('hasDisability', e.target.checked)}
+              className="mt-1 size-4 accent-[#1d3a5f]"
             />
-          </Field>
-          <Field label={t.dependents} hint={t.optional} error={err('dependents')}>
-            <input
-              type="number"
-              inputMode="numeric"
-              name="dependents"
-              min={0}
-              max={25}
-              value={String(values.dependents ?? '')}
-              onChange={(e) => set('dependents', e.target.value)}
-              className={inputCls}
-            />
-          </Field>
+            <span className="text-sm leading-7">{t.hasDisability}</span>
+          </label>
+        </Group>
+
+        {/* السكن والكراء في مكان واحد: الكراء وصفٌ لوضعية السكن لا للدخل */}
+        <Group title={t.grpHousing} lede={t.grpHousingLede}>
           <Field label={t.housingCondition} hint={t.optional} error={err('housingCondition')}>
             <select
               name="housingCondition"
               value={String(values.housingCondition ?? '')}
               onChange={(e) => set('housingCondition', e.target.value)}
-              className={inputCls}
+              className={`${inputCls} sm:max-w-md`}
             >
               <option value="">{t.choose}</option>
               {HOUSING_CONDITIONS.map((k) => (
@@ -889,27 +1016,84 @@ export default function RequestForm({
               ))}
             </select>
           </Field>
-          <Field label={t.incomeStability} hint={t.optional} error={err('incomeStability')}>
-            <select
-              name="incomeStability"
-              value={String(values.incomeStability ?? '')}
-              onChange={(e) => set('incomeStability', e.target.value)}
-              className={inputCls}
-            >
-              <option value="">{t.choose}</option>
-              {INCOME_STABILITY.map((k) => (
-                <option key={k} value={k}>
-                  {t.incomeLabels[k]}
-                </option>
-              ))}
-            </select>
-          </Field>
+
+          {/* الكراء: أوضح دليل على القدرة الشهرية — يدفعه فعلاً كلّ شهر */}
+          <div className="mt-4 rounded border border-line bg-surface p-4 sm:p-5">
+            <label className="flex cursor-pointer items-start gap-3">
+              <input
+                type="checkbox"
+                name="isRenting"
+                checked={Boolean(values.isRenting)}
+                onChange={(e) => set('isRenting', e.target.checked)}
+                className="mt-1 size-4 accent-[#1d3a5f]"
+              />
+              <span className="text-sm leading-7 font-medium">{t.isRenting}</span>
+            </label>
+
+            {values.isRenting && (
+              <div className="mt-4">
+                <Field label={t.rentTnd} hint={t.rentHint} error={err('rentTnd')}>
+                  <input
+                    type="number"
+                    inputMode="numeric"
+                    name="rentTnd"
+                    min={0}
+                    max={20000}
+                    value={String(values.rentTnd ?? '')}
+                    onChange={(e) => set('rentTnd', e.target.value)}
+                    className={`${inputCls} sm:max-w-xs`}
+                  />
+                </Field>
+                <p className="mt-2 text-xs leading-6 text-faint">{t.rentWhy}</p>
+              </div>
+            )}
+          </div>
+        </Group>
+
+        <Group title={t.grpIncome} lede={t.grpIncomeLede}>
+          <div className="grid gap-5 sm:grid-cols-2">
+            <Field label={t.incomeStability} hint={t.optional} error={err('incomeStability')}>
+              <select
+                name="incomeStability"
+                value={String(values.incomeStability ?? '')}
+                onChange={(e) => set('incomeStability', e.target.value)}
+                className={inputCls}
+              >
+                <option value="">{t.choose}</option>
+                {INCOME_STABILITY.map((k) => (
+                  <option key={k} value={k}>
+                    {t.incomeLabels[k]}
+                  </option>
+                ))}
+              </select>
+            </Field>
+            {!values.cashReady && (
+              <Field label={t.financingState} hint={t.optional} error={err('financingState')}>
+                <select
+                  name="financingState"
+                  value={String(values.financingState ?? '')}
+                  onChange={(e) => set('financingState', e.target.value)}
+                  className={inputCls}
+                >
+                  <option value="">{t.choose}</option>
+                  {FINANCING_STATES.map((k) => (
+                    <option key={k} value={k}>
+                      {t.financingLabels[k]}
+                    </option>
+                  ))}
+                </select>
+              </Field>
+            )}
+          </div>
+        </Group>
+
+        <Group title={t.grpObstacle}>
           <Field label={t.problemType} hint={t.optional} error={err('problemType')}>
             <select
               name="problemType"
               value={String(values.problemType ?? '')}
               onChange={(e) => set('problemType', e.target.value)}
-              className={inputCls}
+              className={`${inputCls} sm:max-w-md`}
             >
               <option value="">{t.choose}</option>
               {PROBLEM_KINDS.map((k) => (
@@ -919,67 +1103,7 @@ export default function RequestForm({
               ))}
             </select>
           </Field>
-          {!values.cashReady && (
-          <Field label={t.financingState} hint={t.optional} error={err('financingState')}>
-            <select
-              name="financingState"
-              value={String(values.financingState ?? '')}
-              onChange={(e) => set('financingState', e.target.value)}
-              className={inputCls}
-            >
-              <option value="">{t.choose}</option>
-              {FINANCING_STATES.map((k) => (
-                <option key={k} value={k}>
-                  {t.financingLabels[k]}
-                </option>
-              ))}
-            </select>
-          </Field>
-          )}
-        </div>
-
-        {/* الكراء: أوضح دليل على القدرة الشهرية — يدفعه فعلاً كلّ شهر */}
-        <div className="mt-6 rounded border border-line bg-surface p-4 sm:p-5">
-          <label className="flex cursor-pointer items-start gap-3">
-            <input
-              type="checkbox"
-              name="isRenting"
-              checked={Boolean(values.isRenting)}
-              onChange={(e) => set('isRenting', e.target.checked)}
-              className="mt-1 size-4 accent-[#1d3a5f]"
-            />
-            <span className="text-sm leading-7 font-medium">{t.isRenting}</span>
-          </label>
-
-          {values.isRenting && (
-            <div className="mt-4">
-              <Field label={t.rentTnd} hint={t.rentHint} error={err('rentTnd')}>
-                <input
-                  type="number"
-                  inputMode="numeric"
-                  name="rentTnd"
-                  min={0}
-                  max={20000}
-                  value={String(values.rentTnd ?? '')}
-                  onChange={(e) => set('rentTnd', e.target.value)}
-                  className={inputCls}
-                />
-              </Field>
-              <p className="mt-2 text-xs leading-6 text-faint">{t.rentWhy}</p>
-            </div>
-          )}
-        </div>
-
-        <label className="mt-4 flex cursor-pointer items-start gap-3 rounded border border-line bg-surface p-4">
-          <input
-            type="checkbox"
-            name="hasDisability"
-            checked={Boolean(values.hasDisability)}
-            onChange={(e) => set('hasDisability', e.target.checked)}
-            className="mt-1 size-4 accent-[#1d3a5f]"
-          />
-          <span className="text-sm leading-7">{t.hasDisability}</span>
-        </label>
+        </Group>
       </fieldset>
 
       {/* 5 — القدرة المالية */}
@@ -1308,6 +1432,34 @@ export default function RequestForm({
 
 const inputCls =
   'w-full rounded border border-line bg-surface px-3.5 py-2.5 text-[15px] outline-none transition focus:border-brand'
+
+
+/**
+ * مجموعة داخل خطوة.
+ *
+ * لماذا: الخطوة الرابعة كانت ستّ قوائم متطابقة الشكل في شبكة واحدة،
+ * كلّها موسومة «اختياري». فيقع سؤال «وين تسكن؟» في نفس الصفّ مع
+ * «كيفاش دخلك؟» — والاثنان شيئان مختلفان: الأوّل وضعية سكن والثاني
+ * استقرار دخل. من يقرأ بسرعة يخلطهما. العنوان والفاصل يقولان أين
+ * ينتهي موضوع ويبدأ آخر.
+ */
+function Group({
+  title,
+  lede,
+  children,
+}: {
+  title: string
+  lede?: string
+  children: React.ReactNode
+}) {
+  return (
+    <section className="mt-7 border-t border-line pt-5 first:mt-0 first:border-0 first:pt-0">
+      <h3 className="text-sm font-semibold">{title}</h3>
+      {lede && <p className="mt-0.5 text-sm leading-7 text-muted">{lede}</p>}
+      <div className="mt-3">{children}</div>
+    </section>
+  )
+}
 
 function Field({
   label,

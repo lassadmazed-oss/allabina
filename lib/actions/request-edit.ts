@@ -102,7 +102,7 @@ export async function closeOwnerSession(formData: FormData) {
 
 const REQUEST_COLUMNS =
   'id, ref_code, full_name, phone, email, gov_code, delegation_id, imada_id, land_location, ' +
-  'request_type, desired_area_m2, bedrooms, horizon, standing, urgency, urgency_note, ' +
+  'request_type, desired_area_m2, desired_land_m2, bedrooms, horizon, standing, urgency, urgency_note, ' +
   'flexibility, problem_note, foprolos_interest, is_first_home, has_social_housing, ' +
   'cnss_affiliated, cnss_number_years, problem_type, financing_state, cash_ready, ' +
   'lang, status, owner_updated_at'
@@ -251,6 +251,7 @@ export async function updateOwnRequest(_prev: unknown, formData: FormData): Prom
       land_location: d.landLocation || null,
       request_type: d.requestType,
       desired_area_m2: d.desiredAreaM2,
+      desired_land_m2: d.desiredLandM2,
       bedrooms: d.bedrooms,
       horizon: d.horizon,
       standing: d.standing,

@@ -138,6 +138,7 @@ export async function submitRequest(
       delegation_id: d.delegationId,
       request_type: d.requestType,
       desired_area_m2: d.desiredAreaM2,
+      desired_land_m2: d.desiredLandM2,
       bedrooms: d.bedrooms,
       horizon: d.horizon,
       standing: d.standing,

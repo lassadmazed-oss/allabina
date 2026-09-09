@@ -15,6 +15,7 @@ export type RequestRow = {
   land_location: string | null
   request_type: string
   desired_area_m2: number | null
+  desired_land_m2: number | null
   bedrooms: number | null
   horizon: string | null
   standing: string | null
@@ -106,6 +107,7 @@ export function toFormValues(
     imadaId: s(r.imada_id),
     landLocation: r.land_location ?? '',
     desiredAreaM2: s(r.desired_area_m2),
+    desiredLandM2: s(r.desired_land_m2),
     bedrooms: s(r.bedrooms),
     horizon: r.horizon ?? '',
     standing: r.standing ?? '',
@@ -225,6 +227,7 @@ export const OWNER_FIELDS = [
   'imadaId',
   'landLocation',
   'desiredAreaM2',
+  'desiredLandM2',
   'bedrooms',
   'horizon',
   'standing',
@@ -316,6 +319,7 @@ export const FIELD_LABELS_AR: Record<string, string> = {
   imadaId: 'العمادة',
   landLocation: 'موقع الأرض',
   desiredAreaM2: 'المساحة المطلوبة',
+  desiredLandM2: 'مساحة الأرض المطلوبة',
   bedrooms: 'عدد الغرف',
   horizon: 'الأجل',
   standing: 'مستوى التشطيب',

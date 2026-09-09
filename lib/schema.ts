@@ -111,11 +111,22 @@ export const requestSchema = z.object({
   govCode: z.string().min(2).max(8),
   delegationId: nullableNum(1, 100000),
   desiredAreaM2: nullableNum(40, 400),
+  /**
+   * مساحة الأرض المطلوبة في مسار «أرض ودار»: معيار بحث لا قطعة
+   * مملوكة. المملوكة تُصرَّح في landAreaM2 مع رسمها ومرافقها.
+   */
+  desiredLandM2: nullableNum(50, 5000),
   bedrooms: nullableNum(1, 6),
   horizon: z.enum(HORIZONS),
   // ملاحظة Zod v4: المفتاح الغائب يحتاج optional() — union مع undefined لا يكفي
   standing: z
     .union([z.string().regex(STANDING_CODE), z.literal(''), z.null()])
+    .optional()
+    .transform((v) => (v ? v : null)),
+  // طريقة البناء — كراس الشروط، القسم 12. الرمز يُقارَن بجدول
+  // construction_systems لا بقائمة ثابتة: الأنظمة تُدار من الـBack-office.
+  constructionSystem: z
+    .union([z.string().regex(/^[A-Z_]{3,20}$/), z.literal(''), z.null()])
     .optional()
     .transform((v) => (v ? v : null)),
   imadaId: nullableNum(1, 1000000),
