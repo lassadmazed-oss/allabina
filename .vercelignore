@@ -7,7 +7,7 @@
 # ملفّات عمل لا يحتاجها البناء
 *.log
 tsconfig.tsbuildinfo
-.claude/
-design/
-docs/
-scratchpad-tmp/
+.claude/**
+design/**
+docs/**
+scratchpad-tmp/**

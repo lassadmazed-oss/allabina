@@ -46,7 +46,6 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
         <div className="hero__shade" aria-hidden="true" />
         <div className="wrap hero__in">
           <div className="hero__txt">
-            <span className="eyebrow">{c.hero.eyebrow}</span>
             <h1>{c.hero.title}</h1>
             <div className="hero__sub">{c.hero.sub}</div>
             <p className="hero__p">{c.hero.text}</p>

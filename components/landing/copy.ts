@@ -20,10 +20,9 @@ const AR = {
     group: 'الصفحات',
   },
   hero: {
-    eyebrow: 'من تونس …',
     title: 'إلى مستقبل أجمل',
     sub: 'اللبنة للبناء والإعمار',
-    text: 'نبني اليوم مجتمعات أفضل ونساهم في غدٍ أكثر إشراقًا لتونس. سجّل مطلب سكنك مرة واحدة، ونرافقك من الدراسة إلى مفتاح الدار.',
+    text: 'نبنيو الدار على قدّ إمكانياتك، بكلفة واضحة من الأوّل وخطوات تعرفها. سجّل مطلب سكنك مرّة واحدة، ونرافقك من الدراسة إلى مفتاح الدار.',
     cta1: 'ابدأ مشروعك الآن',
     cta2: 'تعرّف على خدماتنا',
     free: 'التسجيل بدون معاليم — ما ناخذو حتّى مليم من الحريف',
@@ -109,10 +108,9 @@ const FR: LandingCopy = {
     group: 'Pages',
   },
   hero: {
-    eyebrow: 'De la Tunisie…',
     title: 'vers un avenir meilleur',
     sub: 'AL-LUBNA — Construction & Développement',
-    text: 'Nous bâtissons aujourd’hui des communautés meilleures pour une Tunisie plus lumineuse. Déposez votre demande de logement une seule fois : nous vous accompagnons de l’étude jusqu’aux clés.',
+    text: 'Nous construisons votre maison à la mesure de vos moyens, avec un coût clair dès le départ et des étapes connues. Déposez votre demande de logement une seule fois : nous vous accompagnons de l’étude jusqu’aux clés.',
     cta1: 'Commencer mon projet',
     cta2: 'Découvrir nos services',
     free: "Dépôt sans frais — nous ne prenons rien au citoyen",
