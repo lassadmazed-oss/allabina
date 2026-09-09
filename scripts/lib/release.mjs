@@ -10,7 +10,7 @@
  * حذف تكراري — حذف مجلّد فيه وصلة قد يتبعها إلى node_modules نفسه.
  */
 
-import { execFileSync, spawnSync } from 'node:child_process'
+import { execFileSync, execSync, spawnSync } from 'node:child_process'
 import fs from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
@@ -20,7 +20,8 @@ export const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '
 /** الموقع الذي يراه الناس — الاختبار الدخاني يضربه بعد النشر */
 export const SITE = process.env.RELEASE_SITE || 'https://www.allabina.site'
 export const SMOKE_PATHS = ['/ar', '/fr', '/ar/demande', '/ar/soutien', '/ar/realisations']
-const BRAND = /اللَّبنة|اللبنة/
+/** اسم الموقع كما يظهر في الصفحة — عربية أو فرنسية */
+const BRAND = /اللَّبنة|اللبنة|AL-LUBNA|ALLABINA/i
 /** الدبابيس: وسم لكلّ نشر إنتاجي، رسالته رابط النشر */
 export const PIN_PREFIX = 'prod/'
 
@@ -115,7 +116,8 @@ export function checkTree(dir) {
 
 function globalVercelEntry() {
   try {
-    const root = execFileSync('npm', ['root', '-g'], { encoding: 'utf8', shell: process.platform === 'win32' }).trim()
+    // أمر واحد بلا وسائط عبر الصدفة (npm.cmd على ويندوز) — لا تحذير DEP0190
+    const root = execSync('npm root -g', { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }).trim()
     const p = path.join(root, 'vercel', 'dist', 'index.js')
     return fs.existsSync(p) ? p : null
   } catch {
@@ -146,7 +148,8 @@ export async function smoke(base = SITE, tries = 6) {
       try {
         const r = await fetch(base + p, { redirect: 'follow', cache: 'no-store', signal: AbortSignal.timeout(15000) })
         const html = await r.text()
-        if (r.status !== 200 || !BRAND.test(html)) bad.push(`${p} → ${r.status}`)
+        if (r.status !== 200) bad.push(`${p} → ${r.status}`)
+        else if (!BRAND.test(html)) bad.push(`${p} → 200 لكن بلا اسم الموقع في الصفحة`)
       } catch (e) {
         bad.push(`${p} → ${e instanceof Error ? e.message : e}`)
       }
@@ -172,9 +175,19 @@ export function pins() {
     .map((r) => r.trim())
     .filter(Boolean)
     .map((r) => {
-      const [tag, date, commit, url, body] = r.split('\t')
-      const lines = (body || '').trim().split('\n')
-      return { tag, date, commit, url, inspector: lines[0] || '', note: lines[1] || '' }
+      const [tag, date, commit, subject, body] = r.split('\t')
+      // الرابط أوّل كلمة في السطر الأوّل مهما جاء بعده؛ والبقيّة من المتن
+      // (أو من بقيّة السطر الأوّل في وسم قديم بلا سطر فارغ بعد الرابط)
+      const tokens = (subject || '').trim().split(/\s+/)
+      const lines = (body || '').trim().split('\n').filter(Boolean)
+      return {
+        tag,
+        date,
+        commit,
+        url: tokens[0] || '',
+        inspector: lines[0] || tokens[1] || '',
+        note: lines.slice(1).join(' ') || tokens.slice(2).join(' '),
+      }
     })
 }
 
@@ -186,7 +199,9 @@ export function stamp(d = new Date()) {
 /** يدقّ دبّوساً: وسم موقّع على الالتزام برسالة (رابط النشر، رابط المتابعة، ملاحظة) ويدفعه */
 export function pin(commit, url, inspector, note) {
   const tag = `${PIN_PREFIX}${stamp()}`
-  git(['tag', '-a', tag, '-m', `${url}\n${inspector}\n${note}`, commit])
+  // سطر فارغ بعد الرابط: «موضوع» الوسم عند git هو الفقرة الأولى كلّها،
+  // فبلا الفارغ يلتصق رابط المتابعة والملاحظة بالرابط ويفسد الرجوع
+  git(['tag', '-a', tag, '-m', `${url}\n\n${inspector}\n${note}`, commit])
   try {
     git(['push', '-q', 'origin', tag], { stdio: 'ignore' })
   } catch {
