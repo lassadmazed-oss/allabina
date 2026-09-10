@@ -131,6 +131,26 @@ export default async function SuiviPage({
               </div>
             </dl>
 
+            {/* مقترحات الفريق: العناوين وحدها — التفاصيل والأرقام يشرحها المستشار */}
+            {result.proposal && (
+              <div className="mt-5 rounded border border-gold-light bg-gold-soft p-4">
+                <div className="text-sm font-semibold text-ink">{t.suivi.proposalTitle}</div>
+                <p className="mt-1 text-sm leading-7 text-ink-soft">{t.suivi.proposalLede}</p>
+                <ul className="mt-2 space-y-1.5 text-sm">
+                  {result.proposal.titles.map((title) => (
+                    <li key={title} className="flex gap-2">
+                      <span aria-hidden="true" className="mt-2.5 size-1.5 shrink-0 rounded-full bg-gold" />
+                      <span>{title}</span>
+                    </li>
+                  ))}
+                </ul>
+                <p className="mt-3 text-xs leading-6 text-muted">
+                  {t.suivi.proposalNote} ·{' '}
+                  <span className="num">{new Date(result.proposal.at).toLocaleDateString(dateLocale)}</span>
+                </p>
+              </div>
+            )}
+
             <div className="mt-5 border-t border-line pt-3 text-xs text-faint">
               {t.suivi.registeredOn}{' '}
               <span className="num">

@@ -1057,6 +1057,9 @@ const ar = {
         phone: 'رقم الهاتف',
         and: 'و',
         submit: 'شوف وضعية ملفّي',
+        proposalTitle: 'حلول مقترحة لملفّك',
+        proposalLede: 'الفريق درس ملفّك وحضّر هاذي الحلول الممكنة. التفاصيل والأرقام يشرحهالك المستشار مباشرة.',
+        proposalNote: 'مقترحات تقديرية موش التزام — القرار ليك',
         edit: {
             title: 'تحبّ تزيد ولا تبدّل حاجة في مطلبك؟',
             lede:
@@ -2286,6 +2289,9 @@ const fr: Dictionary = {
         phone: 'Téléphone',
         and: 'et',
         submit: 'Voir mon dossier',
+        proposalTitle: 'Solutions proposées pour votre dossier',
+        proposalLede: 'L’équipe a étudié votre dossier et préparé ces pistes. Votre conseiller vous en explique le détail et les montants directement.',
+        proposalNote: 'Propositions indicatives, sans engagement — la décision vous appartient',
         edit: {
             title: 'Besoin de completer ou corriger votre demande ?',
             lede:

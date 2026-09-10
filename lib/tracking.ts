@@ -31,6 +31,8 @@ export type LookupResult =
       nextStep: string | null
       createdAt: string
       updatedAt: string | null
+      /** آخر مقترحات نُشرت عناوينها للحريف — عناوين فقط، بلا مبالغ */
+      proposal: { titles: string[]; at: string } | null
     }
   | { found: false; reason: 'not_found' | 'rate_limited' | 'no_input' }
 
@@ -54,7 +56,8 @@ function rateLimited(key: string): boolean {
  * والهاتف وحده لا يكفي: من يعرف رقم شخص يطّلع على وضعية ملفّه. اشتراط الاثنين
  * يجعل الاطّلاع حكراً على صاحب الملفّ.
  *
- * لا يرجع أبداً اسماً ولا هاتفاً ولا مبلغاً — الحالة والتحيين والمرحلة القادمة فقط.
+ * لا يرجع أبداً اسماً ولا هاتفاً ولا مبلغاً — الحالة والتحيين والمرحلة القادمة،
+ * وعناوين آخر مقترحات نشرها الفريق (مكتوبة بلا أرقام، lib/client-proposal.ts).
  */
 export async function lookupRequest(input: {
   ref?: string
@@ -67,9 +70,10 @@ export async function lookupRequest(input: {
   const ip = (await headers()).get('x-forwarded-for')?.split(',')[0] ?? 'local'
   if (rateLimited(ip)) return { found: false, reason: 'rate_limited' }
 
-  const columns = 'ref_code, status, public_update, public_next_step, created_at, public_updated_at, updated_at, phone'
+  const columns = 'id, ref_code, status, public_update, public_next_step, created_at, public_updated_at, updated_at, phone'
 
   type Row = {
+    id: string
     ref_code: string
     status: string
     public_update: string | null
@@ -88,6 +92,16 @@ export async function lookupRequest(input: {
 
   if (!row) return { found: false, reason: 'not_found' }
 
+  // بلا جدول المقترحات (قبل تطبيق 0045) يرجع خطأ فلا يظهر شيء — لا يكسر الصفحة
+  const { data: prop } = await db
+    .from('client_proposals')
+    .select('titles, created_at')
+    .eq('request_id', row.id)
+    .eq('channel', 'tracking')
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .maybeSingle()
+
   return {
     found: true,
     refCode: row.ref_code,
@@ -96,5 +110,9 @@ export async function lookupRequest(input: {
     nextStep: row.public_next_step,
     createdAt: row.created_at,
     updatedAt: row.public_updated_at ?? row.updated_at,
+    proposal:
+      prop && Array.isArray(prop.titles) && prop.titles.length
+        ? { titles: prop.titles as string[], at: String(prop.created_at) }
+        : null,
   }
 }

@@ -84,6 +84,7 @@ export type SmsTemplate =
   | 'property_confirmation'
   | 'support_accepted'
   | 'network_confirmation'
+  | 'proposal_notice'
   | `status_${string}`
 
 /**
@@ -148,6 +149,18 @@ export function statusUpdateText(refCode: string, status: string, locale: Locale
     return `AL-LUBNA ${refCode}: ${STATUS_SMS_FR[status]}. Suivi: allabina.tn/suivi`
   }
   return `اللبنة ${refCode}: ${STATUS_SMS_AR[status]}.`
+}
+
+/**
+ * خبر المقترحات: الفريق نشر حلولاً في صفحة المتابعة. لا تفاصيل ولا مبالغ
+ * ولا رابط — الحريف يدخل برمزه وهاتفه. العربية في جزء واحد (≤ 70)،
+ * والفرنسية نصّ بسيط بلا حروف مُشكَّلة في جزء واحد.
+ */
+export function proposalNoticeText(refCode: string, locale: Locale): string {
+  if (locale === 'fr') {
+    return `AL-LUBNA ${refCode}: des solutions sont proposees pour votre dossier sur la page de suivi.`
+  }
+  return `اللبنة ${refCode}: عندك مقترحات حلول في صفحة المتابعة.`
 }
 
 /**

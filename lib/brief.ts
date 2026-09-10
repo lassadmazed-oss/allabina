@@ -6,7 +6,7 @@
  * مراحل، رفع التسبقة، المسار المدعّم، تسوية الأرض والرخص، تحضير ملفّ القرض.
  * كلّ حلّ يقول علاش ويعطي رقمه. القرار يبقى للفريق، والتمويل للبنك.
  */
-import { computeCapacity, monthlyPayment, type FinanceSettings } from './finance'
+import { computeCapacity, monthlyPayment, type Capacity, type FinanceSettings } from './finance'
 import { formatMoney } from './format'
 
 export type BriefLot = { code: number; name: string; total: number }
@@ -111,7 +111,7 @@ const TITLE_AR: Record<string, string> = {
 }
 
 const TYPE_AR: Record<string, string> = {
-  build_on_land: 'بناء فوق أرضه',
+  build_on_land: 'بناء على أرض مملوكة',
   land_and_house: 'أرض ودار',
   apartment: 'شقّة',
   rent_to_own: 'كراء مملّك',
@@ -141,6 +141,41 @@ export function splitPhases(lots: BriefLot[]): { shell: number; finishing: numbe
   return { shell, finishing }
 }
 
+export type BriefFacts = {
+  cap: Capacity | null
+  budget: number
+  loan: number
+  down: number
+  /** العرض − الميزانية؛ موجب = تجاوز. صفر بلا عرض */
+  gap: number
+  /** المساحة التي يدخل بها العرض في الميزانية بنفس كلفة المتر — عند التجاوز فقط */
+  fitArea: number | null
+  flex: Set<string>
+}
+
+/** الأرقام التي تُبنى عليها الحوصلة ومقترحات الحريف معاً — مصدر واحد حتى لا يختلفا */
+export function briefFacts(i: BriefInput): BriefFacts {
+  const cap = i.fin
+    ? computeCapacity({
+        monthlyIncome: i.fin.monthlyIncome,
+        spouseIncome: i.fin.spouseIncome,
+        otherIncome: i.fin.otherIncome,
+        existingLoans: i.fin.existingLoans,
+        downPayment: i.fin.downPayment,
+        settings: i.settings,
+      })
+    : null
+  const budget = i.score?.maxBudget || cap?.maxBudget || 0
+  const loan = i.score?.maxLoan || cap?.maxLoan || 0
+  const down = i.fin?.downPayment ?? 0
+  const gap = i.devis ? i.devis.total - budget : 0
+  const fitArea =
+    i.devis && budget > 0 && gap > 0 && i.devis.surface > 0
+      ? Math.floor((i.devis.surface * budget) / i.devis.total)
+      : null
+  return { cap, budget, loan, down, gap, fitArea, flex: new Set(i.flexibility) }
+}
+
 export function buildBrief(i: BriefInput): Brief {
   const summary: string[] = []
   const strengths: string[] = []
@@ -165,25 +200,13 @@ export function buildBrief(i: BriefInput): Brief {
   if (i.desiredAreaM2) want.push(`${i.desiredAreaM2} م²`)
   if (i.bedrooms) want.push(`${i.bedrooms} غرف`)
   if (i.standingName) want.push(`تشطيب ${i.standingName}`)
-  if (i.delegation) want.push(i.delegation + (i.landLocation ? ` (${i.landLocation})` : ''))
+  if (i.delegation) want.push(i.delegation.trim() + (i.landLocation?.trim() ? ` (${i.landLocation.trim()})` : ''))
   if (i.horizon) want.push(HORIZON_AR[i.horizon] ?? i.horizon)
   if (i.urgency === 'urgent') want.push('مستعجل')
   summary.push(want.join(' · '))
 
   // ---------- المال ----------
-  const cap = i.fin
-    ? computeCapacity({
-        monthlyIncome: i.fin.monthlyIncome,
-        spouseIncome: i.fin.spouseIncome,
-        otherIncome: i.fin.otherIncome,
-        existingLoans: i.fin.existingLoans,
-        downPayment: i.fin.downPayment,
-        settings: i.settings,
-      })
-    : null
-  const budget = i.score?.maxBudget || cap?.maxBudget || 0
-  const loan = i.score?.maxLoan || cap?.maxLoan || 0
-  const down = i.fin?.downPayment ?? 0
+  const { cap, budget, loan, down, gap, fitArea, flex } = briefFacts(i)
 
   if (i.fin && cap) {
     const money = [`دخل الأسرة ${tnd(cap.income)}/شهر`]
@@ -220,7 +243,6 @@ export function buildBrief(i: BriefInput): Brief {
   }
 
   // ---------- العرض ----------
-  const gap = i.devis ? i.devis.total - budget : 0
   if (i.devis) {
     summary.push(
       `آخر عرض تقديري (نسخة ${i.devis.version}): ${tnd(i.devis.total)} على ${i.devis.surface} م²` +
@@ -238,12 +260,10 @@ export function buildBrief(i: BriefInput): Brief {
   if (i.ageDays >= 2 && i.financingState === 'not_started') gaps.push(`مرّ ${i.ageDays} يوم على التسجيل والتمويل ما بداش`)
 
   // ================= الحلول =================
-  const flex = new Set(i.flexibility)
 
   if (i.devis && budget > 0 && gap > 0) {
     // 1) تقليص المساحة حتى يدخل العرض في الميزانية
-    if (i.devis.surface > 0) {
-      const fitArea = Math.floor((i.devis.surface * budget) / i.devis.total)
+    if (fitArea !== null) {
       solutions.push({
         key: 'shrink',
         title: 'تقليص المساحة المبنيّة',
@@ -269,7 +289,7 @@ export function buildBrief(i: BriefInput): Brief {
           }`,
           steps: ['تقسيم العرض إلى مرحلتين بتواريخ', 'الاتفاق على حدّ المرحلة الأولى (سكن قابل للاستعمال)', 'التشطيب من الدخل أو من تمويل لاحق'],
           figure: tnd(shell),
-          tone: shellFits ? (flex.has('timing') ? 'go' : 'fix') : 'wait',
+          tone: shellFits ? (flex.has('timing') || flex.has('phased') ? 'go' : 'fix') : 'wait',
         })
       }
     }

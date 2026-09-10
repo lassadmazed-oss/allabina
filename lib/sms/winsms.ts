@@ -4,6 +4,7 @@ import {
   normalizeTnPhone,
   parseWinSmsReply,
   propertyConfirmationText,
+  proposalNoticeText,
   requestConfirmationText,
   requestEditedText,
   segmentCount,
@@ -169,6 +170,15 @@ export async function sendStatusUpdate(requestId: string, refCode: string, phone
   if (!text) return
   try {
     await sendAndLog({ requestId }, `status_${status}`, phone, text)
+  } catch (e) {
+    console.warn('sms unexpected:', e instanceof Error ? e.message : e)
+  }
+}
+
+/** خبر المقترحات المنشورة في صفحة المتابعة — بطلب صريح من المستشار */
+export async function sendProposalNotice(requestId: string, refCode: string, phone: string, locale: Locale) {
+  try {
+    await sendAndLog({ requestId }, 'proposal_notice', phone, proposalNoticeText(refCode, locale))
   } catch (e) {
     console.warn('sms unexpected:', e instanceof Error ? e.message : e)
   }

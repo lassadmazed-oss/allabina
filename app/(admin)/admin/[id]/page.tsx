@@ -19,7 +19,11 @@ import { setFloorAssemblyAction, setProjectSystemAction } from '@/lib/actions/co
 import { LABELS } from '@/lib/schema'
 import { getDictionary } from '@/lib/i18n'
 import { formatTND } from '@/lib/finance'
-import { buildBrief } from '@/lib/brief'
+import { buildBrief, type BriefInput } from '@/lib/brief'
+import { buildClientProposal } from '@/lib/client-proposal'
+import ClientProposalPanel, { type ProposalSent } from '@/components/ClientProposalPanel'
+import { normalizeTnPhone } from '@/lib/sms'
+import { siteUrl } from '@/lib/site'
 import { labelEmployment, seniorityYearsLabel } from '@/lib/scoring'
 import { publicStateOf } from '@/lib/public-state'
 import { rankProperties, type MatchProperty } from '@/lib/matching'
@@ -184,6 +188,7 @@ const FLEX_LABELS: Record<string, string> = {
   timing: 'أجل أطول',
   type: 'نوع سكن آخر',
   budget: 'ميزانية أكبر',
+  phased: 'البناء على مراحل',
 }
 
 import RequestFiles from '@/components/RequestFiles'
@@ -195,6 +200,7 @@ import type { RequestFile } from '@/lib/documents'
 /** أقسام الملفّ بترتيبها في الصفحة — روابط الشريط الثابت */
 const SECTIONS = [
   { id: 'sec-brief', label: 'الحوصلة' },
+  { id: 'sec-proposal', label: 'رسالة للحريف' },
   { id: 'sec-file', label: 'الملفّ' },
   { id: 'sec-status', label: 'الحالة' },
   { id: 'sec-devis', label: 'المواصفات والعرض' },
@@ -509,7 +515,7 @@ export default async function RequestDetail({ params }: { params: Promise<{ id: 
   )
 
   // ---------- الحوصلة والحلول: من الأرقام نفسها التي تعرضها البطاقات تحت ----------
-  const brief = buildBrief({
+  const briefInput: BriefInput = {
     requestType: String(r.request_type),
     fullName: String(r.full_name),
     bedrooms: r.bedrooms == null ? null : Number(r.bedrooms),
@@ -575,7 +581,24 @@ export default async function RequestDetail({ params }: { params: Promise<{ id: 
     openInquiries: (interactions ?? []).filter((x) => !x.resolved).length,
     matchesCount: suggestions.length,
     ageDays: Math.floor((Date.now() - new Date(r.created_at).getTime()) / 86_400_000),
+  }
+  const brief = buildBrief(briefInput)
+
+  // ---------- رسالة للحريف: نفس الحلول بلغة مطلبه ----------
+  const clientLang = r.lang === 'fr' ? 'fr' : 'ar'
+  const proposal = buildClientProposal(briefInput, {
+    refCode: String(r.ref_code),
+    locale: clientLang,
+    trackUrl: `${siteUrl()}/${clientLang}/suivi`,
+    docsMissing: docMissing.map((d) => (clientLang === 'fr' ? d.nameFr || d.nameAr : d.nameAr)),
   })
+  // قبل تطبيق 0045 يرجع خطأ فتبقى القائمة فارغة — لا يكسر الصفحة
+  const { data: sentProposals } = await db
+    .from('client_proposals')
+    .select('id, channel, titles, created_at')
+    .eq('request_id', id)
+    .order('created_at', { ascending: false })
+    .limit(5)
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-8 sm:px-5 sm:py-10">
@@ -699,6 +722,14 @@ export default async function RequestDetail({ params }: { params: Promise<{ id: 
           <b>الخطوة الجاية:</b> {brief.nextStep}
         </p>
       </section>
+
+      <ClientProposalPanel
+        requestId={String(r.id)}
+        proposal={proposal}
+        waPhone={normalizeTnPhone(String(r.phone ?? ''))}
+        canEdit={canEdit}
+        history={(sentProposals ?? []) as ProposalSent[]}
+      />
 
       <div id="sec-file" className="mt-6 grid scroll-mt-32 gap-6 lg:grid-cols-2">
         <Card title="المطلب">
