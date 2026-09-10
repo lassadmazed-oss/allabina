@@ -191,6 +191,40 @@ import { loadAssessmentConfig } from '@/lib/actions/assessment'
 import { BAND_AR, DECISION_AR, type Band, type Decision } from '@/lib/support-assessment'
 import type { RequestFile } from '@/lib/documents'
 
+/** أقسام الملفّ بترتيبها في الصفحة — روابط الشريط الثابت */
+const SECTIONS = [
+  { id: 'sec-file', label: 'الملفّ' },
+  { id: 'sec-status', label: 'الحالة' },
+  { id: 'sec-devis', label: 'المواصفات والعرض' },
+  { id: 'sec-study', label: 'تصنيف الدراسة' },
+  { id: 'sec-social', label: 'المسار الاجتماعي' },
+  { id: 'sec-support', label: 'المساندة' },
+  { id: 'sec-solution', label: 'عناصر الحلّ' },
+  { id: 'sec-tasks', label: 'المهامّ' },
+  { id: 'sec-offers', label: 'العروض' },
+  { id: 'sec-public', label: 'صفحة المتابعة' },
+  { id: 'sec-classify', label: 'تصنيف الملفّ' },
+  { id: 'sec-followup', label: 'المتابعة' },
+  { id: 'sec-inquiries', label: 'الاستفسارات' },
+  { id: 'sec-docs', label: 'الوثائق' },
+  { id: 'sec-log', label: 'السجلّ' },
+] as const
+
+/** لون كلّ حالة — نفس خريطة لوحة القيادة */
+const STATUS_CLS: Record<string, string> = {
+  new: 'bg-brand-soft text-brand',
+  contacted: 'bg-gold-soft text-gold',
+  qualified: 'bg-[#e6f0e9] text-[#1f6b3f]',
+  matched: 'bg-[#e6f0e9] text-[#1f6b3f]',
+  appointment: 'bg-[#ece7f6] text-[#4b3a8a]',
+  contract: 'bg-brand text-white',
+  on_hold: 'bg-surface-2 text-muted',
+  rejected: 'bg-[#fbeeeb] text-[#8c2f22]',
+}
+
+/** عنوان قسم: لبنة ذهبية صغيرة ثمّ النصّ */
+const H2 = "flex items-center gap-2 text-base font-semibold text-ink before:h-2.5 before:w-4 before:rounded-sm before:bg-gold-light before:content-['']"
+
 const LEDGER_EVENT_LABELS: Record<string, string> = {
   needed: 'مطلوب',
   pledged: 'تعهّد',
@@ -466,27 +500,59 @@ export default async function RequestDetail({ params }: { params: Promise<{ id: 
         ← رجوع للقائمة
       </Link>
 
-      <div className="mt-4 flex flex-wrap items-baseline justify-between gap-4">
-        <div>
-          <div className="num text-2xl font-semibold text-brand" dir="ltr">
-            {r.ref_code}
-          </div>
-          <h1 className="display mt-1 text-xl font-semibold">{r.full_name}</h1>
-          <div className="num mt-1 text-sm text-muted" dir="ltr">
-            {r.phone} {r.email ? `· ${r.email}` : ''}
-          </div>
-        </div>
-        {score && (
-          <div className="rounded border border-line bg-surface px-5 py-3 text-center">
-            <div className="text-xs text-muted">التنقيط</div>
-            <div className="num text-2xl font-semibold text-brand">
-              {score.band} · {score.total}
+      {/* شريط القرار: من هو، وأين، وكم يقدر، وما حالته — يبقى أعلى الصفحة مع روابط الأقسام */}
+      <div className="sticky top-0 z-30 -mx-4 mt-3 border-b border-line bg-ground/95 px-4 pb-2 pt-3 backdrop-blur sm:-mx-5 sm:px-5">
+        <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
+          <div className="min-w-0">
+            <h1 className="display truncate text-lg font-semibold leading-tight">{r.full_name}</h1>
+            <div className="mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs text-muted">
+              <span className="num text-brand" dir="ltr">
+                {r.ref_code}
+              </span>
+              <a href={`tel:${r.phone}`} className="num hover:text-brand" dir="ltr">
+                {r.phone}
+              </a>
+              {r.email && <span dir="ltr">{r.email}</span>}
+              <span>{LABELS.requestType[r.request_type] ?? r.request_type}</span>
+              {(geo as GeoRow | null)?.delegations?.name_ar && <span>{(geo as GeoRow | null)?.delegations?.name_ar}</span>}
             </div>
           </div>
-        )}
+          <div className="ms-auto flex flex-wrap items-center gap-2">
+            <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${STATUS_CLS[r.status] ?? 'bg-surface-2 text-muted'}`}>
+              {LABELS.status[r.status] ?? r.status}
+            </span>
+            {score && (
+              <span className="num rounded-full bg-brand-soft px-2.5 py-0.5 text-xs font-semibold text-brand">
+                {score.band} · {score.total}
+              </span>
+            )}
+            {score?.max_budget_tnd ? (
+              <span className="num rounded-full border border-line bg-surface px-2.5 py-0.5 text-xs" title="الميزانية التقديرية">
+                {formatTND(Number(score.max_budget_tnd))}
+              </span>
+            ) : null}
+            <a href={`tel:${r.phone}`} className="rounded-lg bg-brand px-3 py-1.5 text-xs font-medium text-white transition hover:bg-brand-deep">
+              اتّصل
+            </a>
+            <a href="#sec-status" className="rounded-lg border border-line bg-surface px-3 py-1.5 text-xs font-medium text-brand transition hover:border-brand">
+              حيّن الحالة
+            </a>
+          </div>
+        </div>
+        <nav aria-label="أقسام الملفّ" className="mt-2 flex gap-1.5 overflow-x-auto pb-1 text-xs [scrollbar-width:none]">
+          {SECTIONS.map((sec) => (
+            <a
+              key={sec.id}
+              href={`#${sec.id}`}
+              className="shrink-0 rounded-full border border-line bg-surface px-2.5 py-1 text-muted transition hover:border-brand hover:text-brand"
+            >
+              {sec.label}
+            </a>
+          ))}
+        </nav>
       </div>
 
-      <div className="mt-8 grid gap-6 lg:grid-cols-2">
+      <div id="sec-file" className="mt-6 grid scroll-mt-32 gap-6 lg:grid-cols-2">
         <Card title="المطلب">
           <Row k="النوع" v={LABELS.requestType[r.request_type] ?? r.request_type} />
           <Row k="الولاية" v={r.gov_code === 'SFX' ? 'صفاقس' : r.gov_code} />
@@ -723,8 +789,8 @@ export default async function RequestDetail({ params }: { params: Promise<{ id: 
       </div>
 
       {/* تغيير الحالة */}
-      <div className="mt-4 rounded border border-line bg-surface p-4">
-        <h2 className="text-sm font-semibold">تحيين الحالة</h2>
+      <div id="sec-status" className="mt-4 scroll-mt-32 rounded-xl border border-line bg-surface p-4">
+        <h2 className={H2}>تحيين الحالة</h2>
         {canEdit && (
           <form action={updateStatusAction} className="mt-4 flex flex-wrap items-end gap-3">
             <input type="hidden" name="id" value={r.id} />
@@ -772,8 +838,8 @@ export default async function RequestDetail({ params }: { params: Promise<{ id: 
       </div>
 
       {/* مواصفات المشروع والعرض التقديري — Module 11 */}
-      <div className="mt-4 rounded border border-line bg-surface p-4">
-        <h2 className="text-sm font-semibold">مواصفات المشروع والعرض التقديري</h2>
+      <div id="sec-devis" className="mt-4 scroll-mt-32 rounded-xl border border-line bg-surface p-4">
+        <h2 className={H2}>مواصفات المشروع والعرض التقديري</h2>
         <p className="mt-1 text-xs leading-6 text-muted">
           المواصفات هي مدخل حساب العرض. العرض يتولّد من البوردرو وأسعاره وقت التوليد، ويبقى
           محفوظاً بها حتى لو تبدّلت الأسعار بعد.
@@ -1128,8 +1194,8 @@ export default async function RequestDetail({ params }: { params: Promise<{ id: 
       </div>
 
       {/* تصنيف الدراسة — Module 2 */}
-      <div className="mt-4 rounded border border-line bg-surface p-4">
-        <h2 className="text-sm font-semibold">تصنيف الدراسة</h2>
+      <div id="sec-study" className="mt-4 scroll-mt-32 rounded-xl border border-line bg-surface p-4">
+        <h2 className={H2}>تصنيف الدراسة</h2>
         <p className="mt-1 text-xs text-muted">
           التصنيف بلا سبب ما ينفعش. اكتب علاش صُنّف الملفّ هكذا وشنوّة الخطوة اللي يستنّاها.
         </p>
@@ -1166,9 +1232,9 @@ export default async function RequestDetail({ params }: { params: Promise<{ id: 
       </div>
 
       {/* المسار الاجتماعي — Module 7 */}
-      <div className="mt-4 rounded border border-line bg-surface p-4">
+      <div id="sec-social" className="mt-4 scroll-mt-32 rounded-xl border border-line bg-surface p-4">
         <div className="flex flex-wrap items-baseline justify-between gap-2">
-          <h2 className="text-sm font-semibold">المسار الاجتماعي</h2>
+          <h2 className={H2}>المسار الاجتماعي</h2>
           {social?.is_priority && (
             <span className="rounded bg-gold-soft px-2.5 py-1 text-xs font-medium text-gold">
               أولوية دراسة
@@ -1263,9 +1329,9 @@ export default async function RequestDetail({ params }: { params: Promise<{ id: 
 
       {/* دراسة طلب المساندة — الأهلية ومدى الصحّة والقرار */}
       {(r.study_track === 'social' || assessment) && (
-        <div className="mt-4 rounded border border-brand/40 bg-surface p-4">
+        <div id="sec-assess" className="mt-4 scroll-mt-32 rounded-xl border border-brand/40 bg-surface p-4">
           <div className="flex flex-wrap items-baseline justify-between gap-3">
-            <h2 className="text-sm font-semibold">دراسة طلب المساندة</h2>
+            <h2 className={H2}>دراسة طلب المساندة</h2>
             {assessment && (
               <span className="text-xs text-muted">
                 آخر دراسة: <b className="num">{assessment.total}</b>/100 ·{' '}
@@ -1295,9 +1361,9 @@ export default async function RequestDetail({ params }: { params: Promise<{ id: 
       )}
 
       {/* المساندة ودفتر الشفافية — Module 12-bis */}
-      <div className="mt-4 rounded border border-line bg-surface p-4">
+      <div id="sec-support" className="mt-4 scroll-mt-32 rounded-xl border border-line bg-surface p-4">
         <div className="flex flex-wrap items-baseline justify-between gap-3">
-          <h2 className="text-sm font-semibold">المساندة ودفتر الشفافية</h2>
+          <h2 className={H2}>المساندة ودفتر الشفافية</h2>
           <Link
             href={`/admin/support?request=${id}`}
             className="text-xs text-brand hover:underline"
@@ -1353,8 +1419,8 @@ export default async function RequestDetail({ params }: { params: Promise<{ id: 
       </div>
 
       {/* عناصر الحلّ — Module 7/8 */}
-      <div className="mt-4 rounded border border-line bg-surface p-4">
-        <h2 className="text-sm font-semibold">عناصر الحلّ</h2>
+      <div id="sec-solution" className="mt-4 scroll-mt-32 rounded-xl border border-line bg-surface p-4">
+        <h2 className={H2}>عناصر الحلّ</h2>
         <p className="mt-1 text-xs text-muted">
           أرض + تمويل + مواد + مقاول + دعم = حلّ سكني محتمل. كل عنصر مع الجهة اللي باش تساهم فيه.
         </p>
@@ -1449,8 +1515,8 @@ export default async function RequestDetail({ params }: { params: Promise<{ id: 
       </div>
 
       {/* المهامّ — Module 8 */}
-      <div className="mt-4 rounded border border-line bg-surface p-4">
-        <h2 className="text-sm font-semibold">مهامّ الحلّ</h2>
+      <div id="sec-tasks" className="mt-4 scroll-mt-32 rounded-xl border border-line bg-surface p-4">
+        <h2 className={H2}>مهامّ الحلّ</h2>
         <p className="mt-1 text-xs text-muted">
           الحلّ يتقسّم مهامّ، وكل مهمّة تتسنّد لجهة معنيّة ويتّبع الفريق تقدّمها.
         </p>
@@ -1528,9 +1594,9 @@ export default async function RequestDetail({ params }: { params: Promise<{ id: 
       </div>
 
       {/* العروض المقترحة — Matching Engine */}
-      <div className="mt-4 rounded border border-line bg-surface p-4">
+      <div id="sec-offers" className="mt-4 scroll-mt-32 rounded-xl border border-line bg-surface p-4">
         <div className="flex flex-wrap items-baseline justify-between gap-2">
-          <h2 className="text-sm font-semibold">عروض عقارية مقترحة</h2>
+          <h2 className={H2}>عروض عقارية مقترحة</h2>
           <span className="text-xs text-muted">
             {suggestions.length} اقتراح من {propertyPool.length} عرض مراجَع
           </span>
@@ -1642,9 +1708,9 @@ export default async function RequestDetail({ params }: { params: Promise<{ id: 
       </div>
 
       {/* ما يراه الحريف في صفحة المتابعة */}
-      <div className="mt-4 rounded border border-line bg-surface p-4">
+      <div id="sec-public" className="mt-4 scroll-mt-32 rounded-xl border border-line bg-surface p-4">
         <div className="flex flex-wrap items-baseline justify-between gap-3">
-          <h2 className="text-sm font-semibold">ما يراه الحريف في صفحة المتابعة</h2>
+          <h2 className={H2}>ما يراه الحريف في صفحة المتابعة</h2>
           <span className="rounded bg-brand-soft px-2.5 py-1 text-xs font-medium text-brand">
             {PUBLIC_STATE_AR[publicStateOf(r.status)]}
           </span>
@@ -1686,8 +1752,8 @@ export default async function RequestDetail({ params }: { params: Promise<{ id: 
       </div>
 
       {/* تصنيف الملفّ */}
-      <div className="mt-4 rounded border border-line bg-surface p-4">
-        <h2 className="text-sm font-semibold">تصنيف الملفّ</h2>
+      <div id="sec-classify" className="mt-4 scroll-mt-32 rounded-xl border border-line bg-surface p-4">
+        <h2 className={H2}>تصنيف الملفّ</h2>
         <form action={updateClassificationAction} className="mt-4 flex flex-wrap items-end gap-3">
           <input type="hidden" name="id" value={r.id} />
           <label className="block">
@@ -1741,8 +1807,8 @@ export default async function RequestDetail({ params }: { params: Promise<{ id: 
       </div>
 
       {/* المتابعة: الإجراء القادم وصيغة التمويل */}
-      <div className="mt-4 rounded border border-line bg-surface p-4">
-        <h2 className="text-sm font-semibold">المتابعة</h2>
+      <div id="sec-followup" className="mt-4 scroll-mt-32 rounded-xl border border-line bg-surface p-4">
+        <h2 className={H2}>المتابعة</h2>
         {canEdit && (
           <form action={updateFollowUpAction} className="mt-4 flex flex-wrap items-end gap-3">
             <input type="hidden" name="id" value={r.id} />
@@ -1787,9 +1853,9 @@ export default async function RequestDetail({ params }: { params: Promise<{ id: 
       </div>
 
       {/* الأسئلة والمشاكل والاعتراضات */}
-      <div className="mt-4 rounded border border-line bg-surface p-4">
+      <div id="sec-inquiries" className="mt-4 scroll-mt-32 rounded-xl border border-line bg-surface p-4">
         <div className="flex flex-wrap items-baseline justify-between gap-2">
-          <h2 className="text-sm font-semibold">استفسارات الحريف ومشاكله</h2>
+          <h2 className={H2}>استفسارات الحريف ومشاكله</h2>
           <span className="text-xs text-muted">
             {(interactions ?? []).filter((i) => !i.resolved).length} مفتوح
           </span>
@@ -1867,8 +1933,8 @@ export default async function RequestDetail({ params }: { params: Promise<{ id: 
       </div>
 
       {/* الوثائق */}
-      <div className="mt-4 rounded border border-line bg-surface p-4">
-        <h2 className="text-sm font-semibold">الوثائق المتوفّرة</h2>
+      <div id="sec-docs" className="mt-4 scroll-mt-32 rounded-xl border border-line bg-surface p-4">
+        <h2 className={H2}>الوثائق المتوفّرة</h2>
         {/* «قال عندو» و«شفناها» ليسا نفس الشيء: التأشيرة تثبّتك أنت،
             والوسم الذهبي تصريح صاحب الملفّ في الاستمارة. */}
         <p className="mt-1 text-xs leading-6 text-muted">
@@ -1956,8 +2022,8 @@ export default async function RequestDetail({ params }: { params: Promise<{ id: 
       </div>
 
       {/* السجلّ */}
-      <div className="mt-4 rounded border border-line bg-surface p-4">
-        <h2 className="text-sm font-semibold">سجلّ الأثر</h2>
+      <div id="sec-log" className="mt-4 scroll-mt-32 rounded-xl border border-line bg-surface p-4">
+        <h2 className={H2}>سجلّ الأثر</h2>
         <ul className="mt-4 space-y-2 text-sm">
           {(events ?? []).map((e) => (
             <li key={e.id} className="flex flex-wrap justify-between gap-3 border-b border-line pb-2">
@@ -1983,8 +2049,8 @@ export default async function RequestDetail({ params }: { params: Promise<{ id: 
 
 function Card({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <div className="rounded border border-line bg-surface p-4">
-      <h2 className="mb-4 text-sm font-semibold">{title}</h2>
+    <div className="rounded-xl border border-line bg-surface p-4 sm:p-5">
+      <h2 className={`mb-4 ${H2}`}>{title}</h2>
       {children}
     </div>
   )
