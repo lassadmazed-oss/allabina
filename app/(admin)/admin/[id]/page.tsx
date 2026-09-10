@@ -19,6 +19,7 @@ import { setFloorAssemblyAction, setProjectSystemAction } from '@/lib/actions/co
 import { LABELS } from '@/lib/schema'
 import { getDictionary } from '@/lib/i18n'
 import { formatTND } from '@/lib/finance'
+import { buildBrief } from '@/lib/brief'
 import { labelEmployment, seniorityYearsLabel } from '@/lib/scoring'
 import { publicStateOf } from '@/lib/public-state'
 import { rankProperties, type MatchProperty } from '@/lib/matching'
@@ -193,6 +194,7 @@ import type { RequestFile } from '@/lib/documents'
 
 /** أقسام الملفّ بترتيبها في الصفحة — روابط الشريط الثابت */
 const SECTIONS = [
+  { id: 'sec-brief', label: 'الحوصلة' },
   { id: 'sec-file', label: 'الملفّ' },
   { id: 'sec-status', label: 'الحالة' },
   { id: 'sec-devis', label: 'المواصفات والعرض' },
@@ -220,6 +222,18 @@ const STATUS_CLS: Record<string, string> = {
   contract: 'bg-brand text-white',
   on_hold: 'bg-surface-2 text-muted',
   rejected: 'bg-[#fbeeeb] text-[#8c2f22]',
+}
+
+/** لون بطاقة الحلّ حسب نوعه: يمشي الآن، يحتاج قراراً، مرهون بجهة أخرى */
+const TONE_CLS: Record<string, string> = {
+  go: 'border-[#bfd9c8] bg-[#f2f8f4]',
+  fix: 'border-gold/40 bg-gold-soft/60',
+  wait: 'border-line bg-surface-2/60',
+}
+const TONE_LABEL: Record<string, string> = {
+  go: 'يمشي الآن',
+  fix: 'يحتاج قراراً أو تعديلاً',
+  wait: 'مرهون بجهة أخرى',
 }
 
 /** عنوان قسم: لبنة ذهبية صغيرة ثمّ النصّ */
@@ -494,6 +508,75 @@ export default async function RequestDetail({ params }: { params: Promise<{ id: 
       !inList.has(String(x.doc_type ?? ''))
   )
 
+  // ---------- الحوصلة والحلول: من الأرقام نفسها التي تعرضها البطاقات تحت ----------
+  const brief = buildBrief({
+    requestType: String(r.request_type),
+    fullName: String(r.full_name),
+    bedrooms: r.bedrooms == null ? null : Number(r.bedrooms),
+    desiredAreaM2: r.desired_area_m2 == null ? null : Number(r.desired_area_m2),
+    horizon: (r.horizon as string | null) ?? null,
+    urgency: (r.urgency as string | null) ?? null,
+    standingName: standingLevels.find((l) => l.code === r.standing)?.nameAr ?? null,
+    delegation: (geo as GeoRow | null)?.delegations?.name_ar ?? null,
+    landLocation: (r.land_location as string | null) ?? null,
+    financingState: (r.financing_state as string | null) ?? null,
+    cashReady: Boolean(r.cash_ready),
+    flexibility: Array.isArray(r.flexibility) ? (r.flexibility as string[]) : [],
+    isFirstHome: (r.is_first_home as boolean | null) ?? null,
+    foprolosInterest: Boolean(r.foprolos_interest),
+    cnssAffiliated: (r.cnss_affiliated as boolean | null) ?? null,
+    cnssYears: r.cnss_number_years == null ? null : Number(r.cnss_number_years),
+    householdSize: social?.household_size == null ? null : Number(social.household_size),
+    dependents: social?.dependents == null ? null : Number(social.dependents),
+    isRenting: Boolean(social?.is_renting),
+    rentTnd: social?.rent_tnd == null ? null : Number(social.rent_tnd),
+    fin: fin
+      ? {
+          monthlyIncome: Number(fin.monthly_income_tnd ?? 0),
+          spouseIncome: Number(fin.spouse_income_tnd ?? 0),
+          otherIncome: Number(fin.other_income_tnd ?? 0),
+          existingLoans: Number(fin.existing_loans_tnd ?? 0),
+          downPayment: Number(fin.down_payment_tnd ?? 0),
+          employment: String(fin.employment ?? 'other'),
+          seniorityMonths: Number(fin.seniority_months ?? 0),
+          isExpat: Boolean(fin.is_expat),
+        }
+      : null,
+    land: land
+      ? {
+          areaM2: land.area_m2 == null ? null : Number(land.area_m2),
+          titleStatus: (land.title_status as string | null) ?? null,
+          hasWater: Boolean(land.has_water),
+          hasPower: Boolean(land.has_power),
+          hasRoad: Boolean(land.has_road),
+          hasPermit: Boolean(land.has_permit),
+          // has_plans من الاستمارة: none / draft / approved — أيّ رسم ولو أوّليّ يُحسب
+          hasPlans: land.has_plans == null ? null : land.has_plans !== false && String(land.has_plans) !== 'none',
+        }
+      : null,
+    score: score
+      ? {
+          total: Number(score.total),
+          band: String(score.band),
+          maxLoan: Number(score.max_loan_tnd ?? 0),
+          maxBudget: Number(score.max_budget_tnd ?? 0),
+        }
+      : null,
+    devis:
+      latestDevis && devisTotal > 0
+        ? {
+            total: devisTotal,
+            surface: devisSurface,
+            version: Number((latestDevis as { version?: number }).version ?? 1),
+            lots: [...devisLots.entries()].map(([code, l]) => ({ code, name: l.name, total: l.total })),
+          }
+        : null,
+    docsMissing: docMissing.map((d) => d.nameAr),
+    openInquiries: (interactions ?? []).filter((x) => !x.resolved).length,
+    matchesCount: suggestions.length,
+    ageDays: Math.floor((Date.now() - new Date(r.created_at).getTime()) / 86_400_000),
+  })
+
   return (
     <div className="mx-auto max-w-5xl px-4 py-8 sm:px-5 sm:py-10">
       <Link href="/admin" className="text-sm text-muted hover:text-brand">
@@ -551,6 +634,71 @@ export default async function RequestDetail({ params }: { params: Promise<{ id: 
           ))}
         </nav>
       </div>
+
+      {/* الحوصلة: ما يهمّ القرار في فقرة، وحلول مولَّدة من الأرقام نفسها — القرار للفريق */}
+      <section id="sec-brief" className="mt-6 scroll-mt-32 rounded-2xl border border-line bg-surface p-5 shadow-sm">
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <h2 className={H2}>حوصلة الملفّ وحلول مقترحة</h2>
+          <span className="text-xs text-faint">حوصلة آلية من معطيات الملفّ — القرار للفريق</span>
+        </div>
+        <p className="display mt-3 text-lg font-semibold leading-snug text-brand-deep">{brief.headline}</p>
+        <ul className="mt-3 space-y-1.5 text-sm leading-7 text-ink-soft">
+          {brief.summary.map((line) => (
+            <li key={line} className="flex gap-2">
+              <span className="mt-2.5 size-1.5 shrink-0 rounded-full bg-gold-light" aria-hidden="true" />
+              <span>{line}</span>
+            </li>
+          ))}
+        </ul>
+        {(brief.strengths.length > 0 || brief.gaps.length > 0) && (
+          <div className="mt-4 grid gap-3 sm:grid-cols-2">
+            {brief.strengths.length > 0 && (
+              <div className="rounded-xl bg-[#e6f0e9] p-3 text-sm text-[#1f6b3f]">
+                <div className="text-xs font-semibold">نقاط القوّة</div>
+                <ul className="mt-1 space-y-1">
+                  {brief.strengths.map((x) => (
+                    <li key={x}>✓ {x}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+            {brief.gaps.length > 0 && (
+              <div className="rounded-xl bg-gold-soft p-3 text-sm text-gold">
+                <div className="text-xs font-semibold">ما ينقص</div>
+                <ul className="mt-1 space-y-1">
+                  {brief.gaps.map((x) => (
+                    <li key={x}>! {x}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
+        )}
+        {brief.solutions.length > 0 && (
+          <div className="mt-5 grid gap-3 md:grid-cols-2">
+            {brief.solutions.map((sol) => (
+              <article key={sol.key} className={`rounded-xl border p-4 ${TONE_CLS[sol.tone]}`}>
+                <div className="flex items-start justify-between gap-3">
+                  <h3 className="text-sm font-semibold text-ink">{sol.title}</h3>
+                  {sol.figure && (
+                    <span className="num shrink-0 rounded-lg bg-surface px-2 py-0.5 text-xs font-semibold text-brand">{sol.figure}</span>
+                  )}
+                </div>
+                <p className="mt-1.5 text-sm leading-7 text-ink-soft">{sol.why}</p>
+                <ol className="mt-2 list-inside list-decimal space-y-0.5 text-xs text-muted">
+                  {sol.steps.map((st) => (
+                    <li key={st}>{st}</li>
+                  ))}
+                </ol>
+                <div className="mt-2 text-[11px] font-medium text-muted">{TONE_LABEL[sol.tone]}</div>
+              </article>
+            ))}
+          </div>
+        )}
+        <p className="mt-4 rounded-lg bg-brand-soft px-3 py-2 text-sm text-brand">
+          <b>الخطوة الجاية:</b> {brief.nextStep}
+        </p>
+      </section>
 
       <div id="sec-file" className="mt-6 grid scroll-mt-32 gap-6 lg:grid-cols-2">
         <Card title="المطلب">
