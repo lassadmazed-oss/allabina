@@ -23,6 +23,7 @@ import { buildBrief, type BriefInput } from '@/lib/brief'
 import { buildClientProposal } from '@/lib/client-proposal'
 import ClientProposalPanel, { type ProposalSent } from '@/components/ClientProposalPanel'
 import { normalizeTnPhone } from '@/lib/sms'
+import { smsReadiness } from '@/lib/sms/winsms'
 import { siteUrl } from '@/lib/site'
 import { labelEmployment, seniorityYearsLabel } from '@/lib/scoring'
 import { publicStateOf } from '@/lib/public-state'
@@ -599,6 +600,8 @@ export default async function RequestDetail({ params }: { params: Promise<{ id: 
     .eq('request_id', id)
     .order('created_at', { ascending: false })
     .limit(5)
+  // خانة الرسالة القصيرة: مفتوحة فقط إن كان الإرسال ممكناً فعلاً، وإلّا تقول علاش
+  const smsReady = await smsReadiness(String(r.phone ?? ''))
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-8 sm:px-5 sm:py-10">
@@ -727,6 +730,7 @@ export default async function RequestDetail({ params }: { params: Promise<{ id: 
         requestId={String(r.id)}
         proposal={proposal}
         waPhone={normalizeTnPhone(String(r.phone ?? ''))}
+        sms={smsReady}
         canEdit={canEdit}
         history={(sentProposals ?? []) as ProposalSent[]}
       />

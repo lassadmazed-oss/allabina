@@ -76,13 +76,28 @@ async function smsEnabled(): Promise<{ ok: boolean; reason?: string }> {
   return { ok: true }
 }
 
+/**
+ * هل تنجّم تخرج رسالة من هنا الآن؟ نفس الحواجز بالترتيب، بلا إرسال —
+ * حتى تقول الواجهة علاش الخانة مقفولة بدل ما تبقى صامتة.
+ */
+export async function smsReadiness(phone: string): Promise<{ ok: true } | { ok: false; reason: string }> {
+  if (!normalizeTnPhone(phone)) return { ok: false, reason: 'رقم الحريف غير تونسي أو غير صالح' }
+  if (!process.env.WINSMS_API_KEY) return { ok: false, reason: 'مفتاح WinSMS غير معرّف في هذه البيئة' }
+  const allowed = await smsEnabled()
+  if (!allowed.ok) return { ok: false, reason: allowed.reason ?? 'الإرسال مغلق' }
+  return { ok: true }
+}
+
+/** نتيجة محاولة إرسال — تُرجع لمن يحتاج يقولها للمستشار */
+export type SmsOutcome = { status: 'sent'; ref: string | null } | { status: 'skipped' | 'failed'; reason: string }
+
 type Target = { requestId?: string; propertyId?: string; intervenantId?: string }
 
 /**
  * إرسال + تسجيل. الدالّة لا ترمي أبداً: تُسجّل النتيجة وتصمت.
  * مرجع واحد لكلّ (مطلب، قالب) عبر فهرس فريد — إعادة الإرسال قرار إداري.
  */
-async function sendAndLog(target: Target, template: SmsTemplate, phone: string, text: string) {
+async function sendAndLog(target: Target, template: SmsTemplate, phone: string, text: string): Promise<SmsOutcome> {
   const to = normalizeTnPhone(phone)
   const base = {
     request_id: target.requestId ?? null,
@@ -95,7 +110,7 @@ async function sendAndLog(target: Target, template: SmsTemplate, phone: string, 
 
   if (!to) {
     await db.from('sms_log').insert({ ...base, to_number: phone.slice(0, 20), status: 'skipped', error: 'رقم غير تونسي أو غير صالح' })
-    return
+    return { status: 'skipped', reason: 'رقم غير تونسي أو غير صالح' }
   }
   const allowed = await smsEnabled()
   if (!allowed.ok) {
@@ -103,7 +118,7 @@ async function sendAndLog(target: Target, template: SmsTemplate, phone: string, 
     await db
       .from('sms_log')
       .insert({ ...base, to_number: to, status: 'skipped', error: allowed.reason })
-    return
+    return { status: 'skipped', reason: allowed.reason ?? 'الإرسال مغلق' }
   }
 
   // الصفّ أوّلاً بحالة queued: الفهرس الفريد يمنع رسالة ثانية لو تكرّر الاستدعاء
@@ -114,7 +129,7 @@ async function sendAndLog(target: Target, template: SmsTemplate, phone: string, 
     .maybeSingle()
   if (insErr || !row) {
     if (insErr) console.warn('sms_log insert skipped:', insErr.code ?? insErr.message)
-    return
+    return { status: 'skipped', reason: 'تعذّر تسجيل الرسالة قبل إرسالها' }
   }
 
   const result = await sendViaWinSms(to, text)
@@ -127,7 +142,11 @@ async function sendAndLog(target: Target, template: SmsTemplate, phone: string, 
     )
     .eq('id', row.id)
 
-  if (!result.ok) console.warn('sms failed:', result.error)
+  if (!result.ok) {
+    console.warn('sms failed:', result.error)
+    return { status: 'failed', reason: result.error }
+  }
+  return { status: 'sent', ref: result.providerRef }
 }
 
 export async function sendRequestConfirmation(requestId: string, refCode: string, phone: string, locale: Locale) {
@@ -176,11 +195,12 @@ export async function sendStatusUpdate(requestId: string, refCode: string, phone
 }
 
 /** خبر المقترحات المنشورة في صفحة المتابعة — بطلب صريح من المستشار */
-export async function sendProposalNotice(requestId: string, refCode: string, phone: string, locale: Locale) {
+export async function sendProposalNotice(requestId: string, refCode: string, phone: string, locale: Locale): Promise<SmsOutcome> {
   try {
-    await sendAndLog({ requestId }, 'proposal_notice', phone, proposalNoticeText(refCode, locale))
+    return await sendAndLog({ requestId }, 'proposal_notice', phone, proposalNoticeText(refCode, locale))
   } catch (e) {
     console.warn('sms unexpected:', e instanceof Error ? e.message : e)
+    return { status: 'failed', reason: e instanceof Error ? e.message : 'خطأ غير متوقّع' }
   }
 }
 

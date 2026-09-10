@@ -1,10 +1,9 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
-import { after } from 'next/server'
 import { staffWithPermission } from '@/lib/auth'
 import { db } from '@/lib/supabase/server'
-import { sendProposalNotice } from '@/lib/sms/winsms'
+import { sendProposalNotice, type SmsOutcome } from '@/lib/sms/winsms'
 import { PROPOSAL_CHANNELS, type ProposalChannel } from '@/lib/client-proposal'
 import type { Locale } from '@/lib/i18n'
 
@@ -14,7 +13,7 @@ const CHANNEL_AR: Record<ProposalChannel, string> = {
   copy: 'نُسخ نصّها',
 }
 
-export type ProposalResult = { ok: true } | { ok: false; error: string }
+export type ProposalResult = { ok: true; sms?: SmsOutcome } | { ok: false; error: string }
 
 /**
  * يسجّل مقترحات أُرسلت للحريف.
@@ -63,20 +62,23 @@ export async function recordProposalAction(input: {
     return { ok: false, error: 'تعذّر الحفظ — أعد المحاولة' }
   }
 
-  const sms = input.channel === 'tracking' && Boolean(input.notifySms)
+  // الرسالة تُنتظر هنا لا في الخلفية: المستشار يعرف فوراً إن خرجت، أو علاش لا
+  const sms: SmsOutcome | undefined =
+    input.channel === 'tracking' && input.notifySms
+      ? await sendProposalNotice(String(r.id), String(r.ref_code), String(r.phone), lang)
+      : undefined
+  const smsNote = !sms ? '' : sms.status === 'sent' ? '، مع رسالة قصيرة خرجت' : `، رسالة قصيرة لم تُرسل: ${sms.reason}`
   await db.from('request_events').insert({
     request_id: r.id,
     event_type: 'note',
     actor: actor.userId,
-    note: `مقترحات للحريف (${CHANNEL_AR[input.channel]}${sms ? '، مع رسالة قصيرة' : ''}): ${titles.join('، ')}`,
+    note: `مقترحات للحريف (${CHANNEL_AR[input.channel]}${smsNote}): ${titles.join('، ')}`,
   })
-
-  if (sms) after(() => sendProposalNotice(String(r.id), String(r.ref_code), String(r.phone), lang))
 
   revalidatePath(`/admin/${r.id}`)
   if (input.channel === 'tracking') {
     revalidatePath('/ar/suivi')
     revalidatePath('/fr/suivi')
   }
-  return { ok: true }
+  return { ok: true, sms }
 }

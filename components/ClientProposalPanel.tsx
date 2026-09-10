@@ -29,6 +29,7 @@ export default function ClientProposalPanel({
   waPhone,
   canEdit,
   history,
+  sms,
 }: {
   requestId: string
   proposal: ClientProposal
@@ -36,6 +37,8 @@ export default function ClientProposalPanel({
   waPhone: string | null
   canEdit: boolean
   history: ProposalSent[]
+  /** هل تنجّم تخرج رسالة قصيرة من هنا — وإلّا علاش لا */
+  sms: { ok: true } | { ok: false; reason: string }
 }) {
   const fr = proposal.locale === 'fr'
   const [selected, setSelected] = useState<string[]>(() => proposal.options.map((o) => o.key))
@@ -65,10 +68,20 @@ export default function ClientProposalPanel({
         titles: chosen.map((o) => o.title),
         message: text,
         channel,
-        notifySms: channel === 'tracking' && notify,
+        notifySms: channel === 'tracking' && sms.ok && notify,
       })
-      setStatus(res.ok ? { ok: true, text: `${done} — تسجّل في سجلّ الملفّ.` } : { ok: false, text: res.error })
-      if (res.ok && channel === 'tracking') setNotify(false)
+      if (!res.ok) {
+        setStatus({ ok: false, text: res.error })
+        return
+      }
+      const smsLine =
+        res.sms?.status === 'sent'
+          ? ' والرسالة القصيرة خرجت للحريف.'
+          : res.sms
+            ? ` الرسالة القصيرة ما خرجتش: ${res.sms.reason}.`
+            : ''
+      setStatus({ ok: !res.sms || res.sms.status === 'sent', text: `${done} — تسجّل في سجلّ الملفّ.${smsLine}` })
+      if (channel === 'tracking') setNotify(false)
     })
   }
 
@@ -203,15 +216,18 @@ export default function ClientProposalPanel({
 
             {canEdit && (
               <span className="ms-auto flex flex-wrap items-center gap-3">
-                <label className="flex items-center gap-2 text-xs text-muted">
+                <label
+                  className={`flex items-center gap-2 text-xs ${sms.ok ? 'cursor-pointer text-ink-soft' : 'cursor-not-allowed text-faint'}`}
+                  title={sms.ok ? undefined : sms.reason}
+                >
                   <input
                     type="checkbox"
-                    checked={notify}
+                    checked={sms.ok && notify}
                     onChange={(e) => setNotify(e.target.checked)}
-                    disabled={!waPhone}
+                    disabled={!sms.ok || pending}
                     className="size-4 accent-brand"
                   />
-                  أعلم الحريف برسالة قصيرة (تكلّف رسالة)
+                  مع النشر: أعلم الحريف برسالة قصيرة (تكلّف رسالة)
                 </label>
                 <button
                   type="button"
@@ -224,6 +240,11 @@ export default function ClientProposalPanel({
               </span>
             )}
           </div>
+          {canEdit && !sms.ok && (
+            <p className="mt-2 rounded-lg bg-gold-soft px-3 py-2 text-xs leading-6 text-gold">
+              الرسالة القصيرة غير متاحة لهذا الملفّ: {sms.reason}
+            </p>
+          )}
           <p className="mt-2 text-xs leading-6 text-faint">
             صفحة المتابعة تعرض عناوين الحلول وحدها، بلا أرقام ولا مبالغ — التفاصيل تمشي بالواتساب أو في المكالمة.
           </p>

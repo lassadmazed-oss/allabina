@@ -69,6 +69,8 @@ export async function saveMatchAction(formData: FormData) {
   })
 
   revalidatePath(`/admin/${requestId}`)
+  // صفحة العقار تعرض «محفوظ للمتابعة» على نفس الحريف
+  revalidatePath('/admin/properties', 'layout')
 }
 
 /** تغيير حالة مطابقة محفوظة */
