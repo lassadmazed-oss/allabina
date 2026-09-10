@@ -402,7 +402,7 @@ export default function RequestForm({
   const wantsLand = flow.has('landArea')
   const needsStanding = flow.has('standing')
   const needsSpecs =
-    flow.has('levels') || flow.has('bathrooms') || flow.has('livingRooms') || flow.has('kitchens') || flow.has('extras')
+    flow.has('levels') || flow.has('bedrooms') || flow.has('bathrooms') || flow.has('livingRooms') || flow.has('kitchens') || flow.has('extras')
   /** الخطوة المالية مطويّة لمن اختار «مشكل آخر» حتى يفتحها بنفسه */
   const [financeOpen, setFinanceOpen] = useState(false)
 
@@ -1003,7 +1003,7 @@ export default function RequestForm({
         </Group>
 
         {/* ---------- الدار ---------- */}
-        {(flow.has('builtArea') || flow.has('currentArea') || flow.has('bedrooms') || flow.has('works') || flow.has('apartmentState')) && (
+        {(flow.has('builtArea') || flow.has('currentArea') || flow.has('works') || flow.has('apartmentState')) && (
           <Group title={t.grpHome}>
             {/* الترميم: شنوّة بالضبط — السؤال الذي يفتح ويغلق كلّ ما بعده */}
             {flow.has('works') && (
@@ -1172,14 +1172,6 @@ export default function RequestForm({
                 )}
               </div>
             )}
-
-            {flow.has('bedrooms') && (
-              <div className="mt-5 grid gap-4 sm:grid-cols-2">
-                <Field as="div" label={t.bedrooms} hint={t.optional} error={err('bedrooms')}>
-                  <Stepper name="bedrooms" min={1} max={6} value={values.bedrooms} onChange={(v) => set('bedrooms', v)} />
-                </Field>
-              </div>
-            )}
           </Group>
         )}
 
@@ -1279,8 +1271,14 @@ export default function RequestForm({
               </>
             )}
 
-            {(flow.has('bathrooms') || flow.has('livingRooms') || flow.has('kitchens')) && (
-              <div className="mt-5 grid gap-4 sm:grid-cols-3">
+            {/* الغرف مع بقيّة المواصفات — نفس الأرقام التي يُحسب بها العرض التقديري */}
+            {(flow.has('bedrooms') || flow.has('bathrooms') || flow.has('livingRooms') || flow.has('kitchens')) && (
+              <div className="mt-5 grid grid-cols-2 gap-4 sm:grid-cols-4">
+                {flow.has('bedrooms') && (
+                  <Field as="div" label={t.bedrooms} hint={t.optional} error={err('bedrooms')}>
+                    <Stepper name="bedrooms" min={1} max={6} value={values.bedrooms} onChange={(v) => set('bedrooms', v)} />
+                  </Field>
+                )}
                 {flow.has('bathrooms') && (
                   <Field as="div" label={t.bathrooms} hint={t.optional} error={err('bathrooms')}>
                     <Stepper name="bathrooms" min={1} max={6} value={values.bathrooms} onChange={(v) => set('bathrooms', v)} />
