@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { createPortal } from 'react-dom'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 
@@ -15,6 +16,10 @@ export type NavGroup = { title: string; links: NavLink[] }
  * مجمّعة بمنطق الرحلة — ابدا · اعرف · شارك — لا بترتيب الترويسة.
  *
  * تُغلق بـEsc وبالنقر خارجها وبتبدّل الصفحة، وتمنع تمرير ما خلفها.
+ *
+ * اللوحة تُرسم في بوابة على body لا داخل الترويسة: الترويسة فيها
+ * backdrop-filter، وهو يجعل كلّ عنصر fixed داخلها يتموضع نسبةً للترويسة
+ * لا للشاشة — فكانت القائمة تنفتح محشورة في شريط ارتفاعه 64 بكسل.
  */
 export default function MobileNav({
   groups,
@@ -65,74 +70,77 @@ export default function MobileNav({
         </svg>
       </button>
 
-      {open && (
-        <div
-          className="fixed inset-0 z-50 bg-ink/45 lg:hidden"
-          onClick={() => setOpen(false)}
-          role="presentation"
-        >
+      {/* open لا يصير true إلّا بعد نقرة في المتصفّح، فـdocument موجود دائماً هنا */}
+      {open &&
+        createPortal(
           <div
-            role="dialog"
-            aria-modal="true"
-            aria-label={labels.menuTitle}
-            onClick={(e) => e.stopPropagation()}
-            className="ms-auto flex h-full w-[86%] max-w-sm flex-col overflow-y-auto bg-surface shadow-2xl"
-            style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
+            className="fixed inset-0 z-50 bg-ink/45 lg:hidden"
+            onClick={() => setOpen(false)}
+            role="presentation"
           >
-            <div className="sticky top-0 flex items-center justify-between gap-3 border-b border-line bg-surface px-5 py-4">
-              <span className="display text-base font-semibold text-brand-deep">{labels.menuTitle}</span>
-              <button
-                type="button"
-                onClick={() => setOpen(false)}
-                aria-label={labels.menuClose}
-                className="inline-flex size-11 items-center justify-center rounded-lg border border-line text-muted transition active:scale-95"
-              >
-                <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
-                  <path d="M4 4l10 10M14 4L4 14" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
-                </svg>
-              </button>
-            </div>
+            <div
+              role="dialog"
+              aria-modal="true"
+              aria-label={labels.menuTitle}
+              onClick={(e) => e.stopPropagation()}
+              className="ms-auto flex h-full w-[86%] max-w-sm flex-col overflow-y-auto bg-surface shadow-2xl"
+              style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
+            >
+              <div className="sticky top-0 flex items-center justify-between gap-3 border-b border-line bg-surface px-5 py-4">
+                <span className="display text-base font-semibold text-brand-deep">{labels.menuTitle}</span>
+                <button
+                  type="button"
+                  onClick={() => setOpen(false)}
+                  aria-label={labels.menuClose}
+                  className="inline-flex size-11 items-center justify-center rounded-full border border-line text-muted transition active:scale-95"
+                >
+                  <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
+                    <path d="M4 4l10 10M14 4L4 14" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+                  </svg>
+                </button>
+              </div>
 
-            <nav className="flex flex-1 flex-col gap-6 px-5 py-6">
-              {groups.map((g) => (
-                <div key={g.title}>
-                  <div className="mb-2 text-xs font-medium tracking-wide text-faint">{g.title}</div>
-                  <ul className="flex flex-col">
-                    {g.links.map((l) => (
-                      <li key={l.href}>
-                        <Link
-                          href={l.href}
-                          className={`flex min-h-12 items-center rounded-lg px-3 text-[15px] transition ${
-                            isActive(l.href)
-                              ? 'bg-brand-soft font-medium text-brand'
-                              : 'text-ink-soft active:bg-surface-2'
-                          }`}
-                        >
-                          {l.label}
-                        </Link>
-                      </li>
-                    ))}
-                  </ul>
+              <nav className="flex flex-1 flex-col gap-6 px-5 py-6">
+                {groups.map((g) => (
+                  <div key={g.title}>
+                    <div className="mb-2 text-xs font-medium tracking-wide text-faint">{g.title}</div>
+                    <ul className="flex flex-col">
+                      {g.links.map((l) => (
+                        <li key={l.href}>
+                          <Link
+                            href={l.href}
+                            className={`flex min-h-12 items-center rounded-lg px-3 text-[15px] transition ${
+                              isActive(l.href)
+                                ? 'bg-brand-soft font-medium text-brand'
+                                : 'text-ink-soft active:bg-surface-2'
+                            }`}
+                          >
+                            {l.label}
+                          </Link>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ))}
+              </nav>
+
+              <div className="sticky bottom-0 flex flex-col gap-3 border-t border-line bg-surface px-5 py-4">
+                <Link
+                  href={cta.href}
+                  className="flex min-h-12 flex-col items-center justify-center rounded-lg bg-brand px-5 py-2 font-medium text-white transition active:bg-brand-deep"
+                >
+                  {cta.label}
+                  {/* «قدّاش تاخذو منّي؟» — الجواب على الزرّ نفسه */}
+                  {freeNote && <span className="text-[11px] font-normal opacity-85">{freeNote}</span>}
+                </Link>
+                <div className="flex justify-center [&>a]:flex [&>a]:min-h-11 [&>a]:w-full [&>a]:items-center [&>a]:justify-center [&>a]:text-sm">
+                  {langSwitch}
                 </div>
-              ))}
-            </nav>
-
-            <div className="sticky bottom-0 flex flex-col gap-3 border-t border-line bg-surface px-5 py-4">
-              <Link
-                href={cta.href}
-                className="flex min-h-12 flex-col items-center justify-center rounded-lg bg-brand px-5 py-2 font-medium text-white transition active:bg-brand-deep"
-              >
-                {cta.label}
-                {/* «قدّاش تاخذو منّي؟» — الجواب على الزرّ نفسه */}
-                {freeNote && <span className="text-[11px] font-normal opacity-85">{freeNote}</span>}
-              </Link>
-              <div className="flex justify-center [&>a]:flex [&>a]:min-h-11 [&>a]:w-full [&>a]:items-center [&>a]:justify-center [&>a]:text-sm">
-                {langSwitch}
               </div>
             </div>
-          </div>
-        </div>
-      )}
+          </div>,
+          document.body
+        )}
     </>
   )
 }
