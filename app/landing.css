@@ -326,3 +326,60 @@
 
   .lp .pcard { flex-basis: 84%; }
 }
+
+/* ================================================================
+   طابع البناء والمقاولات — لبنة ذهبية قبل كلّ عنوان تمهيدي (الاسم
+   نفسه «اللبنة»)، شبكة مخطّط هندسي خفيفة خلف نصّ الواجهة، وخطّ ذهبي
+   كخطّ القياس أعلى بطاقات الأرقام.
+   ================================================================ */
+.lp .eyebrow::before {
+  content: ''; width: 18px; height: 9px; border-radius: 2px; flex: 0 0 auto;
+  background: linear-gradient(135deg, var(--lp-gold-light), var(--lp-gold-deep));
+}
+.lp .hero::after {
+  content: ''; position: absolute; inset: 0; z-index: 0; pointer-events: none;
+  background-image:
+    linear-gradient(rgba(14, 58, 91, 0.075) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(14, 58, 91, 0.075) 1px, transparent 1px);
+  background-size: 36px 36px;
+  -webkit-mask-image: linear-gradient(to left, #000 0%, rgba(0, 0, 0, 0.55) 32%, transparent 56%);
+  mask-image: linear-gradient(to left, #000 0%, rgba(0, 0, 0, 0.55) 32%, transparent 56%);
+}
+[dir='ltr'] .lp .hero::after {
+  -webkit-mask-image: linear-gradient(to right, #000 0%, rgba(0, 0, 0, 0.55) 32%, transparent 56%);
+  mask-image: linear-gradient(to right, #000 0%, rgba(0, 0, 0, 0.55) 32%, transparent 56%);
+}
+@media (max-width: 899px) {
+  /* على الهاتف: الشبكة تحت الصورة فقط، وتخفت نحو الأسفل */
+  .lp .hero::after, [dir='ltr'] .lp .hero::after {
+    top: clamp(280px, 44svh, 440px);
+    -webkit-mask-image: linear-gradient(to bottom, #000 0%, transparent 85%);
+    mask-image: linear-gradient(to bottom, #000 0%, transparent 85%);
+  }
+}
+.lp .hero__in { z-index: 1; }
+.lp .stat { border-top: 2px solid rgba(212, 161, 94, 0.75); }
+
+/* طرق البناء: ثلاث بطاقات بصور من الورشة؛ على الهاتف شريط أفقي كالمشاريع */
+.lp .methods { margin-top: 48px; }
+.lp .mgrid { display: flex; gap: 14px; overflow-x: auto; scroll-snap-type: x mandatory; margin: 20px -20px 0; padding: 4px 20px 18px; scrollbar-width: none; }
+.lp .mgrid::-webkit-scrollbar { display: none; }
+@media (min-width: 900px) { .lp .mgrid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; overflow: visible; margin: 24px 0 0; padding: 0; } }
+.lp .mcard {
+  flex: 0 0 78%; scroll-snap-align: start; display: flex; flex-direction: column;
+  background: #fff; border-radius: 24px; overflow: hidden; box-shadow: var(--lp-shadow);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.lp .mcard:hover { transform: translateY(-3px); box-shadow: 0 18px 40px rgba(14, 58, 91, 0.14); }
+.lp .mcard__img { position: relative; aspect-ratio: 4 / 3; overflow: hidden; background: var(--lp-gold-soft); }
+.lp .mcard__img img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.6s ease; }
+.lp .mcard:hover img { transform: scale(1.04); }
+.lp .mcard__n {
+  position: absolute; top: 14px; inset-inline-start: 14px; min-width: 40px; height: 40px; padding: 0 10px; border-radius: 12px;
+  background: rgba(10, 42, 68, 0.78); color: var(--lp-gold-light); font-weight: 900; font-size: 0.95rem;
+  display: inline-flex; align-items: center; justify-content: center; backdrop-filter: blur(6px);
+}
+.lp .mcard__body { padding: 16px 18px 20px; }
+.lp .mcard h3 { font-size: 1.05rem; font-weight: 800; color: var(--lp-navy); }
+.lp .mcard p { margin-top: 6px; font-size: 0.88rem; color: var(--lp-muted); line-height: 1.6; }
+@media (max-width: 899px) { .lp .methods { margin-top: 40px; } }

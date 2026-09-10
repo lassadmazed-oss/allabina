@@ -8,14 +8,16 @@ import StickyCta from '@/components/landing/StickyCta'
 import VideoModal from '@/components/landing/VideoModal'
 import {
   IcArrow,
+  IcBlueprint,
+  IcBricks,
   IcBuilding,
+  IcCrane,
   IcFlag,
-  IcHome,
+  IcHelmet,
   IcLeaf,
   IcPin,
   IcPlay,
   IcShield,
-  IcUsers,
 } from '@/components/landing/icons'
 
 /* eslint-disable @next/next/no-img-element -- صور ثابتة في public/landing */
@@ -33,9 +35,10 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
   const c = landingCopy[locale]
   const p = (s = '') => `/${locale}${s}`
 
-  const tileIcons = [<IcBuilding key="b" />, <IcHome key="h" />, <IcLeaf key="l" />, <IcUsers key="u" />]
-  const statIcons = [<IcShield key="s" />, <IcPin key="p" />, <IcHome key="h" />, <IcLeaf key="l" />]
-  const featIcons = [<IcShield key="s" />, <IcUsers key="u" />, <IcFlag key="f" />]
+  // أيقونات من الورشة لا من المكتب: رافعة ومخطّط ولبنات وخوذة
+  const tileIcons = [<IcCrane key="c" />, <IcBuilding key="b" />, <IcLeaf key="l" />, <IcBlueprint key="p" />]
+  const statIcons = [<IcShield key="s" />, <IcPin key="p" />, <IcBricks key="b" />, <IcLeaf key="l" />]
+  const featIcons = [<IcHelmet key="h" />, <IcShield key="s" />, <IcFlag key="f" />]
 
   return (
     <div className="lp">
@@ -173,6 +176,35 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
             </li>
           ))}
         </ol>
+      </section>
+
+      {/* طرق البناء — الطوب والبلوك والأسقف الجاهزة، بصور من الورشة */}
+      <section className="wrap methods" id="methods">
+        <div className="sec-head">
+          <div>
+            <span className="eyebrow">{c.methods.eyebrow}</span>
+            <h2 className="sec-title">{c.methods.title}</h2>
+            <p className="lead">{c.methods.text}</p>
+          </div>
+          <Link href={p('/systemes')} className="linkarrow">
+            {c.methods.all}
+            <IcArrow className="arr" />
+          </Link>
+        </div>
+        <div className="mgrid">
+          {c.methods.items.map((it, i) => (
+            <Link key={it.t} href={p('/systemes')} className="mcard">
+              <div className="mcard__img">
+                <img src={PHOTOS.methods[i]} alt={it.alt} loading="lazy" />
+                <span className="mcard__n">{String(i + 1).padStart(2, '0')}</span>
+              </div>
+              <div className="mcard__body">
+                <h3>{it.t}</h3>
+                <p>{it.d}</p>
+              </div>
+            </Link>
+          ))}
+        </div>
       </section>
 
       {/* مشاريعنا */}

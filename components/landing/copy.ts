@@ -31,7 +31,7 @@ const AR = {
     videoTitle: 'تعرّف على خدماتنا',
     videoNote: 'فيديو تعريفي مؤقّت — النسخة النهائية قريباً',
     close: 'إغلاق',
-    alt: 'بيوت بيضاء وأبواب زرقاء تحت شمس تونس',
+    alt: 'مهندس يشرح المخطّط لعائلة أمام دار في طور البناء في صفاقس',
   },
   stats: [
     { n: '0', l: 'معاليم على المواطن' },
@@ -64,7 +64,7 @@ const AR = {
     mapSub: 'صفاقس · المرحلة التجريبية',
     mapFrameTitle: 'خريطة تونس — صفاقس',
     mapOpen: 'افتحها في خرائط Google',
-    alt: 'بيت أبيض بباب أزرق يطلّ على البحر',
+    alt: 'بنّاؤون يرفعون جدار دار بالطوب تحت شمس تونس',
   },
   how: {
     eyebrow: 'كيف نعمل',
@@ -74,6 +74,29 @@ const AR = {
       { t: 'ندرس قدرتك', d: 'ميزانية تقديرية وقسط شهري ممكن، ورمز خاص لمتابعة ملفك.' },
       { t: 'نجد لك العرض', d: 'مشروع أو أرض أو شركة بناء تناسب منطقتك وميزانيتك.' },
       { t: 'نرافقك حتى المفتاح', d: 'من الموعد الأول إلى تسليم الدار.' },
+    ],
+  },
+  methods: {
+    eyebrow: 'طرق البناء',
+    title: 'كيفاش نبنيو الدار؟',
+    text: 'نختارو معاك الطريقة اللي تناسب أرضك وميزانيتك: هيكل خرساني وجدران بالطوب أو بالبلوك، وأسقف جاهزة تربح الوقت وتضبط الكلفة.',
+    all: 'اعرف أكثر عن طرق البناء',
+    items: [
+      {
+        t: 'هيكل خرساني وجدران بالطوب',
+        d: 'الطريقة الكلاسيكية: أعمدة وروافد من الخرسانة المسلّحة، وجدران من الآجر الأحمر.',
+        alt: 'بنّاؤون يرفعون جدار دار بالطوب الأحمر',
+      },
+      {
+        t: 'البناء بالبلوك الإسمنتي',
+        d: 'بلوك إسمنتي للجدران: إنجاز أسرع، وعزل جيّد حين يُنفَّذ بإتقان.',
+        alt: 'بنّاء يضع بلوك إسمنتي في جدار دار في طور البناء',
+      },
+      {
+        t: 'الأسقف الجاهزة',
+        d: 'روافد مسبقة الصنع وهورديس: سقف يُركَّب في أيام، أخفّ وزناً وبكلفة مضبوطة.',
+        alt: 'تركيب سقف جاهز من روافد مسبقة الصنع وهورديس',
+      },
     ],
   },
   projects: {
@@ -126,7 +149,7 @@ const FR: LandingCopy = {
     videoTitle: 'Découvrir nos services',
     videoNote: 'Vidéo de présentation provisoire — la version finale arrive bientôt',
     close: 'Fermer',
-    alt: 'Maisons blanches et portes bleues sous le soleil tunisien',
+    alt: 'Un ingénieur explique les plans à une famille devant une maison en construction à Sfax',
   },
   stats: [
     { n: '0', l: 'frais pour le citoyen' },
@@ -159,7 +182,7 @@ const FR: LandingCopy = {
     mapSub: 'Sfax · phase pilote',
     mapFrameTitle: 'Carte de la Tunisie — Sfax',
     mapOpen: 'Ouvrir dans Google Maps',
-    alt: 'Maison blanche à porte bleue face à la mer',
+    alt: 'Des maçons montent un mur en briques sous le soleil tunisien',
   },
   how: {
     eyebrow: 'Comment ça marche',
@@ -169,6 +192,29 @@ const FR: LandingCopy = {
       { t: 'Nous étudions votre capacité', d: 'Budget estimatif, mensualité possible et un code privé pour suivre votre dossier.' },
       { t: 'Nous trouvons l’offre', d: 'Un projet, un terrain ou un constructeur adapté à votre zone et à votre budget.' },
       { t: 'Nous vous accompagnons', d: 'Du premier rendez-vous jusqu’à la remise des clés.' },
+    ],
+  },
+  methods: {
+    eyebrow: 'Méthodes de construction',
+    title: 'Comment construisons-nous ?',
+    text: 'Nous choisissons avec vous la méthode adaptée à votre terrain et à votre budget : ossature en béton avec murs en briques ou en parpaings, et planchers préfabriqués qui font gagner du temps et maîtrisent le coût.',
+    all: 'En savoir plus sur les méthodes',
+    items: [
+      {
+        t: 'Ossature béton et murs en briques',
+        d: 'La méthode classique : poteaux et poutres en béton armé, murs en briques rouges.',
+        alt: 'Des maçons montent un mur en briques rouges',
+      },
+      {
+        t: 'Construction en parpaings',
+        d: 'Blocs de béton pour les murs : exécution plus rapide, bonne isolation quand la mise en œuvre est soignée.',
+        alt: 'Un maçon pose un parpaing sur un mur en construction',
+      },
+      {
+        t: 'Planchers préfabriqués',
+        d: 'Poutrelles préfabriquées et hourdis : un plancher posé en quelques jours, plus léger, au coût maîtrisé.',
+        alt: 'Pose d’un plancher préfabriqué en poutrelles et hourdis',
+      },
     ],
   },
   projects: {

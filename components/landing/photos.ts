@@ -10,6 +10,8 @@ export const PHOTOS = {
   /** مشاريعنا — بالترتيب: بناء فوق أرضك · شقق في مشروع · أرض ودار */
   projects: ['/landing/p1.jpg', '/landing/p2.jpg', '/landing/p3.jpg'],
   /** كيف نعمل — بالترتيب: الطلب من الهاتف · دراسة الملفّ · المخطّط والعرض · المفتاح */
+  /** طرق البناء: الطوب، البلوك، الأسقف الجاهزة */
+  methods: ['/landing/m1.jpg', '/landing/m2.jpg', '/landing/m3.jpg'],
   steps: ['/landing/s1.jpg', '/landing/s2.jpg', '/landing/s3.jpg', '/landing/s4.jpg'],
   logoLight: '/landing/logo-light.png',
   /** فيديو «تعرّف على خدماتنا» — نسخة مؤقّتة مولَّدة من صور الموقع؛ يُبدَّل بالحقيقي هنا */

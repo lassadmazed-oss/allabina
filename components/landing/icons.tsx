@@ -95,3 +95,42 @@ export const IcChevron = (p: P) => (
     <path d="M6 9l6 6 6-6" />
   </svg>
 )
+
+/* ---- أيقونات البناء والمقاولات: خوذة، رافعة، مخطّط، لبنات ---- */
+
+export const IcHelmet = (p: P) => (
+  <svg {...base} {...p}>
+    <path d="M4 16a8 8 0 0 1 16 0" />
+    <path d="M10 8.6V6h4v2.6" />
+    <path d="M12 8.2V16" />
+    <path d="M3 16h18v2.5H3z" />
+  </svg>
+)
+
+export const IcCrane = (p: P) => (
+  <svg {...base} {...p}>
+    <path d="M5 21V8" />
+    <path d="M5 8l15-3.5" />
+    <path d="M5 8h2.5" />
+    <path d="M14 6v6" />
+    <path d="M12 12h4v3h-4z" />
+    <path d="M2.5 21h5" />
+  </svg>
+)
+
+export const IcBlueprint = (p: P) => (
+  <svg {...base} {...p}>
+    <rect x="3" y="4" width="18" height="16" rx="2" />
+    <path d="M3 10h6v6H3" />
+    <path d="M9 10h12" />
+    <path d="M15 10v10" />
+  </svg>
+)
+
+/** لبنات — الشكل الذي يحمل اسم الشركة */
+export const IcBricks = (p: P) => (
+  <svg {...base} {...p}>
+    <path d="M3 6h18v4.5H3zM3 10.5h18V15H3zM3 15h18v4.5H3z" />
+    <path d="M9 6v4.5M15 6v4.5M6 10.5V15M12 10.5V15M18 10.5V15M9 15v4.5M15 15v4.5" />
+  </svg>
+)
