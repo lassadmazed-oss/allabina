@@ -19,6 +19,21 @@ import {
   setAvailabilityAction,
   setIntervenantStatusAction,
 } from '@/lib/actions/network'
+import {
+  NETWORK_PHOTO_BUCKET,
+  NETWORK_PHOTO_KINDS,
+  NETWORK_PHOTO_KIND_AR,
+  defaultPhotoKind,
+  groupByKind,
+  sortNetworkPhotos,
+  type NetworkPhotoKind,
+} from '@/lib/network-photos'
+import {
+  deleteNetworkPhotoAction,
+  makeNetworkCoverAction,
+  updateNetworkPhotoAction,
+} from '@/lib/actions/network-photos'
+import NetworkPhotoUpload from '@/components/NetworkPhotoUpload'
 
 export const dynamic = 'force-dynamic'
 
@@ -27,6 +42,7 @@ const EVENT_LABELS: Record<string, string> = {
   status_change: 'تغيير حالة',
   note: 'ملاحظة',
   document: 'وثيقة',
+  photo: 'صور',
   contact: 'اتّصال',
 }
 
@@ -108,9 +124,33 @@ export default async function IntervenantPage({ params }: { params: Promise<{ id
 
   const status = (isStatus(p.status) ? p.status : 'new') as IntervenantStatus
   const moves = nextStatuses(status)
-  const cat = one<Named>(p.category)
+  const cat = one<Named & { family_code: string }>(p.category)
   const deleg = one<Named>(p.delegation)
   const zone = one<Named>(p.zone)
+
+  // صور الأعمال والمنتوجات — مخزن خاصّ، رابط موقَّع لساعة
+  type PhotoRow = {
+    id: string
+    kind: NetworkPhotoKind
+    storage_path: string
+    caption_ar: string | null
+    sort_order: number
+    created_at: string
+  }
+  const { data: photoRows } = await db
+    .from('intervenant_photos')
+    .select('id, kind, storage_path, caption_ar, sort_order, created_at')
+    .eq('intervenant_id', id)
+  const photos = (photoRows ?? []) as PhotoRow[]
+  const photoUrl = new Map<string, string>()
+  if (photos.length) {
+    const { data: signed } = await db.storage
+      .from(NETWORK_PHOTO_BUCKET)
+      .createSignedUrls(photos.map((ph) => ph.storage_path), 3600)
+    for (const s of signed ?? []) if (s.path && s.signedUrl) photoUrl.set(s.path, s.signedUrl)
+  }
+  const photoGroups = groupByKind(photos, cat?.family_code)
+  const coverId = sortNetworkPhotos(photos)[0]?.id
 
   // من غيّر الحالة: نجلب أسماء الفريق مرّة واحدة
   const actorIds = [...new Set((eventRows ?? []).map((e) => e.actor).filter(Boolean))] as string[]
@@ -186,6 +226,133 @@ export default async function IntervenantPage({ params }: { params: Promise<{ id
       <div className="mt-6 grid gap-5 lg:grid-cols-3">
         {/* ---------- الملفّ ---------- */}
         <div className="space-y-5 lg:col-span-2">
+          {/* ---------- صور الأعمال والمنتوجات ---------- */}
+          <section id="sec-photos" className="scroll-mt-6 rounded border border-line bg-surface p-4">
+            <div className="flex flex-wrap items-baseline justify-between gap-2">
+              <h2 className="text-sm font-semibold">صور الأعمال والمنتوجات</h2>
+              {photos.length > 0 && (
+                <span className="text-xs text-faint">
+                  {photoGroups.map((g) => `${NETWORK_PHOTO_KIND_AR[g.kind]}: ${g.photos.length}`).join(' · ')}
+                </span>
+              )}
+            </div>
+
+            {photos.length === 0 ? (
+              <>
+                <div className="mt-3 grid grid-cols-3 gap-2" aria-hidden="true">
+                  {[0, 1, 2].map((i) => (
+                    <div
+                      key={i}
+                      className="flex aspect-[4/3] items-center justify-center rounded-lg border-2 border-dashed border-line bg-ground text-faint"
+                    >
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round" className="size-7">
+                        <path d="M4 8h3l2-3h6l2 3h3v11H4z" />
+                        <circle cx="12" cy="13" r="3.5" />
+                      </svg>
+                    </div>
+                  ))}
+                </div>
+                <p className="mt-3 text-sm leading-7 text-muted">
+                  ما فمّاش صور بعد. اطلب منه في المكالمة يبعث على الواتساب صور حضائر خدمها أو منتوجات يبيعها، وارفعها
+                  هنا: الصورة تعاون الفريق يقرّر قبل ما يقترحه على حريف.
+                </p>
+              </>
+            ) : (
+              photoGroups.map((g) => (
+                <div key={g.kind} className="mt-4">
+                  <h3 className="text-xs font-medium text-muted">
+                    {NETWORK_PHOTO_KIND_AR[g.kind]} · <span className="num">{g.photos.length}</span>
+                  </h3>
+                  <ul className="mt-2 grid grid-cols-2 gap-3 sm:grid-cols-3">
+                    {g.photos.map((ph) => {
+                      const url = photoUrl.get(ph.storage_path)
+                      const isCover = ph.id === coverId
+                      return (
+                        <li key={ph.id} className="flex flex-col overflow-hidden rounded-lg border border-line bg-ground">
+                          <a
+                            href={url ?? '#'}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="relative block aspect-[4/3] bg-surface-2"
+                          >
+                            {url && (
+                              <img
+                                src={url}
+                                alt={ph.caption_ar ?? NETWORK_PHOTO_KIND_AR[g.kind]}
+                                loading="lazy"
+                                className="size-full object-cover"
+                              />
+                            )}
+                            {isCover && (
+                              <span className="absolute start-2 top-2 rounded-full bg-white/90 px-2 py-0.5 text-[10px] font-semibold text-brand-deep">
+                                الغلاف
+                              </span>
+                            )}
+                          </a>
+                          <div className="flex flex-1 flex-col gap-1 p-2 text-xs">
+                            <p className="line-clamp-2 leading-5 text-ink-soft">
+                              {ph.caption_ar ?? <span className="text-faint">بلا تعليق</span>}
+                            </p>
+                            {canManage && (
+                              <details className="mt-auto">
+                                <summary className="cursor-pointer text-brand">تعديل</summary>
+                                <form action={updateNetworkPhotoAction} className="mt-2 space-y-1.5">
+                                  <input type="hidden" name="photo_id" value={ph.id} />
+                                  <input
+                                    name="caption_ar"
+                                    defaultValue={ph.caption_ar ?? ''}
+                                    maxLength={200}
+                                    placeholder="التعليق"
+                                    className="h-8 w-full rounded border border-line bg-surface px-2 outline-none focus:border-brand"
+                                  />
+                                  <select
+                                    name="kind"
+                                    defaultValue={ph.kind}
+                                    aria-label="النوع"
+                                    className="h-8 w-full rounded border border-line bg-surface px-2"
+                                  >
+                                    {NETWORK_PHOTO_KINDS.map((k) => (
+                                      <option key={k} value={k}>
+                                        {NETWORK_PHOTO_KIND_AR[k]}
+                                      </option>
+                                    ))}
+                                  </select>
+                                  <button className="h-8 w-full rounded border border-line bg-surface hover:border-brand hover:text-brand">
+                                    حفظ
+                                  </button>
+                                </form>
+                                <div className="mt-1.5 flex items-center justify-between gap-2">
+                                  {isCover ? (
+                                    <span />
+                                  ) : (
+                                    <form action={makeNetworkCoverAction}>
+                                      <input type="hidden" name="photo_id" value={ph.id} />
+                                      <button className="text-muted hover:text-brand">اجعلها الغلاف</button>
+                                    </form>
+                                  )}
+                                  <form action={deleteNetworkPhotoAction}>
+                                    <input type="hidden" name="photo_id" value={ph.id} />
+                                    <button className="text-[#8c2f22] hover:underline">حذف</button>
+                                  </form>
+                                </div>
+                              </details>
+                            )}
+                          </div>
+                        </li>
+                      )
+                    })}
+                  </ul>
+                </div>
+              ))
+            )}
+
+            {canManage && (
+              <div className="mt-4 border-t border-line pt-4">
+                <NetworkPhotoUpload intervenantId={p.id} defaultKind={defaultPhotoKind(cat?.family_code)} />
+              </div>
+            )}
+          </section>
+
           <section className="rounded border border-line bg-surface p-4">
             <h2 className="text-sm font-semibold">شنوّة ينجّم يعمل</h2>
             {skills.length === 0 ? (
