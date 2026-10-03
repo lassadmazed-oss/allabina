@@ -9,6 +9,7 @@ import { db } from '@/lib/supabase/server'
 import { LABELS } from '@/lib/schema'
 import { formatTND } from '@/lib/finance'
 import { updateStatusAction } from '@/lib/actions/admin'
+import { PROGRESS_STAGE_AR, REQUEST_PHOTO_BUCKET, progressSummary, type RequestPhoto } from '@/lib/request-photos'
 
 export const metadata = { title: 'لوحة القيادة — اللَّبنة' }
 export const dynamic = 'force-dynamic'
@@ -130,6 +131,33 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
   }
 
   const rows = requests.filter((r) => !sp.band || scoreByRequest.get(r.id)?.band === sp.band)
+
+  /**
+   * صور تقدّم الأشغال: لكلّ بطاقة غلافها (الأحدث في أبعد مرحلة) وعددها.
+   * المخزن خاصّ فالغلاف برابط موقَّع لساعة، والبطاقة بلا صور تحجز مكانها.
+   * نقرأ الجدول كلّه لا بقائمة معرّفات: مئتا معرّف في رابط واحد تتجاوز حدّ الطول.
+   */
+  type CardPhoto = Pick<RequestPhoto, 'request_id' | 'storage_path' | 'stage' | 'taken_at' | 'created_at'>
+  const { data: photoRows } = await db
+    .from('request_photos')
+    .select('request_id, storage_path, stage, taken_at, created_at')
+    .order('created_at', { ascending: false })
+    .limit(3000)
+  const visibleIds = new Set(rows.map((r) => r.id))
+  const photosByRequest = new Map<string, CardPhoto[]>()
+  for (const p of (photoRows ?? []) as CardPhoto[]) {
+    if (!visibleIds.has(p.request_id)) continue
+    photosByRequest.set(p.request_id, [...(photosByRequest.get(p.request_id) ?? []), p])
+  }
+  const progressByRequest = new Map([...photosByRequest].map(([rid, list]) => [rid, progressSummary(list)]))
+  const coverPaths = [...progressByRequest.values()]
+    .map((s) => s.cover?.storage_path)
+    .filter((p): p is string => Boolean(p))
+  const coverUrl = new Map<string, string>()
+  if (coverPaths.length) {
+    const { data: signed } = await db.storage.from(REQUEST_PHOTO_BUCKET).createSignedUrls(coverPaths, 3600)
+    for (const s of signed ?? []) if (s.path && s.signedUrl) coverUrl.set(s.path, s.signedUrl)
+  }
 
   // المؤشرات
   const today = new Date().toISOString().slice(0, 10)
@@ -370,6 +398,38 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
                   stale ? 'border-gold/60' : 'border-line'
                 }`}
               >
+                {/* مكان صور التقدّم: غلاف أبعد مرحلة، وإلّا خانة فارغة تقول وين تتحطّ الصور */}
+                {(() => {
+                  const prog = progressByRequest.get(r.id)
+                  const url = prog?.cover ? coverUrl.get(prog.cover.storage_path) : undefined
+                  return (
+                    <Link
+                      href={`/admin/${r.id}#sec-photos`}
+                      className="-mx-4 -mt-4 mb-3 block overflow-hidden rounded-t-xl border-b border-line"
+                    >
+                      {url && prog?.latestStage ? (
+                        <div className="relative h-28 bg-surface-2">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img src={url} alt="" loading="lazy" className="size-full object-cover" />
+                          <span className="absolute bottom-2 start-2 rounded-full bg-ink/75 px-2 py-0.5 text-[11px] font-medium text-white">
+                            {PROGRESS_STAGE_AR[prog.latestStage]}
+                          </span>
+                          <span className="absolute bottom-2 end-2 rounded-full bg-surface/90 px-2 py-0.5 text-[11px] text-ink">
+                            <span className="num">{prog.count}</span> صورة
+                          </span>
+                        </div>
+                      ) : (
+                        <div className="flex h-28 flex-col items-center justify-center gap-1 bg-ground text-faint transition hover:bg-brand-soft hover:text-brand">
+                          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" aria-hidden="true">
+                            <path d="M4 8h3l2-3h6l2 3h3v11H4z" />
+                            <circle cx="12" cy="13" r="3.5" />
+                          </svg>
+                          <span className="text-xs">مكان صور التقدّم</span>
+                        </div>
+                      )}
+                    </Link>
+                  )
+                })()}
                 <div className="flex items-start justify-between gap-2">
                   <Link href={`/admin/${r.id}`} className="num text-xs text-brand hover:underline" dir="ltr">
                     {r.ref_code}

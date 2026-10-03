@@ -24,6 +24,16 @@ import { buildClientProposal } from '@/lib/client-proposal'
 import ClientProposalPanel, { type ProposalSent } from '@/components/ClientProposalPanel'
 import { normalizeTnPhone } from '@/lib/sms'
 import { smsReadiness } from '@/lib/sms/winsms'
+import RequestPhotoUpload from '@/components/RequestPhotoUpload'
+import { deleteRequestPhotoAction, toggleRequestPhotoClientAction } from '@/lib/actions/request-photos'
+import {
+  PROGRESS_STAGES,
+  PROGRESS_STAGE_AR,
+  REQUEST_PHOTO_BUCKET,
+  progressSummary,
+  sortProgress,
+  type RequestPhoto,
+} from '@/lib/request-photos'
 import { siteUrl } from '@/lib/site'
 import { labelEmployment, seniorityYearsLabel } from '@/lib/scoring'
 import { publicStateOf } from '@/lib/public-state'
@@ -205,6 +215,7 @@ const SECTIONS = [
   { id: 'sec-file', label: 'الملفّ' },
   { id: 'sec-status', label: 'الحالة' },
   { id: 'sec-devis', label: 'المواصفات والعرض' },
+  { id: 'sec-photos', label: 'صور التقدّم' },
   { id: 'sec-study', label: 'تصنيف الدراسة' },
   { id: 'sec-social', label: 'المسار الاجتماعي' },
   { id: 'sec-support', label: 'المساندة' },
@@ -594,6 +605,24 @@ export default async function RequestDetail({ params }: { params: Promise<{ id: 
     docsMissing: docMissing.map((d) => (clientLang === 'fr' ? d.nameFr || d.nameAr : d.nameAr)),
   })
   // قبل تطبيق 0045 يرجع خطأ فتبقى القائمة فارغة — لا يكسر الصفحة
+  // صور تقدّم الأشغال — مخزن خاصّ، روابط موقَّعة لساعة
+  const { data: photoRowsRaw } = await db
+    .from('request_photos')
+    .select('id, request_id, storage_path, stage, caption, taken_at, show_to_client, sort_order, created_at')
+    .eq('request_id', id)
+  const progressPhotos = sortProgress((photoRowsRaw ?? []) as RequestPhoto[])
+  const progress = progressSummary(progressPhotos)
+  const photoUrl = new Map<string, string>()
+  if (progressPhotos.length) {
+    const { data: signed } = await db.storage
+      .from(REQUEST_PHOTO_BUCKET)
+      .createSignedUrls(
+        progressPhotos.map((p) => p.storage_path),
+        3600
+      )
+    for (const s of signed ?? []) if (s.path && s.signedUrl) photoUrl.set(s.path, s.signedUrl)
+  }
+
   const { data: sentProposals } = await db
     .from('client_proposals')
     .select('id, channel, titles, created_at')
@@ -1373,6 +1402,119 @@ export default async function RequestDetail({ params }: { params: Promise<{ id: 
             ما فمّاش عرض بعد. عمّر المواصفات ثمّ ولّد — وإذا ما تولّد شي، معناها البوردرو مازال
             فارغ من المقالات.
           </p>
+        )}
+      </div>
+
+      {/* صور تقدّم الأشغال — بمراحل البناء للفريق، وما يراه الحريف بقرار لكلّ صورة */}
+      <div id="sec-photos" className="mt-4 scroll-mt-32 rounded-xl border border-line bg-surface p-4">
+        <div className="flex flex-wrap items-baseline justify-between gap-2">
+          <h2 className={H2}>صور التقدّم</h2>
+          <span className="text-xs text-muted">
+            {progress.count ? (
+              <>
+                <b className="num text-ink">{progress.count}</b> صورة · وصلت الأشغال:{' '}
+                <b className="text-ink">{progress.latestStage ? PROGRESS_STAGE_AR[progress.latestStage] : '—'}</b>
+              </>
+            ) : (
+              'ما فمّاش صور بعد'
+            )}
+          </span>
+        </div>
+
+        {/* خطّ المراحل: كلّ مرحلة بعدد صورها */}
+        <ol className="mt-3 flex flex-wrap gap-1.5">
+          {PROGRESS_STAGES.map((s) => {
+            const n = progress.byStage[s]
+            return (
+              <li
+                key={s}
+                className={`rounded-full border px-2.5 py-1 text-xs ${
+                  n ? 'border-brand/40 bg-brand-soft text-brand' : 'border-line text-faint'
+                }`}
+              >
+                {PROGRESS_STAGE_AR[s]}
+                {n ? (
+                  <>
+                    {' · '}
+                    <span className="num">{n}</span>
+                  </>
+                ) : null}
+              </li>
+            )
+          })}
+        </ol>
+
+        {progressPhotos.length > 0 ? (
+          <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+            {progressPhotos.map((p) => {
+              const url = photoUrl.get(p.storage_path)
+              return (
+                <figure key={p.id} className="overflow-hidden rounded-lg border border-line bg-ground">
+                  <a
+                    href={url ?? '#'}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="block aspect-[4/3] bg-surface-2"
+                  >
+                    {url && (
+                      <>
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={url}
+                          alt={p.caption ?? PROGRESS_STAGE_AR[p.stage]}
+                          loading="lazy"
+                          className="size-full object-cover"
+                        />
+                      </>
+                    )}
+                  </a>
+                  <figcaption className="space-y-1 p-2 text-xs">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="font-medium text-ink">{PROGRESS_STAGE_AR[p.stage]}</span>
+                      <span className="num text-faint">
+                        {(p.taken_at ?? p.created_at.slice(0, 10)).split('-').reverse().join('/')}
+                      </span>
+                    </div>
+                    {p.caption && <p className="line-clamp-2 text-muted">{p.caption}</p>}
+                    {canEdit ? (
+                      <div className="flex items-center justify-between gap-2 pt-1">
+                        <form action={toggleRequestPhotoClientAction}>
+                          <input type="hidden" name="photo_id" value={p.id} />
+                          <input type="hidden" name="show" value={p.show_to_client ? '0' : '1'} />
+                          <button
+                            className={`rounded-full px-2 py-0.5 text-[11px] ${
+                              p.show_to_client ? 'bg-[#e6f0e9] text-[#1f6b3f]' : 'bg-surface-2 text-muted'
+                            }`}
+                          >
+                            {p.show_to_client ? 'يراها الحريف ✓' : 'للفريق فقط'}
+                          </button>
+                        </form>
+                        <form action={deleteRequestPhotoAction}>
+                          <input type="hidden" name="photo_id" value={p.id} />
+                          <button className="text-[11px] text-[#8c2f22] hover:underline">احذف</button>
+                        </form>
+                      </div>
+                    ) : (
+                      p.show_to_client && <span className="text-[11px] text-[#1f6b3f]">يراها الحريف</span>
+                    )}
+                  </figcaption>
+                </figure>
+              )
+            })}
+          </div>
+        ) : (
+          <p className="mt-4 rounded-lg border border-dashed border-line bg-ground p-4 text-center text-sm text-muted">
+            هنا تتجمّع صور الحضيرة من الأرض إلى المفتاح، مرتّبة بالمراحل.
+          </p>
+        )}
+
+        {canEdit && (
+          <details className="mt-4 rounded-lg border border-line bg-ground p-3" open={progressPhotos.length === 0}>
+            <summary className="cursor-pointer text-sm font-medium text-brand">زيد صور</summary>
+            <div className="mt-3">
+              <RequestPhotoUpload requestId={id} defaultStage={progress.latestStage ?? 'site'} />
+            </div>
+          </details>
         )}
       </div>
 
