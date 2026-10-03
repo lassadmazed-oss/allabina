@@ -6,6 +6,18 @@
       "runtimeExecutable": "npm",
       "runtimeArgs": ["run", "dev"],
       "port": 3100
+    },
+    {
+      "name": "allabina-mobile",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["--prefix", "../app1-mobile/apps/mobile", "run", "start"],
+      "port": 8081
+    },
+    {
+      "name": "allabina-mobile-api",
+      "runtimeExecutable": "node",
+      "runtimeArgs": ["../app1-mobile/node_modules/next/dist/bin/next", "dev", "../app1-mobile", "-p", "3200"],
+      "port": 3200
     }
   ]
 }
