@@ -8,6 +8,7 @@ import LangSwitch from '@/components/LangSwitch'
 import MobileNav from '@/components/MobileNav'
 import BackButton from '@/components/BackButton'
 import NumericFocusSelect from '@/components/NumericFocusSelect'
+import ServiceWorkerRegister from '@/components/ServiceWorkerRegister'
 import MobileCta from '@/components/MobileCta'
 import DesktopNav, { type DesktopNavItem } from '@/components/DesktopNav'
 import { IcArrow, IcTrack } from '@/components/landing/icons'
@@ -48,6 +49,7 @@ export async function generateMetadata({
             "Plateforme tunisienne qui structure la demande de logement et met le client en relation avec les solutions de construction, d'immobilier et de financement adaptées à ses moyens.",
           siteName: 'AL-LUBNA',
           ogLocale: 'fr_TN',
+          appName: 'AL-LUBNA',
         }
       : {
           title: 'اللَّبنة للبناء والإعمار — نبنيو على قدّك',
@@ -55,12 +57,17 @@ export async function generateMetadata({
             'منصة تونسية ذكية تجمع مطالب السكن وتربط الحريف بالمشاريع وشركات البناء وحلول التمويل المناسبة لقدرته المالية ومكان السكن المطلوب.',
           siteName: 'اللَّبنة للبناء والإعمار',
           ogLocale: 'ar_TN',
+          appName: 'اللَّبنة',
         }
 
   return {
     metadataBase: new URL(siteUrl()),
     title: meta.title,
     description: meta.description,
+    applicationName: meta.appName,
+    // الاسم تحت الأيقونة على الآيفون، وفتحٌ بلا شريط متصفّح كالتطبيق
+    appleWebApp: { capable: true, title: meta.appName, statusBarStyle: 'default' },
+    manifest: '/manifest.webmanifest',
     alternates: {
       canonical: canonicalUrl(l),
       languages: languageAlternates(),
@@ -231,6 +238,7 @@ export default async function SiteLayout({
         </header>
 
         <NumericFocusSelect />
+        <ServiceWorkerRegister />
         <main>{children}</main>
 
         {/* التذييل: دعوة أخيرة، ثمّ الهوية وثلاث مجموعات روابط بعناوينها، ثمّ السطر القانوني */}
