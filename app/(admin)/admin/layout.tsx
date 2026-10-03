@@ -5,6 +5,7 @@ import { logoutAction } from '@/lib/actions/auth'
 import { Suspense } from 'react'
 import SaveToast from '@/components/SaveToast'
 import NumericFocusSelect from '@/components/NumericFocusSelect'
+import BrandLogo from '@/components/BrandLogo'
 
 export const dynamic = 'force-dynamic'
 
@@ -42,9 +43,8 @@ export default async function AdminLayout({ children }: { children: React.ReactN
             على التليفون: الشعار والهويّة في سطر، والتنقّل شريط يُسحب
             بالإبهام في سطر تحته. من lg يعود الصفّ الواحد كما كان. */}
         <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-x-4 gap-y-2 px-4 py-3 sm:px-5">
-          <Link href="/admin" className="order-1 flex min-h-11 items-center gap-2.5">
-            <span className="brick shrink-0" aria-hidden="true" />
-            <span className="display font-semibold text-brand-deep">اللَّبنة</span>
+          <Link href="/admin" className="order-1 flex min-h-11 items-center" aria-label="اللَّبنة">
+            <BrandLogo brand="اللَّبنة" sub="لوحة القيادة" size={36} />
           </Link>
 
           <nav className="order-3 -mx-4 flex w-[calc(100%+2rem)] items-center gap-1 overflow-x-auto px-4 pb-0.5 text-sm lg:order-2 lg:mx-0 lg:me-auto lg:w-auto lg:overflow-x-visible lg:px-0 lg:pb-0">

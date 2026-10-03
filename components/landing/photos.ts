@@ -13,9 +13,10 @@ export const PHOTOS = {
   /** طرق البناء: الطوب، البلوك، الأسقف الجاهزة */
   methods: ['/landing/m1.jpg', '/landing/m2.jpg', '/landing/m3.jpg'],
   steps: ['/landing/s1.jpg', '/landing/s2.jpg', '/landing/s3.jpg', '/landing/s4.jpg'],
-  logoLight: '/landing/logo-light.png',
   /** فيديو «تعرّف على خدماتنا» — نسخة مؤقّتة مولَّدة من صور الموقع؛ يُبدَّل بالحقيقي هنا */
   intro: '/landing/intro.mp4',
   introPoster: '/landing/intro-poster.jpg',
-  logoDark: '/landing/logo-dark.png',
 }
+// الشعار ليس هنا: ملفّاه ثابتان — logo-mark.png (حبر كحليّ، أرضية فاتحة)
+// في الترويسة ولوحة القيادة، وlogo-full.png (حبر أبيض) في التذييل الداكن.
+// أيقونات المتصفّح والهاتف وصورة المشاركة ملفّات اصطلاحية في app/.

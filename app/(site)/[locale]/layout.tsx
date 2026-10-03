@@ -72,6 +72,15 @@ export async function generateMetadata({
       title: meta.title,
       description: meta.description,
       locale: meta.ogLocale,
+      // الملفّ app/opengraph-image.png لا يُضمّ وحده متى صُرّح بـopenGraph هنا،
+      // فنسمّيه صراحة — بدونه تظهر روابطنا في فيسبوك وواتساب بلا صورة
+      images: [{ url: '/opengraph-image.png', width: 1200, height: 630, alt: meta.siteName }],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: meta.title,
+      description: meta.description,
+      images: ['/opengraph-image.png'],
     },
   }
 }
@@ -247,15 +256,16 @@ export default async function SiteLayout({
             {/* على التليفون: الهوية بعرض الصفحة ثمّ المجموعات عمودين؛ على الحاسوب أربعة أعمدة */}
             <div className="mt-10 grid grid-cols-2 gap-x-6 gap-y-10 md:grid-cols-[1.4fr_1fr_1fr_1fr] md:gap-8 lg:mt-14">
               <div className="col-span-2 max-w-sm md:col-span-1">
-                {/* الشعار الكامل — حروفه بيضاء، فمكانه الأرضية الداكنة وحدها */}
+                {/* الشعار الكامل — حروفه بيضاء، فمكانه الأرضية الداكنة وحدها.
+                    الاسم تحت المَعلَم لا جنبه، فيحتاج ارتفاعاً أكبر حتّى يُقرأ */}
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src="/landing/logo-full.png"
                   alt={`${t.nav.brand} ${t.nav.brandSub}`}
                   className="w-auto"
-                  style={{ height: 84 }}
-                  width={612}
-                  height={408}
+                  style={{ height: 120 }}
+                  width={880}
+                  height={906}
                   decoding="async"
                 />
                 <div className="mt-4 text-sm font-semibold text-gold-light">{t.nav.slogan}</div>

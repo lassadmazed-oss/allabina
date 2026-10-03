@@ -9,7 +9,8 @@ export default function AdminLogin({ next }: { next?: string }) {
   return (
     <div className="mx-auto max-w-sm px-5 py-24">
       <div className="rounded border border-line bg-surface p-5 sm:p-8">
-        <span className="brick mb-5 block" aria-hidden="true" />
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="/landing/logo-mark.png" alt="" width={56} height={56} className="mb-4 block size-14" decoding="async" />
         <h1 className="display text-xl font-semibold">لوحة القيادة</h1>
         <p className="mt-2 text-sm text-muted">فضاء فريق اللَّبنة.</p>
 
