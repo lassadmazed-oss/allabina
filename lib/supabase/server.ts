@@ -114,6 +114,37 @@ export async function getFinancingProducts(): Promise<FinancingProduct[]> {
   return (data ?? []) as FinancingProduct[]
 }
 
+/**
+ * البنوك التونسية للاختيار في الاستمارة والمحاكي. شروطها (نسبة، مدّة قصوى)
+ * فارغة ما لم يسجّلها الفريق — انظر lib/banks.ts. جدول غائب (ترحيل لم
+ * يُطبَّق) يرجع قائمة فارغة فتختفي الخانة بدل أن تسقط الصفحة.
+ */
+export async function getBanks(): Promise<import('@/lib/banks').Bank[]> {
+  const { data, error } = await db
+    .from('banks')
+    .select(
+      'code, name_ar, name_fr, is_islamic, indicative_rate_pct, max_years, max_share_pct, terms_source, terms_verified_at'
+    )
+    .eq('is_active', true)
+    .order('sort_order')
+  if (error) {
+    console.warn('banks', error.message)
+    return []
+  }
+  const n = (v: unknown) => (v == null ? null : Number(v))
+  return (data ?? []).map((b) => ({
+    code: String(b.code),
+    name_ar: String(b.name_ar),
+    name_fr: String(b.name_fr),
+    is_islamic: Boolean(b.is_islamic),
+    indicative_rate_pct: n(b.indicative_rate_pct),
+    max_years: n(b.max_years),
+    max_share_pct: n(b.max_share_pct),
+    terms_source: (b.terms_source as string | null) ?? null,
+    terms_verified_at: (b.terms_verified_at as string | null) ?? null,
+  }))
+}
+
 export type Imada = { id: number; delegation_id: number; name_ar: string }
 
 export async function getImadas(govCode = 'SFX'): Promise<Imada[]> {

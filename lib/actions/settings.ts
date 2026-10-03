@@ -93,3 +93,47 @@ export async function saveContactSettingsAction(formData: FormData) {
   revalidatePath('/ar/reseau/merci')
   revalidatePath('/fr/reseau/merci')
 }
+
+/**
+ * شروط تقديرية لبنك: نسبة، أقصى مدّة، أقصى نسبة تمويل، ومصدرها.
+ * خانة فارغة = «لا نعرف» — لا صفر. ما يُحفظ هنا يدخل تقدير الاستمارة
+ * والمحاكي لكلّ من يختار البنك، ويُسجَّل في سجلّ الفريق.
+ */
+export async function saveBankTermsAction(formData: FormData) {
+  const actor = await staffWithPermission('reference.manage')
+  if (!actor) return
+  const code = String(formData.get('code') ?? '')
+  if (!/^[a-z0-9_]{2,20}$/.test(code)) return
+
+  const num = (k: string, min: number, max: number) => {
+    const raw = String(formData.get(k) ?? '').trim().replace(',', '.')
+    if (!raw) return null
+    const n = Number(raw)
+    return Number.isFinite(n) && n >= min && n <= max ? n : null
+  }
+  const years = num('max_years', 1, 30)
+  const date = String(formData.get('verified_at') ?? '').trim()
+  const row = {
+    indicative_rate_pct: num('rate', 0, 30),
+    max_years: years == null ? null : Math.round(years),
+    max_share_pct: num('max_share', 0, 100),
+    terms_source: String(formData.get('source') ?? '').trim().slice(0, 300) || null,
+    terms_verified_at: /^\d{4}-\d{2}-\d{2}$/.test(date) ? date : null,
+    is_active: formData.get('active') === 'on',
+    updated_by: actor.userId,
+    updated_at: new Date().toISOString(),
+  }
+
+  const { error } = await db.from('banks').update(row).eq('code', code)
+  if (error) {
+    console.error('save bank terms', error)
+    return
+  }
+  await db
+    .from('staff_events')
+    .insert({ actor: actor.userId, event_type: 'settings.update', detail: { key: 'banks', code, ...row } })
+    .then(({ error: e }) => e && console.warn('staff_events', e.message))
+
+  revalidatePath('/admin/reference')
+  for (const p of ['/ar/demande', '/fr/demande', '/ar/simulateur', '/fr/simulateur']) revalidatePath(p)
+}

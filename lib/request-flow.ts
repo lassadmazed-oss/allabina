@@ -334,6 +334,8 @@ export const FIELD_STEP: Record<string, number> = {
   parkingNeeded: 2,
   hasDisability: 4,
   cashReady: 5,
+  loanYears: 5,
+  bankCode: 5,
   foprolosInterest: 5,
   isFirstHome: 5,
   hasSocialHousing: 5,

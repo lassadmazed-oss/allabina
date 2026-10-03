@@ -48,6 +48,8 @@ export type FinanceRow = {
   existing_loans_tnd: number | null
   down_payment_tnd: number | null
   max_monthly_tnd: number | null
+  loan_years?: number | null
+  bank_code?: string | null
   employment: string | null
   seniority_months: number | null
   is_expat: boolean | null
@@ -204,6 +206,8 @@ export function toFormValues(
     existingLoans: s(f?.existing_loans_tnd ?? null),
     downPayment: s(f?.down_payment_tnd ?? null),
     maxMonthly: s(f?.max_monthly_tnd ?? null),
+    loanYears: s(f?.loan_years ?? null),
+    bankCode: f?.bank_code ?? '',
     employment: f?.employment ?? '',
     seniorityYears: monthsToYears(f?.seniority_months),
     isExpat: b(f?.is_expat),
@@ -336,6 +340,8 @@ export const OWNER_FIELDS = [
   'existingLoans',
   'downPayment',
   'maxMonthly',
+  'loanYears',
+  'bankCode',
   'employment',
   'seniorityYears',
   'isExpat',
@@ -380,6 +386,8 @@ export function touchesScore(changes: Record<string, Change>): boolean {
  * فاسم المتغيّر في الكود ليس اسماً في الواجهة.
  */
 export const FIELD_LABELS_AR: Record<string, string> = {
+  loanYears: 'مدّة التمويل',
+  bankCode: 'البنك',
   requestType: 'نوع المطلب',
   delegationId: 'المعتمدية',
   imadaId: 'العمادة',

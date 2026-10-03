@@ -229,6 +229,13 @@ export const requestSchema = z.object({
   existingLoans: optionalNum(0, 100000),
   downPayment: optionalNum(0, 5000000),
   maxMonthly: optionalNum(0, 100000),
+  /** مدّة التمويل التي اختارها الحريف بالسنوات — غائبة = الفرضية العامّة */
+  loanYears: nullableNum(1, 30),
+  /** البنك الذي يفكّر فيه — رمز من جدول banks، يُتحقَّق منه أمام القاعدة */
+  bankCode: z
+    .union([z.literal(''), z.string().regex(/^[a-z0-9_]{2,20}$/)])
+    .optional()
+    .transform((v) => (v ? v : null)),
   // اختيارية: «مشكل آخر» يطوي الخطوة المالية كلّها — بلا وظيفة لا سطر مالي
   employment: nullableEnum(EMPLOYMENT_TYPES),
   /** تُدخَل بالسنين وتُخزَّن بالأشهر — انظر lib/actions/request.ts */

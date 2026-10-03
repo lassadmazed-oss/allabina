@@ -1,5 +1,5 @@
 import Simulator from '@/components/Simulator'
-import { getBuildTiers, getFinanceContext, getFinancingProducts } from '@/lib/supabase/server'
+import { getBanks, getBuildTiers, getFinanceContext, getFinancingProducts } from '@/lib/supabase/server'
 import { getDictionary, isLocale, type Locale } from '@/lib/i18n'
 
 export const dynamic = 'force-dynamic'
@@ -13,10 +13,11 @@ export default async function SimulateurPage({
   const locale: Locale = isLocale(raw) ? raw : 'ar'
   const t = getDictionary(locale)
 
-  const [finance, build, products] = await Promise.all([
+  const [finance, build, products, banks] = await Promise.all([
     getFinanceContext(),
     getBuildTiers('SFX', locale),
     getFinancingProducts(),
+    getBanks(),
   ])
 
   return (
@@ -34,6 +35,7 @@ export default async function SimulateurPage({
         tiers={build.tiers}
         referencePrice={build.referencePrice}
         products={products}
+        banks={banks}
       />
     </div>
   )

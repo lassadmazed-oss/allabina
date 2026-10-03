@@ -129,7 +129,7 @@ export async function loadOwnRequest(): Promise<OwnRequest | null> {
       .from('financial_profiles')
       .select(
         'monthly_income_tnd, spouse_income_tnd, other_income_tnd, existing_loans_tnd, ' +
-          'down_payment_tnd, max_monthly_tnd, employment, seniority_months, is_expat, expat_country'
+          'down_payment_tnd, max_monthly_tnd, loan_years, bank_code, employment, seniority_months, is_expat, expat_country'
       )
       .eq('request_id', id)
       .maybeSingle(),
@@ -292,6 +292,10 @@ export async function updateOwnRequest(_prev: unknown, formData: FormData): Prom
 
   // بلا وظيفة لا سطر مالي — «مشكل آخر» قد يطوي الخطوة المالية
   if (d.employment) {
+    const bank =
+      d.bankCode && !d.cashReady
+        ? (await db.from('banks').select('code').eq('code', d.bankCode).maybeSingle()).data
+        : null
     const { error: finErr } = await db.from('financial_profiles').upsert(
       {
         request_id: current.id,
@@ -301,6 +305,8 @@ export async function updateOwnRequest(_prev: unknown, formData: FormData): Prom
         existing_loans_tnd: d.existingLoans,
         down_payment_tnd: d.downPayment,
         max_monthly_tnd: d.maxMonthly || null,
+        loan_years: d.cashReady ? null : d.loanYears,
+        bank_code: bank?.code ?? null,
         employment: d.employment,
         seniority_months: seniorityMonths,
         is_expat: d.isExpat,

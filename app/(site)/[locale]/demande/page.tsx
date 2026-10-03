@@ -1,5 +1,6 @@
 import RequestForm from '@/components/RequestForm'
 import {
+  getBanks,
   getBuildTiers,
   getConstructionSystems,
   getDelegations,
@@ -24,7 +25,7 @@ export default async function DemandePage({
   const locale: Locale = isLocale(raw) ? raw : 'ar'
   const t = getDictionary(locale)
 
-  const [governorates, delegations, imadas, zones, finance, build, systems, docCatalog] =
+  const [governorates, delegations, imadas, zones, finance, build, systems, docCatalog, banks] =
     await Promise.all([
     getGovernorates(),
     getDelegations('SFX'),
@@ -34,6 +35,7 @@ export default async function DemandePage({
     getBuildTiers('SFX', locale),
     getConstructionSystems(),
     getDocCatalog(),
+    getBanks(),
   ])
 
   return (
@@ -57,6 +59,7 @@ export default async function DemandePage({
         zones={zones}
         assumptions={finance.assumptions}
         bankTermsNote={finance.bankTermsNote}
+        banks={banks}
         tiers={build.tiers}
         systems={systems}
         initialType={type ?? ''}

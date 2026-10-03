@@ -1,9 +1,10 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { toAsciiDigits } from '@/lib/digits'
 import Link from 'next/link'
 import { computeCapacity, formatTND, monthlyPayment, type FinanceSettings } from '@/lib/finance'
+import { SIM_SEED_KEY, bankName, parseSimSeed, type Bank } from '@/lib/banks'
 import { buildableArea, type TierPrice } from '@/lib/pricing'
 import { fmt, path, type Dictionary, type Locale } from '@/lib/i18n'
 import { areaLabel, formatNumber, formatPercent, formatRange, perM2Label } from '@/lib/format'
@@ -20,6 +21,9 @@ type Product = {
   verified_at: string | null
 }
 
+const DEFAULT_INCOME = 1500
+const DEFAULT_DOWN = 20000
+
 export default function Simulator({
   locale,
   t,
@@ -29,6 +33,7 @@ export default function Simulator({
   tiers,
   referencePrice,
   products,
+  banks = [],
 }: {
   locale: Locale
   t: Dictionary['sim']
@@ -38,14 +43,65 @@ export default function Simulator({
   tiers: TierPrice[]
   referencePrice: number
   products: Product[]
+  /** البنوك التونسية للاختيار — فارغة تُخفي الخانة */
+  banks?: Bank[]
 }) {
-  const [income, setIncome] = useState(1500)
+  const [income, setIncome] = useState(DEFAULT_INCOME)
   const [spouse, setSpouse] = useState(0)
+  const [other, setOther] = useState(0)
   const [loans, setLoans] = useState(0)
-  const [down, setDown] = useState(20000)
+  const [down, setDown] = useState(DEFAULT_DOWN)
   const [years, setYears] = useState(assumptions.maxYears)
   const [rate, setRate] = useState(assumptions.annualRatePct)
   const [dti, setDti] = useState(assumptions.maxDtiPct)
+  const [bankCode, setBankCode] = useState('')
+  const [seeded, setSeeded] = useState(false)
+
+  const bank = banks.find((b) => b.code === bankCode) ?? null
+
+  /** بنك بشروط مسجّلة يضبط السلّمين: نسبته، والمدّة إن تجاوزت سقفه */
+  const pickBank = (code: string, currentYears = years) => {
+    setBankCode(code)
+    const b = banks.find((x) => x.code === code)
+    if (b?.indicative_rate_pct != null) setRate(b.indicative_rate_pct)
+    if (b?.max_years != null && currentYears > b.max_years) setYears(b.max_years)
+  }
+
+  // بعد إرسال مطلب: المحاكي يبدأ بما كتبه الحريف، لا بقيم افتراضية لا تخصّه
+  useEffect(() => {
+    const seed = (() => {
+      try {
+        return parseSimSeed(localStorage.getItem(SIM_SEED_KEY))
+      } catch {
+        return null
+      }
+    })()
+    if (!seed) return
+    setIncome(seed.monthlyIncome)
+    setSpouse(seed.spouseIncome)
+    setOther(seed.otherIncome)
+    setLoans(seed.existingLoans)
+    setDown(seed.downPayment)
+    const y = seed.years ?? assumptions.maxYears
+    setYears(y)
+    if (seed.bankCode && banks.some((b) => b.code === seed.bankCode)) pickBank(seed.bankCode, y)
+    setSeeded(true)
+    // مرّة واحدة عند الفتح
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  const reset = () => {
+    setIncome(DEFAULT_INCOME)
+    setSpouse(0)
+    setOther(0)
+    setLoans(0)
+    setDown(DEFAULT_DOWN)
+    setYears(assumptions.maxYears)
+    setRate(assumptions.annualRatePct)
+    setDti(assumptions.maxDtiPct)
+    setBankCode('')
+    setSeeded(false)
+  }
 
   const perM2 = `${perM2Label(locale)} HT`
   const m2 = areaLabel(locale)
@@ -60,6 +116,7 @@ export default function Simulator({
   const capacity = computeCapacity({
     monthlyIncome: income,
     spouseIncome: spouse,
+    otherIncome: other,
     existingLoans: loans,
     downPayment: down,
     years,
@@ -75,11 +132,30 @@ export default function Simulator({
           <strong>{t.scenarioWarn}</strong> {t.scenarioBody}
         </div>
 
+        {seeded && (
+          <div
+            role="status"
+            className="flex flex-wrap items-center justify-between gap-3 rounded border border-brand/30 bg-brand-soft px-4 py-3 text-sm leading-7"
+          >
+            <span>{t.seeded}</span>
+            <button
+              type="button"
+              onClick={reset}
+              className="rounded border border-brand/40 px-3 py-1 text-xs text-brand transition hover:bg-surface"
+            >
+              {t.seededReset}
+            </button>
+          </div>
+        )}
+
         <div className="rounded border border-line bg-surface p-4 sm:p-8">
           <h2 className="text-lg font-semibold">{t.yourData}</h2>
-          <div className="mt-6 grid gap-6 sm:grid-cols-2">
+          <div className="mt-6 grid gap-6 sm:grid-cols-3">
             <Num label={t.income} unit={t.tnd} value={income} onChange={setIncome} />
             <Num label={t.spouse} unit={t.tnd} value={spouse} onChange={setSpouse} />
+            <Num label={t.other} unit={t.tnd} value={other} onChange={setOther} />
+          </div>
+          <div className="mt-6 grid gap-6 sm:grid-cols-2">
             <Num label={t.loans} unit={t.perMonth} value={loans} onChange={setLoans} />
             <Num label={t.down} unit={t.tnd} value={down} onChange={setDown} />
           </div>
@@ -87,11 +163,32 @@ export default function Simulator({
           <h2 className="mt-10 text-lg font-semibold">{t.assumptionsTitle}</h2>
           <p className="mt-1 text-sm text-muted">{t.assumptionsLede}</p>
           <div className="mt-5 flex flex-col gap-6">
+            {banks.length > 0 && (
+              <label className="block">
+                <span className="mb-2 block text-sm font-medium">{t.bank}</span>
+                <select
+                  value={bankCode}
+                  onChange={(e) => pickBank(e.target.value)}
+                  className="w-full rounded border border-line bg-surface px-3.5 py-2.5 text-[15px] outline-none transition focus:border-brand"
+                >
+                  <option value="">{t.bankNone}</option>
+                  {banks.map((b) => (
+                    <option key={b.code} value={b.code}>
+                      {bankName(b, locale)}
+                    </option>
+                  ))}
+                </select>
+                <span className="mt-1.5 block text-xs leading-6 text-faint">
+                  {bank?.indicative_rate_pct != null ? t.bankRateNote : t.bankNotPartner}
+                  {bank?.max_years != null && <> {fmt(t.bankMaxYears, { n: bank.max_years })}</>}
+                </span>
+              </label>
+            )}
             <Slider
               label={t.years}
               value={years}
               min={5}
-              max={30}
+              max={bank?.max_years ?? 30}
               step={1}
               onChange={setYears}
               display={fmt(t.yearsUnit, { n: years })}
@@ -201,6 +298,7 @@ export default function Simulator({
             <Line k={t.loanAmount} v={formatTND(capacity.maxLoan, locale)} />
             <Line k={t.ownShare} v={formatTND(down, locale)} />
             <Line k={t.duration} v={fmt(t.yearsUnit, { n: years })} />
+            {bank && <Line k={t.bank} v={bankName(bank, locale)} />}
           </dl>
 
           <Link

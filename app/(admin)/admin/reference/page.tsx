@@ -7,6 +7,7 @@ import ImadaImport from '@/components/ImadaImport'
 import AssessmentConfigForm from '@/components/AssessmentConfigForm'
 import { loadAssessmentConfig } from '@/lib/actions/assessment'
 import { saveContactSettingsAction } from '@/lib/actions/settings'
+import BankTermsSection from '@/components/BankTermsSection'
 
 export const metadata = { title: 'المعطيات المرجعية — اللَّبنة' }
 export const dynamic = 'force-dynamic'
@@ -210,6 +211,9 @@ export default async function ReferencePage() {
         </p>
         <AssessmentConfigForm weights={assessmentConfig.weights} thresholds={assessmentConfig.thresholds} />
       </section>
+
+      {/* البنوك: الشروط التقديرية التي يُحسب بها تقدير الحريف */}
+      <BankTermsSection />
 
       {/* قنوات الاتّصال العمومية */}
       <section className="mt-10 rounded border border-line bg-surface p-4">

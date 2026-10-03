@@ -195,6 +195,11 @@ export async function submitRequest(
 
   // «مشكل آخر» قد يطوي الخطوة المالية: بلا وظيفة لا سطر مالي — العمود لا يقبل الفراغ
   if (d.employment) {
+    // رمز البنك يُقبل إن كان في الجدول وحده: رمز مجهول لا يُسقط السطر المالي كلّه
+    const bank =
+      d.bankCode && !d.cashReady
+        ? (await db.from('banks').select('code').eq('code', d.bankCode).maybeSingle()).data
+        : null
     const { error: finErr } = await db.from('financial_profiles').insert({
       request_id: requestId,
       monthly_income_tnd: d.monthlyIncome,
@@ -203,6 +208,9 @@ export async function submitRequest(
       existing_loans_tnd: d.existingLoans,
       down_payment_tnd: d.downPayment,
       max_monthly_tnd: d.maxMonthly || null,
+      // «فلوسي حاضرة» مسار بلا بنك: لا مدّة ولا بنك
+      loan_years: d.cashReady ? null : d.loanYears,
+      bank_code: bank?.code ?? null,
       employment: d.employment,
       seniority_months: seniorityMonths,
       is_expat: d.isExpat,

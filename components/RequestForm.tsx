@@ -33,6 +33,7 @@ import {
   type CatalogDoc,
 } from '@/lib/request-documents'
 import { computeCapacity, formatTND, type FinanceSettings } from '@/lib/finance'
+import { LOAN_YEAR_CHOICES, SIM_SEED_KEY, bankName, loanTermsFor, makeSimSeed, settingsFor, type Bank } from '@/lib/banks'
 import { buildCostRange, tierByKey, type TierPrice } from '@/lib/pricing'
 import { fmt, path, type Dictionary, type Locale } from '@/lib/i18n'
 import type { ConstructionSystem } from '@/lib/construction'
@@ -47,7 +48,7 @@ import {
   elevatorMakesSense,
   requestFlow,
 } from '@/lib/request-flow'
-import { areaLabel, currencyLabel, formatRange, perM2Label } from '@/lib/format'
+import { areaLabel, currencyLabel, formatPercent, formatRange, perM2Label } from '@/lib/format'
 
 type Gov = { code: string; name_ar: string; is_active: boolean }
 type Deleg = { id: number; gov_code: string; name_ar: string }
@@ -148,6 +149,7 @@ export default function RequestForm({
   zones,
   assumptions,
   bankTermsNote,
+  banks = [],
   tiers,
   systems = [],
   initialType = '',
@@ -165,6 +167,8 @@ export default function RequestForm({
   zones: Zone[]
   assumptions: FinanceSettings
   bankTermsNote: string
+  /** البنوك التونسية للاختيار — فارغة تُخفي الخانة */
+  banks?: Bank[]
   tiers: TierPrice[]
   /** أنظمة البناء المتاحة — فارغة تعني إخفاء الاختيار لا تعطيله */
   systems?: ConstructionSystem[]
@@ -514,6 +518,14 @@ export default function RequestForm({
           [t.existingLoans, money('existingLoans')],
           [t.downPayment, money('downPayment')],
           [t.maxMonthly, money('maxMonthly')],
+          [t.loanYears, values.loanYears && !values.cashReady ? fmt(t.loanYearsUnit, { n: String(values.loanYears) }) : ''],
+          [
+            t.bankPick,
+            (() => {
+              const b = banks.find((x) => x.code === values.bankCode)
+              return b && !values.cashReady ? bankName(b, locale) : ''
+            })(),
+          ],
           [t.employment, look(labels.employment, values.employment)],
           [t.seniority, val('seniorityYears')],
           [t.foprolos, flag('foprolosInterest')],
@@ -556,7 +568,14 @@ export default function RequestForm({
             : r.items.filter(([, v]) => v),
       }))
       .filter((r) => r.items.length > 0)
-  }, [values, docSections, docs, order, selectedTier, wantsLand, governorates, delegations, labels, t, m2, locale])
+  }, [values, docSections, docs, order, selectedTier, wantsLand, governorates, delegations, labels, t, m2, locale, banks])
+
+  /**
+   * المدّة والبنك اللذان اختارهما الحريف. بلا اختيار تبقى الفرضية العامّة؛
+   * بنك بشروط مسجّلة يُحسب بنسبته ويُقصّ على سقف مدّته — انظر lib/banks.ts.
+   */
+  const selectedBank = banks.find((b) => b.code === values.bankCode) ?? null
+  const loanTerms = loanTermsFor(assumptions, selectedBank, num('loanYears') || null)
 
   const capacity = computeCapacity({
     monthlyIncome: num('monthlyIncome'),
@@ -564,7 +583,8 @@ export default function RequestForm({
     otherIncome: num('otherIncome'),
     existingLoans: num('existingLoans'),
     downPayment: num('downPayment'),
-    settings: assumptions,
+    years: loanTerms.years,
+    settings: settingsFor(assumptions, loanTerms),
   })
 
   const canNext = () => {
@@ -730,7 +750,26 @@ export default function RequestForm({
           }
           setLocalFields([])
           setRecapOpen(true)
+          return
         }
+        // الإرسال الحقيقي: المحاكي يفتح بعده بما كتبه الحريف، لا بقيم افتراضية.
+        // في متصفّحه وحده — لا رابط ولا خادم يحمل دخله.
+        try {
+          localStorage.setItem(
+            SIM_SEED_KEY,
+            JSON.stringify(
+              makeSimSeed({
+                monthlyIncome: values.monthlyIncome,
+                spouseIncome: values.spouseIncome,
+                otherIncome: values.otherIncome,
+                existingLoans: values.existingLoans,
+                downPayment: values.downPayment,
+                years: values.cashReady ? null : loanTerms.years,
+                bankCode: values.cashReady ? null : selectedBank?.code ?? null,
+              })
+            )
+          )
+        } catch {}
       }}
       /**
        * Enter داخل أيّ حقل يُرسل الاستمارة كاملةً — ولو كنّا في الخطوة الأولى.
@@ -1621,13 +1660,14 @@ export default function RequestForm({
       <fieldset className={step === 5 ? 'block' : 'hidden'}>
         <legend className="display mb-1 text-xl font-semibold">{t.s4Title}</legend>
         <p className="mb-4 text-sm text-muted">{t.s4Lede}</p>
-        <Group title={t.grpIncome} lede={t.grpIncomeLede}>
+        {/* بلا عنوان ولا تمهيد: عنوان الخطوة يكفي، والبطاقة والرقائق تقول الباقي */}
+        <div>
           {/* «فلوسي حاضرة» حالة تمويل لا نوع مطلب. كانت في الخطوة الأولى
               بين مسارات السكن، وكانت تفرض «بناء فوق أرضي» على من اختارها —
               فمن عنده المال ويريد شقّة كان يخرج بمطلب غير مطلبه. مكانها هنا:
               تجاور «وين وصلت مع البنك؟» وتغنيه، وتسبق أسئلة الدخل. */}
           <label
-            className={`mb-4 flex cursor-pointer items-start gap-3 rounded-xl border p-3.5 transition ${
+            className={`mb-4 flex cursor-pointer items-center gap-3 rounded-xl border p-3.5 transition ${
               values.cashReady
                 ? "border-gold bg-gold-soft"
                 : "border-line bg-surface hover:border-gold/50"
@@ -1645,16 +1685,13 @@ export default function RequestForm({
                   financingState: e.target.checked ? 'self_funded' : '',
                 }))
               }
-              className="mt-0.5 size-4 accent-[#a8781f]"
+              className="size-4 accent-[#a8781f]"
             />
-            <span className="min-w-0">
-              <span className="flex flex-wrap items-center gap-2">
-                <span className="text-sm font-semibold">{t.cashReadyTitle}</span>
-                <span className="rounded bg-gold px-2 py-0.5 text-[11px] font-medium text-white">
-                  {t.cashReadyBadge}
-                </span>
+            <span className="flex min-w-0 flex-wrap items-center gap-2">
+              <span className="text-sm font-semibold">{t.cashReadyTitle}</span>
+              <span className="rounded bg-gold px-2 py-0.5 text-[11px] font-medium text-white">
+                {t.cashReadyBadge}
               </span>
-              <span className="mt-0.5 block text-xs leading-6 text-muted">{t.cashReadyBody}</span>
             </span>
           </label>
 
@@ -1686,7 +1723,7 @@ export default function RequestForm({
               </div>
             )}
           </div>
-        </Group>
+        </div>
 
         {flow.type !== 'other' && (
         <Group title={t.grpObstacle}>
@@ -1763,20 +1800,32 @@ export default function RequestForm({
           </div>
         </Group>
 
-        {/* ---------- الالتزامات واللي حاضر ---------- */}
+        {/* ---------- الالتزامات ---------- */}
         <Group title={t.grpCommit}>
-          <div className="grid gap-4 sm:grid-cols-3">
+          <div className="grid gap-4 sm:grid-cols-2">
             <Field label={t.existingLoans} hint={t.existingLoansHint}>
+              <input
+                type="number"
+                inputMode="numeric"
+                name="existingLoans"
+                value={String(values.existingLoans ?? '')}
+                onChange={(e) => set('existingLoans', e.target.value)}
+                className={inputCls}
+              />
+            </Field>
+            {values.cashReady ? (
+              // «فلوسي حاضرة»: المبلغ الحاضر هنا. لمن يقترض، التسبقة مع المدّة والبنك تحت
+              <Field label={t.budgetReady} required>
                 <input
                   type="number"
                   inputMode="numeric"
-                  name="existingLoans"
-                  value={String(values.existingLoans ?? '')}
-                  onChange={(e) => set('existingLoans', e.target.value)}
+                  name="downPayment"
+                  value={String(values.downPayment ?? '')}
+                  onChange={(e) => set('downPayment', e.target.value)}
                   className={inputCls}
                 />
-            </Field>
-            {!values.cashReady && (
+              </Field>
+            ) : (
               <Field label={t.maxMonthly} hint={t.optional}>
                 <input
                   type="number"
@@ -1788,7 +1837,48 @@ export default function RequestForm({
                 />
               </Field>
             )}
-            <Field label={values.cashReady ? t.budgetReady : t.downPayment} required={Boolean(values.cashReady)}>
+          </div>
+        </Group>
+
+        {/* ---------- التمويل البنكي ----------
+            المدّة والبنك والتسبقة معاً، والتقدير تحتهم مباشرة: قدّاش ينجّم ياخذ، وبرّا.
+            «فلوسي حاضرة» بلا قرض، فلا مدّة ولا بنك. */}
+        {!values.cashReady && (
+          <Group title={t.grpBank}>
+            <div className="grid gap-4 sm:grid-cols-[auto_1fr] sm:items-start">
+              <div>
+                <span className="mb-2 block text-sm font-medium">{t.loanYears}</span>
+                <div className="flex flex-wrap gap-2">
+                  {LOAN_YEAR_CHOICES.map((n) => (
+                    <Chip key={n} on={loanTerms.years === n} onClick={() => set('loanYears', String(n))}>
+                      {fmt(t.loanYearsUnit, { n })}
+                    </Chip>
+                  ))}
+                </div>
+                <input type="hidden" name="loanYears" value={String(values.loanYears ?? '')} />
+              </div>
+              {banks.length > 0 && (
+                <label className="block">
+                  <span className="mb-2 block text-sm font-medium">{t.bankPick}</span>
+                  <select
+                    name="bankCode"
+                    value={String(values.bankCode ?? '')}
+                    onChange={(e) => set('bankCode', e.target.value)}
+                    className={inputCls}
+                  >
+                    <option value="">{t.bankNone}</option>
+                    {banks.map((b) => (
+                      <option key={b.code} value={b.code}>
+                        {bankName(b, locale)}
+                      </option>
+                    ))}
+                  </select>
+                  <span className="mt-1 block text-xs leading-6 text-faint">{t.bankNotPartner}</span>
+                </label>
+              )}
+            </div>
+            <div className="mt-4 sm:max-w-xs">
+              <Field label={t.downPaymentAsk} hint={t.downPaymentHint}>
                 <input
                   type="number"
                   inputMode="numeric"
@@ -1797,9 +1887,33 @@ export default function RequestForm({
                   onChange={(e) => set('downPayment', e.target.value)}
                   className={inputCls}
                 />
-            </Field>
+              </Field>
+            </div>
+          </Group>
+        )}
+
+        {/* ---------- التقدير: قدّاش ينجّم ياخذ ---------- */}
+        {!values.cashReady && num('monthlyIncome') > 0 && (
+          <div className="mt-5 rounded-lg border border-brand/20 bg-brand-soft p-4">
+            <div className="text-sm font-medium text-brand">{t.estimateTitle}</div>
+            <div className="mt-2 grid gap-3 sm:grid-cols-3">
+              <Stat label={t.maxPayment} value={formatTND(capacity.maxPayment, locale)} />
+              <Stat label={t.maxLoan} value={formatTND(capacity.maxLoan, locale)} />
+              <Stat label={t.maxBudget} value={formatTND(capacity.maxBudget, locale)} />
+            </div>
+            <p className="mt-3 text-xs leading-6 text-ink-soft">
+              {fmt(selectedBank && loanTerms.rateSource === 'bank' ? t.basisBank : t.basisGeneral, {
+                years: fmt(t.loanYearsUnit, { n: loanTerms.years }),
+                rate: formatPercent(loanTerms.ratePct, 2),
+                bank: selectedBank ? bankName(selectedBank, locale) : '',
+              })}
+              {loanTerms.capped && selectedBank && (
+                <> {fmt(t.bankCapped, { bank: bankName(selectedBank, locale), n: loanTerms.years })}</>
+              )}
+            </p>
+            <p className="mt-1 text-xs leading-6 text-muted">{bankTermsNote}</p>
           </div>
-        </Group>
+        )}
 
         {/* ---------- الخدمة ---------- */}
         <Group title={t.grpJob}>
@@ -1841,18 +1955,6 @@ export default function RequestForm({
             </div>
           </div>
         </Group>
-
-        {num('monthlyIncome') > 0 && (
-          <div className="mt-5 rounded-lg border border-brand/20 bg-brand-soft p-4">
-            <div className="text-sm font-medium text-brand">{t.estimateTitle}</div>
-            <div className="mt-2 grid gap-3 sm:grid-cols-3">
-              <Stat label={t.maxPayment} value={formatTND(capacity.maxPayment, locale)} />
-              <Stat label={t.maxLoan} value={formatTND(capacity.maxLoan, locale)} />
-              <Stat label={t.maxBudget} value={formatTND(capacity.maxBudget, locale)} />
-            </div>
-            <p className="mt-2 text-xs leading-6 text-muted">{bankTermsNote}</p>
-          </div>
-        )}
 
         {/* ---------- البرامج المدعّمة ---------- */}
         <Group title={t.socialTitle} lede={t.socialLede}>
