@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { IcPlay } from '@/components/landing/icons'
 
 /**
@@ -53,7 +54,10 @@ export default function VideoModal({
         </span>
       </button>
 
-      {open && (
+      {/* في body لا داخل الواجهة: .hero__in يصنع سياق تراصّ (z-index 1) وقسم «خدماتنا»
+          بعده (z-index 2) كان يُرسم فوق النافذة مهما علا z-index الخاصّ بها */}
+      {open &&
+        createPortal(
         <div
           className="fixed inset-0 z-[60] flex items-center justify-center bg-brand-deep/85 p-4 backdrop-blur-sm sm:p-8"
           onClick={() => setOpen(false)}
@@ -86,8 +90,9 @@ export default function VideoModal({
             </div>
             {note && <p className="mt-3 text-center text-xs text-white/60">{note}</p>}
           </div>
-        </div>
-      )}
+        </div>,
+          document.body
+        )}
     </>
   )
 }
