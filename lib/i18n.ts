@@ -32,7 +32,9 @@ const ar = {
         groupLearn: 'اعرف أكثر',
         groupJoin: 'شارك معانا',
         cta: 'سجّل مطلبك',
-        ctaFree: 'بدون معاليم'
+        ctaFree: 'بدون معاليم',
+        install: 'ثبّت التطبيق',
+        installHint: 'يتحلّ من شاشة التليفون بلا متصفّح'
     },
     footer: {
         about: 'مبادرة خاصّة — موش تابعة لأيّ وزارة ولا مؤسّسة عمومية — لتنظيم طلبات السكن في تونس وربط الحريف بحلول البناء والعقار والتمويل المناسبة لقدرته. المرحلة التجريبية: ولاية صفاقس.',
@@ -1281,7 +1283,9 @@ const fr: Dictionary = {
         groupLearn: 'En savoir plus',
         groupJoin: 'Participer',
         cta: 'Déposer ma demande',
-        ctaFree: 'sans frais'
+        ctaFree: 'sans frais',
+        install: "Installer l'application",
+        installHint: "S'ouvre depuis l'écran d'accueil, sans navigateur"
     },
     footer: {
         about: "Initiative privée — indépendante de tout ministère ou organisme public — qui structure la demande de logement en Tunisie et met le client en relation avec les solutions de construction, d'immobilier et de financement adaptées à ses moyens. Phase pilote : gouvernorat de Sfax.",

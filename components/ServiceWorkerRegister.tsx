@@ -10,6 +10,17 @@ import { useEffect } from 'react'
 export default function ServiceWorkerRegister() {
   useEffect(() => {
     if (!('serviceWorker' in navigator)) return
+
+    /* لا عامل خدمة في التطوير: ملفّات next dev تحت /_next/static ليست
+       مبصومة بمحتواها كما في البناء، فتخزينها يخلط نسخ الحزم ويعطّل
+       الصفحة. وإن سبق تسجيله على localhost يُلغى ويُمسح مخزونه. */
+    const host = window.location.hostname
+    if (host === 'localhost' || host === '127.0.0.1' || host === '[::1]') {
+      navigator.serviceWorker.getRegistrations().then((list) => list.forEach((r) => r.unregister()))
+      if ('caches' in window) caches.keys().then((keys) => keys.forEach((k) => caches.delete(k)))
+      return
+    }
+
     const register = () => {
       navigator.serviceWorker.register('/sw.js').catch(() => {})
     }

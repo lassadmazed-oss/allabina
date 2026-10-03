@@ -26,6 +26,7 @@ export default function MobileNav({
   cta,
   freeNote,
   langSwitch,
+  install,
   labels,
 }: {
   groups: NavGroup[]
@@ -34,6 +35,8 @@ export default function MobileNav({
   freeNote?: string
   /** مبدّل اللغة كما هو — لا نكرّر منطق حساب رابطه هنا */
   langSwitch: React.ReactNode
+  /** زرّ تثبيت التطبيق — لا يرسم شيئاً إن لم يكن التثبيت ممكناً */
+  install?: React.ReactNode
   labels: { menuTitle: string; menuOpen: string; menuClose: string }
 }) {
   const [open, setOpen] = useState(false)
@@ -122,6 +125,9 @@ export default function MobileNav({
                     </ul>
                   </div>
                 ))}
+
+                {/* تحت الروابط لا فوقها: التثبيت خطوة ثانية بعد ما يعرف الموقع */}
+                {install}
               </nav>
 
               <div className="sticky bottom-0 flex flex-col gap-3 border-t border-line bg-surface px-5 py-4">

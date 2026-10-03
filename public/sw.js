@@ -33,8 +33,10 @@ self.addEventListener('fetch', (event) => {
   if (req.method !== 'GET' || req.headers.has('range')) return
   const url = new URL(req.url)
   if (url.origin !== self.location.origin) return
+  // في التطوير ملفّات _next/static تتبدّل تحت نفس الاسم: لا نخزّن شيئاً
+  const dev = ['localhost', '127.0.0.1', '[::1]'].includes(self.location.hostname)
   const immutable = url.pathname.startsWith('/_next/static/') || url.pathname.startsWith('/icons/')
-  if (!immutable) return
+  if (dev || !immutable) return
 
   event.respondWith(
     (async () => {

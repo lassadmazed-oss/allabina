@@ -9,6 +9,7 @@ import MobileNav from '@/components/MobileNav'
 import BackButton from '@/components/BackButton'
 import NumericFocusSelect from '@/components/NumericFocusSelect'
 import ServiceWorkerRegister from '@/components/ServiceWorkerRegister'
+import InstallApp from '@/components/InstallApp'
 import MobileCta from '@/components/MobileCta'
 import DesktopNav, { type DesktopNavItem } from '@/components/DesktopNav'
 import { IcArrow, IcTrack } from '@/components/landing/icons'
@@ -169,6 +170,16 @@ export default async function SiteLayout({
           rel="stylesheet"
           href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&family=Dancing+Script:wght@600&family=IBM+Plex+Mono:wght@400;500&display=swap"
         />
+        {/* التقاط حدث التثبيت باكراً: كروم يطلقه مرّة واحدة وقد يسبق تحميل
+            جافاسكريبت الصفحة، فيضيع الزرّ. هنا يُمسك ويُحفظ، وInstallApp
+            يقرأه عند تركيبه. منعُ الحدث يمنع شريط كروم التلقائي: التثبيت
+            يصير من زرّنا لا من شريط يقطع القراءة. */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html:
+              "window.__bip=null;addEventListener('beforeinstallprompt',function(e){e.preventDefault();window.__bip=e;dispatchEvent(new Event('bip:ready'))});addEventListener('appinstalled',function(){window.__bip=null;dispatchEvent(new Event('bip:ready'))})",
+          }}
+        />
       </head>
       <body>
         <header className="sticky top-0 z-40 border-b border-line/70 bg-ground/85 backdrop-blur-xl transition-shadow duration-300 data-scrolled:shadow-[0_12px_32px_-20px_rgba(14,58,91,0.4)]">
@@ -227,6 +238,7 @@ export default async function SiteLayout({
                     <LangSwitch current={locale} other={other} label={t.otherLangName} />
                   </Suspense>
                 }
+                install={<InstallApp label={t.nav.install} hint={t.nav.installHint} />}
                 labels={{
                   menuTitle: t.nav.menuTitle,
                   menuOpen: t.nav.menuOpen,
@@ -278,6 +290,10 @@ export default async function SiteLayout({
                 />
                 <div className="mt-4 text-sm font-semibold text-gold-light">{t.nav.slogan}</div>
                 <p className="mt-2 text-sm leading-7 text-white/70">{t.footer.about}</p>
+                {/* من وصل للذيل يعرف الموقع: هنا يُعرض التثبيت لمن متصفّحه يقبله */}
+                <div className="mt-5 max-w-xs">
+                  <InstallApp label={t.nav.install} hint={t.nav.installHint} tone="dark" />
+                </div>
               </div>
               {NAV_GROUPS.map((g) => (
                 <nav key={g.title} aria-label={g.title}>
