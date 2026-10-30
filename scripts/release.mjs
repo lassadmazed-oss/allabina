@@ -42,6 +42,8 @@ function showPins(n = 6) {
   for (const p of list) console.log(`  ${p.tag}  ${p.commit}  ${p.url}${p.note ? `  — ${p.note}` : ''}`)
 }
 
+const LINK = path.join(REPO, '.vercel', 'project.json')
+
 function deployedUrl(out) {
   const m = out.match(/https:\/\/[a-z0-9-]+\.vercel\.app/)
   const insp = out.match(/https:\/\/vercel\.com\/[^\s"']+/)
@@ -69,6 +71,13 @@ async function deploy(target) {
     }
   }
 
+  // الوصلة بمعرّف المشروع لا باسمه، فإعادة تسميته في لوحة Vercel لا تكسر
+  // النشر. أمّا غيابها فخطر: vercel --yes في مجلّد غير مربوط يُنشئ مشروعاً
+  // جديداً باسم المجلّد بدل أن ينشر على مشروعنا. نفحصها قبل تصدير الشجرة.
+  if (!fs.existsSync(LINK)) {
+    fail('لا وصلة بمشروع Vercel (.vercel/project.json). اربط المشروع الموجود: vercel link → al-labina، ولا تُنشئ مشروعاً جديداً')
+  }
+
   // 2 + 3: شجرة الالتزام وحدها، وتمرّ الفحوص عليها
   console.log('تصدير شجرة الالتزام وفحصها:')
   const { dir } = exportTree(sha)
@@ -78,7 +87,7 @@ async function deploy(target) {
     failedStep = checkTree(dir)
     if (!failedStep) {
       fs.mkdirSync(path.join(dir, '.vercel'), { recursive: true })
-      fs.copyFileSync(path.join(REPO, '.vercel', 'project.json'), path.join(dir, '.vercel', 'project.json'))
+      fs.copyFileSync(LINK, path.join(dir, '.vercel', 'project.json'))
       // الوصلة تُفكّ قبل الرفع: الأرشيف لا يرى node_modules أصلاً، لكن لا نراهن
       fs.rmdirSync(path.join(dir, 'node_modules'))
       console.log('الرفع إلى Vercel …')
