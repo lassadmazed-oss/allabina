@@ -7,6 +7,7 @@
  */
 
 import type { Locale } from '@/lib/i18n'
+import { siteUrl } from '@/lib/site'
 
 /** أرقام تونس: 8 أرقام محلّياً، وتبدأ بـ2 أو 4 أو 5 أو 9 */
 const TN_LOCAL = /^[2459]\d{7}$/
@@ -42,6 +43,17 @@ export function segmentCount(text: string): number {
   return len <= 70 ? 1 : 1 + Math.ceil((len - 70) / 67)
 }
 
+/**
+ * رابط المتابعة داخل رسالة قصيرة.
+ *
+ * يُشتقّ من siteUrl ولا يُكتب بالحرف: النسخة السابقة كانت تقول
+ * allabina.tn وهو نطاق لا وجود له أصلاً، فكلّ رسالة فرنسية كانت
+ * تبعث الحريف إلى اللا مكان. وبلا بروتوكول ولا www لأنّ الجزء
+ * الواحد 160 محرفاً ولا يبقى منه كثير بعد رمز المطلب.
+ */
+const trackingLink = (locale: Locale) =>
+  `${siteUrl().replace(/^https?:\/\//, '').replace(/^www\./, '')}/${locale}/suivi`
+
 export const ONE_SEGMENT_AR = 70
 export const ONE_SEGMENT_PLAIN = 160
 
@@ -52,7 +64,7 @@ export const ONE_SEGMENT_PLAIN = 160
 export function requestConfirmationText(refCode: string, locale: Locale): string {
   if (locale === 'fr') {
     // PLAIN بلا حروف مُشكَّلة: 160 محرفاً للجزء الواحد
-    return `AL-LUBNA: demande ${refCode} enregistree. Gardez ce code pour suivre votre dossier sur allabina.tn/suivi`
+    return `AL-LUBNA: demande ${refCode} enregistree. Gardez ce code pour suivre votre dossier sur ${trackingLink('fr')}`
   }
   return `اللبنة: مطلبك ${refCode} تسجّل. احفظ الرمز لمتابعة ملفّك.`
 }
@@ -146,7 +158,7 @@ export const isNotifiableStatus = (s: string) =>
 export function statusUpdateText(refCode: string, status: string, locale: Locale): string | null {
   if (!isNotifiableStatus(status)) return null
   if (locale === 'fr') {
-    return `AL-LUBNA ${refCode}: ${STATUS_SMS_FR[status]}. Suivi: allabina.tn/suivi`
+    return `AL-LUBNA ${refCode}: ${STATUS_SMS_FR[status]}. Suivi: ${trackingLink('fr')}`
   }
   return `اللبنة ${refCode}: ${STATUS_SMS_AR[status]}.`
 }

@@ -2,7 +2,7 @@ import { LOCALES, type Locale } from './i18n'
 
 /**
  * العنوان الأساسي للموقع. يُضبط في NEXT_PUBLIC_SITE_URL عند النشر
- * (مثال: https://allabina.tn) ويرجع للتطوير المحلّي عند غيابه.
+ * (في الإنتاج: https://www.allabina.site) ويرجع للتطوير المحلّي عند غيابه.
  */
 export function siteUrl(): string {
   const raw =

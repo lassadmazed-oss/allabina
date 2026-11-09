@@ -1,6 +1,44 @@
+/**
+ * الروابط بلا لغة.
+ *
+ * الموقع كلّه تحت /ar و/fr، فـ/suivi وحده كان يردّ 404 — والرابط الذي
+ * يكتبه الناس ويقولونه في الهاتف هو القصير بلا لغة. والوسيط لا يراه:
+ * matcher متاعه ['/', '/admin/:path*'] فقط، وتوسيعه يعني نداء مصادقة
+ * في كلّ طلب. فالتحويل هنا: ثابت، بلا كلفة تشغيل، ولا يمسّ الأصول.
+ *
+ * 307 لا 308: اللغة الافتراضية قد تتبدّل، والدائم يُخزَّن في المتصفّح
+ * إلى الأبد.
+ */
+const PUBLIC_SEGMENTS = [
+  'a-propos',
+  'confidentialite',
+  'demande',
+  'mentions-legales',
+  'merci',
+  'proprietaire',
+  'realisations',
+  'reseau',
+  'simulateur',
+  'soutien',
+  'standing',
+  'suivi',
+  'systemes',
+]
+
+const DEFAULT_LOCALE = 'ar'
+
 const nextConfig = {
   outputFileTracingRoot: import.meta.dirname,
   // 16mb: وثيقة حتى 15 MiB (حدّ مخزن الوثائق) مع هامش لبقيّة الحقول
   experimental: { serverActions: { bodySizeLimit: '16mb' } },
+  async redirects() {
+    return PUBLIC_SEGMENTS.map((seg) => ({
+      source: `/${seg}/:rest*`,
+      destination: `/${DEFAULT_LOCALE}/${seg}/:rest*`,
+      permanent: false,
+    }))
+  },
 }
+
+export { PUBLIC_SEGMENTS, DEFAULT_LOCALE }
 export default nextConfig
