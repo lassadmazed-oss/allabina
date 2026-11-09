@@ -27,7 +27,9 @@ function routeDirs(): string[] {
 describe('الروابط بلا بادئة لغة', () => {
   it('كلّ صفحة عمومية تُفتح بلا /ar ولا /fr', async () => {
     const sources = (await nextConfig.redirects()).map((r) => r.source)
-    const missing = routeDirs().filter((d) => !sources.includes(`/${d}/:rest*`))
+    const missing = routeDirs().filter(
+      (d) => !sources.includes(`/${d}`) || !sources.includes(`/${d}/:rest+`)
+    )
     expect(missing, 'زِد المسار في PUBLIC_SEGMENTS داخل next.config.mjs').toEqual([])
   })
 
@@ -35,6 +37,7 @@ describe('الروابط بلا بادئة لغة', () => {
     for (const r of await nextConfig.redirects()) {
       expect(r.destination).toBe(`/ar${r.source}`)
       expect(r.permanent, 'اللغة الافتراضية قد تتبدّل — لا تحويل دائم').toBe(false)
+      expect(r.destination.endsWith('/'), 'شرطة أخيرة = قفزة زائدة').toBe(false)
     }
   })
 

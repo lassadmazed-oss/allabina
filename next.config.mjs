@@ -31,12 +31,14 @@ const nextConfig = {
   outputFileTracingRoot: import.meta.dirname,
   // 16mb: وثيقة حتى 15 MiB (حدّ مخزن الوثائق) مع هامش لبقيّة الحقول
   experimental: { serverActions: { bodySizeLimit: '16mb' } },
+  // مدخلان لكلّ صفحة لا مدخل واحد: `:rest*` الفارغ يُنتج `/ar/suivi/`
+  // بشرطة أخيرة، فيزيد Next قفزة ثالثة ليشيلها. والرابط يُفتح في رسالة
+  // قصيرة على شبكة هاتف — كلّ قفزة تُحسب.
   async redirects() {
-    return PUBLIC_SEGMENTS.map((seg) => ({
-      source: `/${seg}/:rest*`,
-      destination: `/${DEFAULT_LOCALE}/${seg}/:rest*`,
-      permanent: false,
-    }))
+    return PUBLIC_SEGMENTS.flatMap((seg) => [
+      { source: `/${seg}`, destination: `/${DEFAULT_LOCALE}/${seg}`, permanent: false },
+      { source: `/${seg}/:rest+`, destination: `/${DEFAULT_LOCALE}/${seg}/:rest+`, permanent: false },
+    ])
   },
 }
 
