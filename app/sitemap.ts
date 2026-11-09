@@ -8,13 +8,16 @@ const PAGES = [
   '/demande',
   '/simulateur',
   '/standing',
+  '/systemes',
   '/suivi',
+  '/a-propos',
   '/proprietaire',
   '/reseau',
   '/realisations',
   '/soutien',
   '/soutien/demande',
   '/confidentialite',
+  '/mentions-legales',
 ] as const
 
 export default function sitemap(): MetadataRoute.Sitemap {

@@ -76,7 +76,7 @@ export async function saveAssessmentConfigAction(
 }
 
 
-/** قنوات اتّصال المنصّة التي تظهر في صفحات الشكر — فارغة = لا تُعرض */
+/** قنوات اتّصال المنصّة التي تظهر في الذيل وصفحات الشكر — فارغة = لا تُعرض */
 export async function saveContactSettingsAction(formData: FormData) {
   const actor = await staffWithPermission('reference.manage')
   if (!actor) return
@@ -90,8 +90,61 @@ export async function saveContactSettingsAction(formData: FormData) {
   const { error } = await db.from('app_settings').upsert(rows, { onConflict: 'key' })
   if (error) console.error('save contact settings', error)
   revalidatePath('/admin/reference')
-  revalidatePath('/ar/reseau/merci')
-  revalidatePath('/fr/reseau/merci')
+  revalidateSite()
+}
+
+/**
+ * الهويّة القانونية للشركة — تظهر في ذيل كلّ صفحة وفي «المعطيات القانونية».
+ *
+ * الخانة الفارغة تُحفظ فارغة ولا تُعرض: شركة بمعطى ناقص أحسن من شركة
+ * بمعطى مخترع. ورأس المال رقم لا نصّ حتّى يُنسَّق حسب اللغة.
+ */
+export async function saveLegalSettingsAction(formData: FormData) {
+  const actor = await staffWithPermission('reference.manage')
+  if (!actor) return
+  const str = (k: string, max = 200) => String(formData.get(k) ?? '').trim().slice(0, max)
+  const capitalRaw = str('capital_tnd', 20).replace(/[^\d.]/g, '')
+  const capital = capitalRaw ? Number(capitalRaw) : null
+
+  const rows = [
+    { key: 'legal.name_ar', value: str('name_ar') },
+    { key: 'legal.name_fr', value: str('name_fr') },
+    { key: 'legal.form_ar', value: str('form_ar', 80) },
+    { key: 'legal.form_fr', value: str('form_fr', 80) },
+    { key: 'legal.unique_id', value: str('unique_id', 40) },
+    { key: 'legal.register_no', value: str('register_no', 40) },
+    { key: 'legal.capital_tnd', value: Number.isFinite(capital) ? capital : null },
+    { key: 'legal.activity_code', value: str('activity_code', 20) },
+    { key: 'legal.activity_ar', value: str('activity_ar') },
+    { key: 'legal.activity_fr', value: str('activity_fr') },
+    { key: 'legal.address_ar', value: str('address_ar', 300) },
+    { key: 'legal.address_fr', value: str('address_fr', 300) },
+    { key: 'legal.published_on', value: str('published_on', 10) },
+    { key: 'legal.activity_since', value: str('activity_since', 10) },
+    { key: 'legal.manager', value: str('manager', 120) },
+    { key: 'legal.rne_verify_url', value: str('rne_verify_url', 200) },
+  ]
+  const { error } = await db.from('app_settings').upsert(rows, { onConflict: 'key' })
+  if (error) {
+    console.error('save legal settings', error)
+    return
+  }
+  await db
+    .from('staff_events')
+    .insert({ actor: actor.userId, event_type: 'settings.update', detail: { key: 'legal' } })
+    .then(({ error: e }) => e && console.warn('staff_events', e.message))
+
+  revalidatePath('/admin/reference')
+  revalidateSite()
+}
+
+/** الذيل يظهر في كلّ صفحة، فتبديل رقم أو عنوان يستوجب تحيين الموقع كلّه */
+function revalidateSite() {
+  revalidatePath('/[locale]', 'layout')
+  for (const l of ['ar', 'fr']) {
+    revalidatePath(`/${l}/mentions-legales`)
+    revalidatePath(`/${l}/reseau/merci`)
+  }
 }
 
 /**

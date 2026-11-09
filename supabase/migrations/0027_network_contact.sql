@@ -33,5 +33,5 @@ insert into app_settings (key, value, description) values
   ('contact.phone',    '""'::jsonb, 'هاتف اللَّبنة الذي يظهر للعموم في صفحات الشكر'),
   ('contact.whatsapp', '""'::jsonb, 'رقم واتساب اللَّبنة (بالصيغة الدولية 216…)'),
   ('contact.email',    '""'::jsonb, 'بريد اللَّبنة العمومي'),
-  ('contact.hours',    '""'::jsonb, 'أوقات الردّ، مثال: من الإثنين إلى الجمعة 9–17')
+  ('contact.hours',    '""'::jsonb, 'أوقات الردّ — مثال: 8:00-18:00. بلا شرطة طويلة بين عددين: تتقلب في نصّ عربي')
 on conflict (key) do nothing;

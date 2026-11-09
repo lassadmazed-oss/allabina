@@ -6,7 +6,8 @@ import { formatNumber, formatPercent, formatRange } from '@/lib/format'
 import ImadaImport from '@/components/ImadaImport'
 import AssessmentConfigForm from '@/components/AssessmentConfigForm'
 import { loadAssessmentConfig } from '@/lib/actions/assessment'
-import { saveContactSettingsAction } from '@/lib/actions/settings'
+import { saveContactSettingsAction, saveLegalSettingsAction } from '@/lib/actions/settings'
+import { getLegalIdentity } from '@/lib/legal'
 import BankTermsSection from '@/components/BankTermsSection'
 
 export const metadata = { title: 'المعطيات المرجعية — اللَّبنة' }
@@ -15,6 +16,7 @@ export const dynamic = 'force-dynamic'
 export default async function ReferencePage() {
   await requirePermission('reference.manage')
   const assessmentConfig = await loadAssessmentConfig()
+  const legal = await getLegalIdentity()
   const { data: contactRows } = await db
     .from('app_settings')
     .select('key, value')
@@ -215,12 +217,55 @@ export default async function ReferencePage() {
       {/* البنوك: الشروط التقديرية التي يُحسب بها تقدير الحريف */}
       <BankTermsSection />
 
+      {/* الهويّة القانونية — تظهر في ذيل كلّ صفحة */}
+      <section className="mt-10 rounded border border-line bg-surface p-4">
+        <h2 className="text-sm font-semibold">الهويّة القانونية للشركة</h2>
+        <p className="mt-1 max-w-3xl text-xs leading-6 text-muted">
+          تظهر في ذيل <b>كلّ صفحة</b> وفي صفحة «المعطيات القانونية». المصدر مضمون السجلّ الوطني
+          للمؤسّسات. الخانة الفارغة لا يظهر سطرها أصلاً — ناقص أحسن من مخترع. التواريخ بصيغة
+          YYYY-MM-DD.
+        </p>
+        <p className="mt-2 max-w-3xl rounded border border-line bg-gold-soft p-3 text-xs leading-6">
+          ما نحطّوش هنا رقم التثبّت من السجلّ ولا عدد المضمون: هما مفتاحان يفتحان المضمون الكامل
+          لأيّ شخص ينسخهما من الصفحة.
+        </p>
+        <form action={saveLegalSettingsAction} className="mt-4 grid gap-3 sm:grid-cols-2">
+          <Field name="name_ar" label="الاسم الاجتماعي (عربي)" value={legal.nameAr} />
+          <Field name="name_fr" label="Dénomination sociale" value={legal.nameFr} ltr />
+          <Field name="form_ar" label="الشكل القانوني (عربي)" value={legal.formAr} />
+          <Field name="form_fr" label="Forme juridique" value={legal.formFr} ltr />
+          <Field name="unique_id" label="المعرّف الوحيد" value={legal.uniqueId} ltr num />
+          <Field name="register_no" label="عدد السجلّ" value={legal.registerNo} ltr num />
+          <Field
+            name="capital_tnd"
+            label="رأس المال (د.ت)"
+            value={legal.capitalTnd == null ? '' : String(legal.capitalTnd)}
+            ltr
+            num
+          />
+          <Field name="activity_code" label="رمز النشاط" value={legal.activityCode} ltr num />
+          <Field name="activity_ar" label="النشاط الرئيسي (عربي)" value={legal.activityAr} />
+          <Field name="activity_fr" label="Activité principale" value={legal.activityFr} ltr />
+          <Field name="address_ar" label="المقرّ الاجتماعي (عربي)" value={legal.addressAr} />
+          <Field name="address_fr" label="Siège social" value={legal.addressFr} ltr />
+          <Field name="published_on" label="تاريخ الإشهار" value={legal.publishedOn} ltr num />
+          <Field name="activity_since" label="بداية النشاط" value={legal.activitySince} ltr num />
+          <Field name="manager" label="الممثّل القانوني (الوكيل)" value={legal.manager} />
+          <Field name="rne_verify_url" label="رابط السجلّ للتثبّت" value={legal.verifyUrl} ltr />
+          <div className="sm:col-span-2">
+            <button className="rounded bg-brand px-5 py-2 text-sm font-medium text-white hover:bg-brand-deep">
+              احفظ الهويّة القانونية
+            </button>
+          </div>
+        </form>
+      </section>
+
       {/* قنوات الاتّصال العمومية */}
       <section className="mt-10 rounded border border-line bg-surface p-4">
         <h2 className="text-sm font-semibold">قنوات الاتّصال العمومية</h2>
         <p className="mt-1 max-w-3xl text-xs leading-6 text-muted">
-          تظهر في صفحات الشكر («كيفاش توصلنا؟»). الخانة الفارغة لا تُعرض. رقم الواتساب بالصيغة
-          الدولية بلا مسافات (21620123456).
+          تظهر في ذيل كلّ صفحة وفي صفحات الشكر. الخانة الفارغة لا تُعرض. رقم الواتساب تونسي بثمانية
+          أعداد (يُسبَق بـ216 وحده) أو بالصيغة الدولية بلا مسافات.
         </p>
         <form action={saveContactSettingsAction} className="mt-4 grid gap-3 sm:grid-cols-4">
           <label className="block">
@@ -267,6 +312,32 @@ function Section({ title, children }: { title: string; children: React.ReactNode
       <h2 className="mb-4 border-b border-line pb-2 text-lg font-semibold">{title}</h2>
       {children}
     </section>
+  )
+}
+
+function Field({
+  name,
+  label,
+  value,
+  ltr = false,
+  num = false,
+}: {
+  name: string
+  label: string
+  value: string
+  ltr?: boolean
+  num?: boolean
+}) {
+  return (
+    <label className="block">
+      <span className="mb-1.5 block text-xs text-muted">{label}</span>
+      <input
+        name={name}
+        defaultValue={value}
+        dir={ltr ? 'ltr' : undefined}
+        className={`w-full rounded border border-line bg-surface px-3 py-2 text-sm${num ? ' num' : ''}${ltr ? ' text-left' : ''}`}
+      />
+    </label>
   )
 }
 

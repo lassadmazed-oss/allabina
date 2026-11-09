@@ -16,6 +16,8 @@ import { IcArrow, IcTrack } from '@/components/landing/icons'
 import { LOCALES, dirOf, getDictionary, isLocale, otherLocale, path, type Locale } from '@/lib/i18n'
 import { canonicalUrl, languageAlternates, siteUrl } from '@/lib/site'
 import { landingCopy } from '@/components/landing/copy'
+import { getLegalIdentity, getPlatformContact, legalInLocale, telHref, waHref } from '@/lib/legal'
+import { formatMoney, isolateNumbers } from '@/lib/format'
 
 /**
  * لون شريط المتصفّح على التليفون: بلا هذا يبقى أبيض النظام فوق ترويسة
@@ -106,6 +108,25 @@ export default async function SiteLayout({
   const other = otherLocale(locale)
   const p = (s = '') => path(locale, s)
   const lc = landingCopy[locale]
+
+  /**
+   * الهويّة القانونية ورقم الهاتف في الذيل: «شكون انتوما؟» و«كيفاش
+   * نعيّطلكم؟» أوّل سؤالين عند حريف بناء، وكانا بلا جواب في كلّ صفحة.
+   */
+  const [identity, contact] = await Promise.all([getLegalIdentity(), getPlatformContact()])
+  const li = legalInLocale(identity, locale)
+  const wa = waHref(contact.whatsapp, t.footer.waPrefillFooter)
+  const legalLine = [
+    li.name,
+    li.form,
+    identity.capitalTnd == null
+      ? ''
+      : `${t.legalPage.capital} ${formatMoney(identity.capitalTnd, locale)}`,
+    identity.uniqueId ? `${t.legalPage.uniqueId} ${identity.uniqueId}` : '',
+    li.address,
+  ]
+    .filter(Boolean)
+    .join(' · ')
 
   /**
    * مصدر واحد لروابط الموقع: الترويسة والقائمة والذيل. مجمّعة بمنطق رحلة
@@ -290,6 +311,32 @@ export default async function SiteLayout({
                 />
                 <div className="mt-4 text-sm font-semibold text-gold-light">{t.nav.slogan}</div>
                 <p className="mt-2 text-sm leading-7 text-white/70">{t.footer.about}</p>
+
+                {/* الهاتف والواتساب — زرّان لا سطران: يُضغطان من التليفون مباشرة */}
+                {(contact.phone || wa) && (
+                  <div className="mt-5 flex flex-wrap gap-2">
+                    {contact.phone && (
+                      <a
+                        href={telHref(contact.phone)}
+                        className="num inline-flex min-h-11 items-center gap-2 rounded-full bg-gold-light px-5 text-sm font-bold text-brand-deep transition hover:bg-white"
+                        dir="ltr"
+                      >
+                        {contact.phone}
+                      </a>
+                    )}
+                    {wa && (
+                      <a
+                        href={wa}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex min-h-11 items-center gap-2 rounded-full border border-white/25 px-5 text-sm font-medium text-white/90 transition hover:border-white hover:text-white"
+                      >
+                        {t.footer.waUs}
+                      </a>
+                    )}
+                  </div>
+                )}
+
                 {/* من وصل للذيل يعرف الموقع: هنا يُعرض التثبيت لمن متصفّحه يقبله */}
                 <div className="mt-5 max-w-xs">
                   <InstallApp label={t.nav.install} hint={t.nav.installHint} tone="dark" />
@@ -315,8 +362,11 @@ export default async function SiteLayout({
             </div>
 
             <div className="mt-10 flex flex-col gap-3 border-t border-white/10 pt-5 text-xs text-white/60 sm:flex-row sm:items-center sm:justify-between">
-              <span>{t.footer.legal}</span>
+              <span className="max-w-xl leading-6">{isolateNumbers(legalLine) || t.footer.legal}</span>
               <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
+                <Link href={p('/mentions-legales')} className="transition hover:text-white">
+                  {t.footer.legalLink}
+                </Link>
                 <Link href={p('/confidentialite')} className="transition hover:text-white">
                   {t.footer.privacy}
                 </Link>
