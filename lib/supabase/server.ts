@@ -276,7 +276,7 @@ export async function getConstructionSystems(): Promise<ConstructionSystem[]> {
   const { data } = await db
     .from('construction_systems')
     .select(
-      'code, name_ar, name_fr, citizen_summary_ar, citizen_summary_fr, principle_ar, principle_fr, sort_order, is_active, constraints'
+      'code, name_ar, name_fr, citizen_summary_ar, citizen_summary_fr, principle_ar, principle_fr, sort_order, is_active, constraints, history'
     )
     .eq('is_active', true)
     .order('sort_order')

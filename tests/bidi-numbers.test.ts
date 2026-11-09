@@ -2,7 +2,14 @@ import { describe, expect, it } from 'vitest'
 import { readFileSync, readdirSync, statSync } from 'node:fs'
 import { join } from 'node:path'
 import { getDictionary } from '@/lib/i18n'
-import { THIN_NBSP, formatMoney, formatNumber, formatRange, formatSignedMoney } from '@/lib/format'
+import {
+  THIN_NBSP,
+  formatMoney,
+  formatNumber,
+  formatRange,
+  formatSignedMoney,
+  isolateNumbers,
+} from '@/lib/format'
 
 /**
  * الأرقام المقلوبة في العربية.
@@ -122,5 +129,54 @@ describe('دوال التنسيق تعطي كتلة واحدة لا تنكسر',
     expect(out.endsWith('⁩')).toBe(true)
     // الشرطة بين رقمين محايدة، والعزل هو ما يمنع «2 000 – 1 200»
     expect(out).toContain('–')
+  })
+})
+
+describe('نصّ القاعدة: الكتلة بين رقمين', () => {
+  /**
+   * «50×20 صم» كانت تُعرض «20×50»، و«سقف 12+4» تُعرض «4+12».
+   * قيسَت على الشاشة لا استُنتجت: المحرف بين رقمين محايد، فتعطيه
+   * الخوارزمية اتجاه الفقرة ثمّ تقلب الكتلتين حوله. الرقم في القاعدة
+   * صحيح، والخطأ في العين وحدها — وبلوك سماكته 20 صم يُقرأ 50 صم.
+   */
+  const isolated = (s: string) => `⁦${s}⁩`
+
+  it('يعزل الضرب والجمع والمجال', () => {
+    expect(isolateNumbers('بلوك 50×20 صم')).toBe(`بلوك ${isolated('50×20')} صم`)
+    expect(isolateNumbers('سقف 12+4')).toBe(`سقف ${isolated('12+4')}`)
+    expect(isolateNumbers('1975–2024')).toBe(isolated('1975–2024'))
+  })
+
+  it('يترك الرقم المجرّد والفاصلة العشرية: لا خطر فيهما', () => {
+    expect(isolateNumbers('قرابة 1000 صانع')).toBe('قرابة 1000 صانع')
+    expect(isolateNumbers('براءة 674,874 سنة 1901')).toBe('براءة 674,874 سنة 1901')
+  })
+
+  it('يترك علامة النسبة في جهتها العربية', () => {
+    // فرض الاتّجاه اللاتيني ينقل ٪ إلى الجهة الأخرى بلا داعٍ
+    expect(isolateNumbers('من 40,9٪ إلى 2,8٪')).toBe('من 40,9٪ إلى 2,8٪')
+  })
+
+  it('يعزل كلّ كتلة في الجملة لا الأولى وحدها', () => {
+    expect(isolateNumbers('من 12+4 إلى 20+6')).toBe(
+      `من ${isolated('12+4')} إلى ${isolated('20+6')}`
+    )
+  })
+
+  it('لا يعزل مرّتين: نصّ مرّ على الدالّة مرّة يخرج منها كما دخل', () => {
+    const once = isolateNumbers('بلوك 50×20 صم')
+    expect(isolateNumbers(once)).toBe(once)
+  })
+
+  it('يمرّر الفارغ كما هو: حقل القاعدة قد يكون null', () => {
+    expect(isolateNumbers(null)).toBe(null)
+    expect(isolateNumbers(undefined)).toBe(undefined)
+    expect(isolateNumbers('')).toBe('')
+  })
+
+  it('الكتلة المعزولة كتلة واحدة لا تنكسر', () => {
+    const out = isolateNumbers('50×20')
+    expect(out.startsWith('⁦')).toBe(true)
+    expect(out.endsWith('⁩')).toBe(true)
   })
 })

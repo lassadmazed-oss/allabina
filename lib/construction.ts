@@ -23,6 +23,61 @@ export type ConstructionSystem = {
   sort_order: number
   is_active: boolean
   constraints: SystemConstraints
+  history: SystemHistoryEntry[]
+}
+
+/**
+ * محطّة في تاريخ الطريقة.
+ *
+ * `year` نصّ لا رقم: منها مجالات («1855–1864») وحقبات («اليوم»)، ومن
+ * يحوّلها إلى عدد يخسر نصف المحطّات. و`src` ليس تزييناً — محطّة بلا
+ * مصدر تبقى حكاية، وهذه الصفحة لا تعرض حكايات.
+ */
+export type SystemHistoryEntry = {
+  year: string
+  ar: string
+  fr?: string | null
+  src?: string | null
+  /** الحقبة وحدها تُترجم: «اليوم» لا تُقرأ في صفحة فرنسية، و«1899» تُقرأ. */
+  year_fr?: string | null
+}
+
+/**
+ * محطّات التاريخ: سطر لكلّ محطّة، وحقولها بـ«|».
+ *
+ * لماذا نصّ وليس واجهة بحقول: المحطّات تُكتب مرّة وتُقرأ سنين، وواجهة
+ * «أضف صفّاً» لأربعة حقول تكلّف أكثر ممّا تنفع. والتنسيق يُقرأ بالعين:
+ *   السنة | بالعربية | en francais | المصدر | السنة بالفرنسية
+ * الخانة الخامسة نادرة: تُكتب للحقبة («اليوم») وتُترك للسنة («1899»).
+ * السطر بلا سنة أو بلا نصّ عربي يُرمى بلا ضجّة: نصف محطّة أسوأ من لا شيء.
+ */
+export function parseHistory(raw: string): SystemHistoryEntry[] {
+  return raw
+    .split('\n')
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .map((line) => {
+      const [year, ar, fr, src, yearFr] = line.split('|').map((part) => part.trim())
+      return {
+        year: year ?? '',
+        ar: ar ?? '',
+        fr: fr || null,
+        src: src || null,
+        year_fr: yearFr || null,
+      }
+    })
+    .filter((h) => h.year && h.ar)
+}
+
+/** النصّ الذي يُعرض في اللوحة — عكس parseHistory تماماً. */
+export function historyToText(history: SystemHistoryEntry[] | null | undefined): string {
+  return (history ?? [])
+    .map((h) =>
+      [h.year, h.ar, h.fr ?? '', h.src ?? '', h.year_fr ?? '']
+        .join(' | ')
+        .replace(/(\s*\|\s*)+$/, '')
+    )
+    .join('\n')
 }
 
 /**

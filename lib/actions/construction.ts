@@ -4,7 +4,7 @@ import { revalidatePath } from 'next/cache'
 import { staffWithPermission } from '@/lib/auth'
 import { savedRedirect } from '@/lib/actions/saved'
 import { db } from '@/lib/supabase/server'
-import { ELEMENT_SCOPES, OFFERING_STATUSES } from '@/lib/construction'
+import { ELEMENT_SCOPES, OFFERING_STATUSES, parseHistory } from '@/lib/construction'
 
 const SYSTEM_CODE = /^[A-Z_]{3,20}$/
 const MAKER_CODE = /^[A-Z0-9_]{2,20}$/
@@ -42,21 +42,32 @@ export async function upsertSystemAction(formData: FormData) {
   const summaryAr = str(formData, 'citizen_summary_ar')
   if (!SYSTEM_CODE.test(code) || !nameAr || !summaryAr) return
 
-  const { error } = await db.from('construction_systems').upsert(
-    {
-      code,
-      name_ar: nameAr,
-      name_fr: str(formData, 'name_fr'),
-      citizen_summary_ar: summaryAr,
-      citizen_summary_fr: str(formData, 'citizen_summary_fr'),
-      principle_ar: str(formData, 'principle_ar'),
-      principle_fr: str(formData, 'principle_fr'),
-      sort_order: num(formData, 'sort_order') ?? 99,
-      is_active: formData.get('is_active') !== 'off',
-      updated_at: new Date().toISOString(),
-    },
-    { onConflict: 'code' }
-  )
+  // لا نُرسل إلّا ما يحمله النموذج فعلاً.
+  //
+  // upsert يكتب كلّ عمود يصل إليه: نموذج ناقص حقلاً يمسح العمود بـnull أو
+  // يَرُدّه إلى قيمة افتراضية بلا أن يَشكو أحد. صفّ البلوك ضاع مرّة بهذه
+  // الطريقة بالضبط — فصار الحقل الغائب يعني «لا تلمسه» لا «فرّغه».
+  const patch: Record<string, unknown> = {
+    code,
+    name_ar: nameAr,
+    citizen_summary_ar: summaryAr,
+    updated_at: new Date().toISOString(),
+  }
+  if (formData.has('name_fr')) patch.name_fr = str(formData, 'name_fr')
+  if (formData.has('citizen_summary_fr'))
+    patch.citizen_summary_fr = str(formData, 'citizen_summary_fr')
+  if (formData.has('principle_ar')) patch.principle_ar = str(formData, 'principle_ar')
+  if (formData.has('principle_fr')) patch.principle_fr = str(formData, 'principle_fr')
+  if (formData.has('sort_order')) patch.sort_order = num(formData, 'sort_order') ?? 99
+  if (formData.has('history')) patch.history = parseHistory(String(formData.get('history') ?? ''))
+  // خانة اختيار غير مؤشَّرة لا تُرسل شيئاً، فـ`get(...) !== 'off'` كان
+  // يعطيها «نشط» دائماً: تعطيل نظام من اللوحة كان مستحيلاً. الآن النموذج
+  // يرسل القيمة صريحة، والغياب يعني «لا تلمس العمود».
+  if (formData.has('is_active')) patch.is_active = formData.getAll('is_active').includes('on')
+
+  const { error } = await db
+    .from('construction_systems')
+    .upsert(patch, { onConflict: 'code' })
   if (error) {
     console.error('upsert construction_systems', error)
     return

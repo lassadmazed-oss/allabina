@@ -4,15 +4,16 @@ import { countAr } from '@/lib/format'
 import { db, getGovernorates } from '@/lib/supabase/server'
 import ModalTrigger from '@/components/ModalTrigger'
 import {
-  DOC_KIND_LABELS,
-  OFFERING_STATUS_LABELS,
-  SCOPE_LABELS,
-  ELEMENT_SCOPES,
-  OFFERING_STATUSES,
   assemblyThicknessCm,
   type ConstructionSystem,
+  DOC_KIND_LABELS,
+  ELEMENT_SCOPES,
   type ElementScope,
+  historyToText,
+  OFFERING_STATUS_LABELS,
+  OFFERING_STATUSES,
   type OfferingStatus,
+  SCOPE_LABELS,
 } from '@/lib/construction'
 import {
   deleteComponentAction,
@@ -268,6 +269,14 @@ export default async function SystemsAdminPage({
                 </F>
               </div>
               <div className="sm:col-span-2">
+                <F label="التاريخ — سطر لكلّ محطّة: السنة | بالعربية | FR | المصدر | السنة FR">
+                  <textarea name="history" rows={3} className={inp} placeholder="1899 | قالب البلوك المجوّف | Moule du bloc creux | US patent 674,874" />
+                </F>
+              </div>
+              {/* «نشط» ما عندهاش خانة هنا: نظام جديد نشط بالتعريف. والقيمة
+                  تُرسل صريحة لأنّ الفعل يفرّق بين «غير مؤشَّرة» و«غائبة». */}
+              <input type="hidden" name="is_active" value="on" />
+              <div className="sm:col-span-2">
                 <button className={btn}>حفظ</button>
               </div>
             </form>
@@ -518,6 +527,21 @@ export default async function SystemsAdminPage({
                         />
                       </F>
                     </div>
+                    <div className="sm:col-span-2">
+                      <F label="التاريخ — سطر لكلّ محطّة: السنة | بالعربية | FR | المصدر | السنة FR">
+                        <textarea
+                          name="history"
+                          rows={8}
+                          defaultValue={historyToText(selected.history)}
+                          className={`${inp} leading-7`}
+                          placeholder="1899 | قالب البلوك المجوّف | Moule du bloc creux | US patent 674,874"
+                        />
+                      </F>
+                      <p className="mt-1 text-xs leading-6 text-faint">
+                        محطّة بلا مصدر تبقى حكاية: الخانة الرابعة هي ما يسمح
+                        للحريف أن يتحقّق بنفسه.
+                      </p>
+                    </div>
                     <F label="الترتيب">
                       <input
                         name="sort_order"
@@ -530,6 +554,7 @@ export default async function SystemsAdminPage({
                       <input
                         type="checkbox"
                         name="is_active"
+                        value="on"
                         defaultChecked={selected.is_active}
                         className="size-4 accent-[#a8781f]"
                       />

@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import { db, getConstructionSystems } from '@/lib/supabase/server'
 import { getDictionary, isLocale, path, type Locale } from '@/lib/i18n'
-import { formatNumber } from '@/lib/format'
+import { formatNumber, isolateNumbers } from '@/lib/format'
 import {
   DOC_KIND_LABELS,
   SCOPE_LABELS,
@@ -144,9 +144,10 @@ export default async function SystemsPage({
   const spanOf = (usage: string, asm: string) =>
     spans.find((s) => s.usage_code === usage && s.assembly_code === asm)?.span_max_m ?? null
 
-  const nameOf = (s: (typeof systems)[number]) => (isFr ? s.name_fr : s.name_ar) || s.name_ar
+  const nameOf = (s: (typeof systems)[number]) =>
+    isolateNumbers((isFr ? s.name_fr : s.name_ar) || s.name_ar)
   const summaryOf = (s: (typeof systems)[number]) =>
-    (isFr ? s.citizen_summary_fr : s.citizen_summary_ar) || s.citizen_summary_ar
+    isolateNumbers((isFr ? s.citizen_summary_fr : s.citizen_summary_ar) || s.citizen_summary_ar)
 
   const scopes = [...new Set(mine.map((o) => o.element_scope))]
 
@@ -198,8 +199,47 @@ export default async function SystemsPage({
           <section className="mt-6 rounded-lg border border-line bg-surface p-4">
             <h2 className="text-sm font-semibold">{t.principle}</h2>
             <p className="mt-1.5 leading-8 text-muted">
-              {(isFr ? selected.principle_fr : selected.principle_ar) || selected.principle_ar}
+              {isolateNumbers(
+                (isFr ? selected.principle_fr : selected.principle_ar) || selected.principle_ar
+              )}
             </p>
+          </section>
+        )}
+
+        {/* ---------- التاريخ: من وين جاءت الطريقة ---------- */}
+        {/* بعد «المبدأ» لا قبله: الحريف يسأل أوّلاً «شنوّة هي؟» ثمّ «شكون
+            جرّبها قبلي؟» — والترتيب هو الجواب على السؤال الثاني. */}
+        {(selected.history ?? []).length > 0 && (
+          <section className="mt-6 rounded-lg border border-line bg-surface p-4">
+            <h2 className="text-sm font-semibold">{t.history}</h2>
+            <p className="mt-1 text-xs leading-6 text-faint">{t.historyNote}</p>
+            <ol className="mt-3">
+              {selected.history.map((h, i) => (
+                <li
+                  key={`${h.year}-${i}`}
+                  className="relative border-s border-line ps-4 pb-4 last:border-transparent last:pb-0"
+                >
+                  <span
+                    className="absolute start-[-4.5px] top-2 size-2 rounded-full bg-brand"
+                    aria-hidden="true"
+                  />
+                  {/* .num يعزل العنصر عن جواره لكنّ اتجاهه في داخله يبقى
+                      عربياً، فـ«1975–2024» تُعرض «2024–1975». العزل بمحارف
+                      LRI يفرض الاتّجاه على الكتلة نفسها لا على العنصر. */}
+                  <b className="num block text-sm font-semibold">
+                    {isolateNumbers((isFr && h.year_fr) || h.year)}
+                  </b>
+                  <p className="mt-1 leading-8 text-muted">
+                    {isolateNumbers((isFr && h.fr) || h.ar)}
+                  </p>
+                  {h.src && (
+                    <p className="mt-1 text-xs leading-6 text-faint">
+                      {t.historySrc}: {isolateNumbers(h.src)}
+                    </p>
+                  )}
+                </li>
+              ))}
+            </ol>
           </section>
         )}
 
@@ -246,7 +286,7 @@ export default async function SystemsPage({
             </div>
             {selected.constraints.excluded_reason_ar && (
               <p className="mt-2 rounded border border-gold/40 bg-gold/10 px-3 py-2 text-xs leading-6">
-                <b>حدّ صريح:</b> {selected.constraints.excluded_reason_ar}
+                <b>حدّ صريح:</b> {isolateNumbers(selected.constraints.excluded_reason_ar)}
               </p>
             )}
           </section>
@@ -343,7 +383,9 @@ export default async function SystemsPage({
                               )}
                             </td>
                             <td className="num px-3 py-2 text-muted">{dims(c)}</td>
-                            <td className="px-3 py-2 text-muted">{c.role_ar ?? c.name_ar}</td>
+                            <td className="px-3 py-2 text-muted">
+                              {isolateNumbers(c.role_ar ?? c.name_ar)}
+                            </td>
                           </tr>
                         ))}
                       </tbody>
