@@ -31,6 +31,10 @@ export type Permission =
   | 'team.manage_admins'
   | 'network.read'
   | 'network.manage'
+  /** إعداد وثيقة: توليد تقدير، تحرير عرض، تقديمه للمراجعة */
+  | 'docs.prepare'
+  /** اعتماد وثيقة أو رفضها، وإرسال المعتمَد — قرار إداري لا تقني */
+  | 'docs.approve'
 
 const MATRIX: Record<Role, readonly Permission[]> = {
   owner: [
@@ -43,6 +47,8 @@ const MATRIX: Record<Role, readonly Permission[]> = {
     'team.manage_admins',
     'network.read',
     'network.manage',
+    'docs.prepare',
+    'docs.approve',
   ],
   admin: [
     'requests.read',
@@ -53,8 +59,10 @@ const MATRIX: Record<Role, readonly Permission[]> = {
     'team.manage_members',
     'network.read',
     'network.manage',
+    'docs.prepare',
+    'docs.approve',
   ],
-  agent: ['requests.read', 'requests.update', 'network.read'],
+  agent: ['requests.read', 'requests.update', 'network.read', 'docs.prepare'],
   viewer: ['requests.read', 'network.read'],
 }
 

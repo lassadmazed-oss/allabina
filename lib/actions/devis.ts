@@ -1,6 +1,7 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
+import { refreshContentHash } from '@/lib/actions/doc-approval'
 import { savedRedirect } from '@/lib/actions/saved'
 import { staffWithPermission } from '@/lib/auth'
 import { db } from '@/lib/supabase/server'
@@ -199,6 +200,7 @@ export async function generateDevisAction(formData: FormData) {
       gov_code: request.gov_code,
       surface_m2: surface,
       total_ht: result.totalHt,
+      kind: 'est',
       status: 'draft',
       valid_until: devisValidUntil(new Date(), validityDays),
       generated_by: actor.userId,
@@ -230,6 +232,9 @@ export async function generateDevisAction(formData: FormData) {
     }))
   )
   if (linesError) console.error('insert devis lines', linesError)
+
+  // البصمة تُحسب بعد الأسطر لا قبلها: قبلها تكون وثيقة بلا محتوى
+  await refreshContentHash(devis.id)
 
   await db.from('request_events').insert({
     request_id: requestId,
