@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { recordEvent } from '@/lib/analytics-server'
 import Link from 'next/link'
 import ArticlePrice from '@/components/ArticlePrice'
 import {
@@ -66,6 +67,9 @@ export default async function CataloguePage({
 
   const lotCode = sp.lot ? Number(sp.lot) : undefined
   const query = (sp.q ?? '').slice(0, 80)
+  // «تصفّح صنف»: يُسجَّل عند اختيار لوط لا عند كلّ فتح صفحة
+  if (lotCode) await recordEvent('category_view', { govCode: 'SFX', meta: { lot: lotCode } })
+
   const items = applyFilters(all, {
     lotCode: Number.isFinite(lotCode) ? lotCode : undefined,
     query,

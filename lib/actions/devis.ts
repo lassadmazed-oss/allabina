@@ -1,6 +1,8 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
+import { recordEvent } from '@/lib/analytics-server'
+import { areaBucket } from '@/lib/analytics'
 import { refreshContentHash } from '@/lib/actions/doc-approval'
 import { savedRedirect } from '@/lib/actions/saved'
 import { staffWithPermission } from '@/lib/auth'
@@ -235,6 +237,7 @@ export async function generateDevisAction(formData: FormData) {
 
   // البصمة تُحسب بعد الأسطر لا قبلها: قبلها تكون وثيقة بلا محتوى
   await refreshContentHash(devis.id)
+  await recordEvent('estimate', { requestId, govCode: request.gov_code, standing, areaBucket: areaBucket(surface) })
 
   await db.from('request_events').insert({
     request_id: requestId,

@@ -1,6 +1,7 @@
 'use server'
 
 import { redirect } from 'next/navigation'
+import { recordEvent } from '@/lib/analytics-server'
 import { db } from '@/lib/supabase/server'
 import { sendAccountOtp } from '@/lib/sms/winsms'
 import {
@@ -114,6 +115,7 @@ export async function requestCodeAction(
     return { step: 'phone', phone, error: 'failed' }
   }
 
+  await recordEvent('account_requested')
   return { step: 'code', phone, retryAfter: policy.resendCooldownSeconds }
 }
 
@@ -170,6 +172,7 @@ export async function verifyCodeAction(
   if (user.blocked) return { step: 'phone', phone, error: 'blocked' }
 
   const claimed = await claimExisting(user.id, phone, fullName)
+  await recordEvent('account_verified', { userId: user.id })
   await startUserSession(user.id)
 
   const next = safeNext(formData.get('next'), locale)

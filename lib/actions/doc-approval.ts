@@ -1,6 +1,7 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
+import { recordEvent } from '@/lib/analytics-server'
 import { db } from '@/lib/supabase/server'
 import { staffWithPermission } from '@/lib/auth'
 import { canSend, canTransition, onMaterialEdit, type Doc, type DocStatus } from '@/lib/doc-flow'
@@ -137,6 +138,9 @@ export async function approveDocAction(formData: FormData) {
     })
     .eq('id', id)
 
+  if (row.kind !== 'est') {
+    await recordEvent('devis_approved', { requestId: row.request_id, meta: { kind: row.kind } })
+  }
   await log(row.request_id, actor.userId, `اعتماد ${row.kind.toUpperCase()} نسخة ${row.version}`)
   done(row.request_id)
 }

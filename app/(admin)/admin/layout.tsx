@@ -37,6 +37,9 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     links.push({ href: '/admin/partners', label: 'الشركاء' })
     links.push({ href: '/admin/reference', label: 'المعطيات المرجعية' })
   }
+  if (can(staff.role, 'requests.export')) {
+    links.push({ href: '/admin/marche', label: 'الطلب الحقيقي' })
+  }
   if (can(staff.role, 'team.read')) links.push({ href: '/admin/team', label: 'الفريق' })
   links.push({ href: '/admin/account', label: 'حسابي' })
 

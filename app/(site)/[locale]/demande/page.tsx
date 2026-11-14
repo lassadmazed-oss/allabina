@@ -1,4 +1,5 @@
 import RequestForm from '@/components/RequestForm'
+import { recordEvent } from '@/lib/analytics-server'
 import {
   getBanks,
   getBuildTiers,
@@ -27,6 +28,8 @@ export default async function DemandePage({
   const locale: Locale = isLocale(raw) ? raw : 'ar'
   const t = getDictionary(locale)
   const user = await getCurrentUser()
+  // «بدء تجربة»: فتح مكوّن المشروع
+  await recordEvent('trial_start', { userId: user?.id ?? null, projectType: type ?? null })
 
   const [governorates, delegations, imadas, zones, finance, build, systems, docCatalog, banks] =
     await Promise.all([

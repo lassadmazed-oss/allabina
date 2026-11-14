@@ -1,6 +1,8 @@
 'use server'
 
 import { redirect } from 'next/navigation'
+import { recordEvent } from '@/lib/analytics-server'
+import { areaBucket, budgetBucket } from '@/lib/analytics'
 import { attachVoiceNotes } from '@/lib/actions/voice-note'
 import { after } from 'next/server'
 import { sendRequestConfirmation } from '@/lib/sms/winsms'
@@ -191,6 +193,20 @@ export async function submitRequest(
     console.error('insert housing_requests', error)
     return { ok: false, error: 'server' }
   }
+
+  // «طلب مراجعة» — وأبعادُه فئاتٌ لا قيَم: لا مساحة ولا ميزانية خامّة
+  // في جدول القياس، فهما يعرّفان ملفّاً حين يُقرنان بالمعتمدية والتاريخ.
+  await recordEvent('review_requested', {
+    userId: user.id,
+    requestId: String(inserted.id),
+    govCode: d.govCode,
+    delegationId: d.delegationId ?? null,
+    projectType: d.requestType,
+    areaBucket: areaBucket(d.desiredAreaM2),
+    budgetBucket: budgetBucket(targetBudget),
+    standing: d.standing ?? null,
+    readiness: d.horizon ?? null,
+  })
 
   const requestId = inserted.id as string
 
