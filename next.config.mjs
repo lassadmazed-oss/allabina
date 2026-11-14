@@ -11,6 +11,7 @@
  */
 const PUBLIC_SEGMENTS = [
   'a-propos',
+  'budget',
   'catalogue',
   'compte',
   'confidentialite',

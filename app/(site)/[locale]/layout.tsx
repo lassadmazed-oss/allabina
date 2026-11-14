@@ -144,6 +144,7 @@ export default async function SiteLayout({
       links: [
         { href: p('/demande'), label: t.footer.request },
         // الكاتالوج كان منشوراً بلا رابط: ما يُوصَل إليه إلّا بالعنوان
+        { href: p('/budget'), label: t.budget.title },
         { href: p('/catalogue'), label: t.catalogue.title },
         { href: p('/simulateur'), label: t.nav.simulator },
         { href: p('/suivi'), label: t.nav.track },
@@ -177,6 +178,7 @@ export default async function SiteLayout({
    */
   const learnLinks = visibleLinks(
     [
+      { href: p('/budget'), label: t.budget.title },
       { href: p('/catalogue'), label: t.catalogue.title },
       { href: p('/simulateur'), label: t.nav.simulator },
       { href: p('/realisations'), label: t.cases.navLink, hideFrom: 'xl' as const },
