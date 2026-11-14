@@ -1,4 +1,9 @@
 import { createHmac, randomInt, timingSafeEqual } from 'node:crypto'
+import { toAsciiDigits } from '@/lib/digits'
+import type { Phone } from '@/lib/gate-state'
+
+export type { GateError, GateState, Phone, PhoneProblem } from '@/lib/gate-state'
+export { initialGateState } from '@/lib/gate-state'
 
 /**
  * حساب الحريف: الرقم، الرمز، الجلسة — المنطق الخالص.
@@ -17,18 +22,7 @@ import { createHmac, randomInt, timingSafeEqual } from 'node:crypto'
 const TN_LOCAL = /^[2459]\d{7}$/
 export const TN_CODE = '216'
 
-export type PhoneProblem =
-  | 'empty'
-  | 'not_a_number'
-  /** أقلّ من الحدّ الأدنى لرقم دولي */
-  | 'too_short'
-  | 'too_long'
-  /** رقم محلّي غير تونسي: 06… لا يُعرف بلده بلا مفتاح دولي */
-  | 'needs_country_code'
 
-export type Phone =
-  | { ok: true; phone: string; tn: boolean }
-  | { ok: false; reason: PhoneProblem }
 
 /**
  * يوحّد الرقم إلى E.164 بلا علامة زائد: 21698120630.
@@ -38,8 +32,9 @@ export type Phone =
  * يُسبَق بـ216، والدولي يُقبل بمفتاحه، والمحلّي غير التونسي (0612…)
  * يُرفض برسالة تطلب المفتاح — لا يُخمَّن بلده.
  */
-export function normalizePhone(input: string): Phone {
-  const raw = (input ?? '').trim()
+export function parsePhone(input: string): Phone {
+  // لوحة عربية على الهاتف تكتب ٠١٢٣ — رقم صحيح كان سيُرفض بـ«موش رقم»
+  const raw = toAsciiDigits(input ?? '').trim()
   if (!raw) return { ok: false, reason: 'empty' }
   if (/[^\d\s+()./-]/.test(raw)) return { ok: false, reason: 'not_a_number' }
 
@@ -61,6 +56,20 @@ export function normalizePhone(input: string): Phone {
 }
 
 export const isTunisian = (phone: string) => phone.startsWith(TN_CODE) && phone.length === 11
+
+/**
+ * الصيغ التي قد يكون الرقم محفوظاً بها في ملفّ قديم.
+ *
+ * الهاتف في housing_requests محفوظ كما كتبه صاحبه: «98124111» و
+ * «+21650513948» و«58 41 55 01». العمود المحسوب phone_digits يشيل ما
+ * ليس عدداً، فتبقى ثلاث صيغ محتملة لنفس الرقم. نقارن بقائمة معروفة
+ * لا بتخمين: `like '%…'` يطابق أرقاماً أخرى تنتهي بنفس الأعداد.
+ */
+export function phoneVariants(phone: string): string[] {
+  const out = new Set<string>([phone, `00${phone}`])
+  if (isTunisian(phone)) out.add(phone.slice(TN_CODE.length))
+  return [...out]
+}
 
 /**
  * هل يبلغ الرمز صاحب هذا الرقم اليوم؟

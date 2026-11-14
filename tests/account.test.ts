@@ -8,7 +8,8 @@ import {
   isTunisian,
   issueUserSession,
   newOtpCode,
-  normalizePhone,
+  parsePhone,
+  phoneVariants,
   otpMatches,
   readUserSession,
 } from '@/lib/account'
@@ -34,7 +35,7 @@ describe('توحيد الرقم', () => {
       '21698120630',
       '(216) 98.120.630',
     ]) {
-      const r = normalizePhone(raw)
+      const r = parsePhone(raw)
       expect(r.ok, raw).toBe(true)
       if (r.ok) {
         expect(r.phone, raw).toBe('21698120630')
@@ -44,7 +45,7 @@ describe('توحيد الرقم', () => {
   })
 
   it('الدولي يُقبل بمفتاحه — تونسيّ المهجر شريحة حقيقية', () => {
-    const r = normalizePhone('+33 6 12 34 56 78')
+    const r = parsePhone('+33 6 12 34 56 78')
     expect(r.ok).toBe(true)
     if (r.ok) {
       expect(r.phone).toBe('33612345678')
@@ -53,33 +54,33 @@ describe('توحيد الرقم', () => {
   })
 
   it('المحلّي غير التونسي يُرفض برسالة تطلب المفتاح، ولا يُخمَّن بلده', () => {
-    const r = normalizePhone('0612345678')
+    const r = parsePhone('0612345678')
     expect(r.ok).toBe(false)
     if (!r.ok) expect(r.reason).toBe('needs_country_code')
   })
 
   it('بادئات الشبكات التونسية الأربع تمرّ، والثابت لا', () => {
     for (const p of ['20123456', '44123456', '52790481', '98123456']) {
-      expect(normalizePhone(p).ok, p).toBe(true)
+      expect(parsePhone(p).ok, p).toBe(true)
     }
     // 71 ثابت: ثمانية أعداد لكن ليس بادئة جوّال — يُطلب منه المفتاح الدولي
-    const fixed = normalizePhone('71123456')
+    const fixed = parsePhone('71123456')
     expect(fixed.ok).toBe(false)
   })
 
   it('الفارغ والمكسور لهما سببان مختلفان', () => {
-    expect(normalizePhone('')).toEqual({ ok: false, reason: 'empty' })
-    expect(normalizePhone('   ')).toEqual({ ok: false, reason: 'empty' })
-    const bad = normalizePhone('أهلا')
+    expect(parsePhone('')).toEqual({ ok: false, reason: 'empty' })
+    expect(parsePhone('   ')).toEqual({ ok: false, reason: 'empty' })
+    const bad = parsePhone('أهلا')
     expect(bad.ok).toBe(false)
     if (!bad.ok) expect(bad.reason).toBe('not_a_number')
   })
 
   it('القصير جدّاً والطويل جدّاً يُرفضان', () => {
-    const short = normalizePhone('+1234')
+    const short = parsePhone('+1234')
     expect(short.ok).toBe(false)
     if (!short.ok) expect(short.reason).toBe('too_short')
-    const long = normalizePhone('+1234567890123456')
+    const long = parsePhone('+1234567890123456')
     expect(long.ok).toBe(false)
     if (!long.ok) expect(long.reason).toBe('too_long')
   })
@@ -226,6 +227,38 @@ describe('جلسة الحريف', () => {
   it('المكسور شكلاً يُرفض بلا رمي', () => {
     for (const t of [undefined, '', 'a', 'a.b', 'a.b.c.d']) {
       expect(readUserSession(t, now, SECRET)).toBeNull()
+    }
+  })
+})
+
+describe('الأرقام الهندية من لوحة عربية', () => {
+  it('٩٨١٢٠٦٣٠ رقم صحيح لا «موش رقم»', () => {
+    const r = parsePhone('٩٨١٢٠٦٣٠')
+    expect(r.ok).toBe(true)
+    if (r.ok) expect(r.phone).toBe('21698120630')
+  })
+
+  it('والفارسية كذلك', () => {
+    const r = parsePhone('۹۸۱۲۰۶۳۰')
+    expect(r.ok).toBe(true)
+  })
+})
+
+describe('مطابقة الملفّات القديمة', () => {
+  it('الصيغ الثلاث للرقم التونسي — ولا شيء غيرها', () => {
+    const v = phoneVariants('21698120630')
+    expect(new Set(v)).toEqual(new Set(['21698120630', '98120630', '0021698120630']))
+  })
+
+  it('الدولي بلا صيغة محلّية: لا نقتطع مفتاحاً لا نعرفه', () => {
+    expect(new Set(phoneVariants('33612345678'))).toEqual(
+      new Set(['33612345678', '0033612345678'])
+    )
+  })
+
+  it('ما ثمّ صيغة فارغة تطابق كلّ شيء', () => {
+    for (const p of ['21698120630', '33612345678']) {
+      expect(phoneVariants(p).every((x) => x.length >= 8)).toBe(true)
     }
   })
 })

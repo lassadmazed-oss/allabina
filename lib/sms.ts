@@ -54,6 +54,24 @@ export function segmentCount(text: string): number {
 const trackingLink = (locale: Locale) =>
   `${siteUrl().replace(/^https?:\/\//, '').replace(/^www\./, '')}/${locale}/suivi`
 
+/**
+ * رمز التحقّق.
+ *
+ * السطر الثاني ليس زينة: `@المضيف #الرمز` هو الصيغة التي يقرأها أندرويد
+ * وكروم (WebOTP) فيعمّران الخانة وحدهما. بدونه يخرج الحريف من الموقع،
+ * يفتح الرسائل، يحفظ ستّة أعداد، ويرجع — وهناك يضيع أكثر الناس.
+ *
+ * والمضيف هنا بـwww إن كان الموقع عليه: الصيغة تشترط مطابقة الأصل
+ * حرفاً بحرف، بخلاف رابط المتابعة الذي يُختصر ليربح محارف.
+ *
+ * التكلفة صفر: النصّ 46 محرفاً بالعربية — جزء واحد كما كان.
+ */
+export function otpText(code: string, locale: Locale): string {
+  const host = siteUrl().replace(/^https?:\/\//, '')
+  const head = locale === 'fr' ? `AL-LUBNA: votre code ${code}` : `اللبنة: رمزك ${code}`
+  return `${head}\n@${host} #${code}`
+}
+
 export const ONE_SEGMENT_AR = 70
 export const ONE_SEGMENT_PLAIN = 160
 
@@ -97,6 +115,7 @@ export type SmsTemplate =
   | 'support_accepted'
   | 'network_confirmation'
   | 'proposal_notice'
+  | 'account_otp'
   | `status_${string}`
 
 /**

@@ -2,6 +2,7 @@ import 'server-only'
 import { db } from '@/lib/supabase/server'
 import {
   normalizeTnPhone,
+  otpText,
   parseWinSmsReply,
   propertyConfirmationText,
   proposalNoticeText,
@@ -154,6 +155,27 @@ export async function sendRequestConfirmation(requestId: string, refCode: string
     await sendAndLog({ requestId }, 'request_confirmation', phone, requestConfirmationText(refCode, locale))
   } catch (e) {
     console.warn('sms unexpected:', e instanceof Error ? e.message : e)
+  }
+}
+
+/**
+ * رمز التحقّق — الوحيد الذي يُرجع نتيجته بدل أن يصمت.
+ *
+ * بقيّة الرسائل إشعارات: فشلها يُسجَّل ولا يوقف شيئاً. أمّا هذه فالحريف
+ * واقف أمام الشاشة ينتظرها، فإن لم تخرج يلزم يُقال له — لا يُترك ينتظر
+ * رمزاً لن يصل. ولا هدف لها في سجلّ الرسائل: لا مطلب ولا عقار، فلا
+ * يصطدم بفهرس «مرّة واحدة لكلّ مطلب».
+ */
+export async function sendAccountOtp(
+  phone: string,
+  code: string,
+  locale: Locale
+): Promise<SmsOutcome> {
+  try {
+    return await sendAndLog({}, 'account_otp', phone, otpText(code, locale))
+  } catch (e) {
+    console.warn('otp sms unexpected:', e instanceof Error ? e.message : e)
+    return { status: 'failed', reason: 'تعذّر الإرسال' }
   }
 }
 

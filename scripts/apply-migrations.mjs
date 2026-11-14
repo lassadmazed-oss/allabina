@@ -34,9 +34,15 @@ try {
     await client.query('drop schema if exists public cascade; create schema public;')
     await client.query('grant usage on schema public to anon, authenticated, service_role;')
     await client.query('grant all on schema public to postgres;')
-    await client.query(
-      'alter default privileges in schema public grant all on tables to anon, authenticated, service_role;'
-    )
+    // الصلاحيات الافتراضية كما يضبطها Supabase على المشروع السحابي.
+    // الجداول وحدها لا تكفي: عمود bigserial يحتاج صلاحية على المتتالية،
+    // وبدونها يفشل كلّ insert بـ«permission denied for sequence» — خطأ
+    // لا يظهر إلّا عند أوّل كتابة حقيقية من التطبيق.
+    for (const kind of ['tables', 'sequences', 'functions']) {
+      await client.query(
+        `alter default privileges in schema public grant all on ${kind} to anon, authenticated, service_role;`
+      )
+    }
     // حسابات auth تعيش خارج schema public فلا يمسحها المسح أعلاه. وبقاؤها
     // ليس إزعاجاً فقط (البذر يفشل بـemail_exists): اختبار استرجاع نسخة من
     // الإنتاج يترك هنا بُرُد حرفاء حقيقيين. على المحلّي نمحوها كلّها.
