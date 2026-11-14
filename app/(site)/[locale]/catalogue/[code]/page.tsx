@@ -11,8 +11,19 @@ import {
   getStandingSiblings,
 } from '@/lib/catalog-server'
 import { descriptionIn, designationIn, lotNameIn, standingIn } from '@/lib/catalog'
+import { getArticleProducts } from '@/lib/products-server'
+import { getCurrentStaff } from '@/lib/auth'
+import {
+  canShowProduct,
+  materialPerUnit,
+  packLabel,
+  packPriceHt,
+  productName,
+  productSubtitle,
+  shownProducts,
+} from '@/lib/products'
 import { getDictionary, isLocale, type Locale } from '@/lib/i18n'
-import { isolateNumbers } from '@/lib/format'
+import { formatMillimes, isolateNumbers } from '@/lib/format'
 
 export const dynamic = 'force-dynamic'
 
@@ -71,11 +82,29 @@ export default async function ArticlePage({
   ])
   if (!a) notFound()
 
-  const [alternatives, siblings, priceDate] = await Promise.all([
+  /**
+   * المواد المعروضة: المنشورة للجميع، وغير المنشورة للفريق وحده.
+   *
+   * «انشرها نشوفها» و«لا تُعرض أسعار ما تثبّتنا منها» لا يتناقضان: من
+   * داخلٌ بحساب فريق يرى المعاينة موسومة، والزائر لا يرى إلّا ما
+   * اعتُمد. ولا يُعرض للزائر كلفةُ المادّة للوحدة: هي وسعرُ المقال
+   * معاً يكشفان الهامش.
+   */
+  const [alternatives, siblings, priceDate, links, staff] = await Promise.all([
     getAlternatives(a.id),
     getStandingSiblings(a),
     getPriceListDate(),
+    getArticleProducts(a.id),
+    getCurrentStaff(),
   ])
+
+  const isStaff = Boolean(staff)
+  const materials = isStaff
+    ? [...links].sort((x, y) => {
+        if (x.isDefault !== y.isDefault) return x.isDefault ? -1 : 1
+        return (packPriceHt(x.product, 19) ?? 0) - (packPriceHt(y.product, 19) ?? 0)
+      })
+    : shownProducts(links)
 
   const specs = a.specs && typeof a.specs === 'object' ? Object.entries(a.specs) : []
 
@@ -180,6 +209,90 @@ export default async function ArticlePage({
                   </li>
                 )
               })}
+          </ul>
+        </section>
+      )}
+
+      {materials.length > 0 && (
+        <section className="mt-6">
+          <h2 className="display text-lg font-semibold">{t.materials}</h2>
+          <p className="mt-1 text-sm leading-7 text-muted">{t.materialsLede}</p>
+
+          {isStaff && materials.some((m) => !canShowProduct(m)) && (
+            <p className="mt-3 rounded border border-line bg-gold-soft px-3 py-2 text-xs leading-7">
+              <b>{t.materialPreview}.</b> {t.materialPreviewWhy}
+            </p>
+          )}
+
+          <ul className="mt-3 grid gap-3">
+            {materials.map((m, i) => {
+              const p = m.product
+              const hidden = !canShowProduct(m)
+              const perUnit = materialPerUnit(m, 19)
+              const specPairs = Object.entries(p.specs ?? {}).slice(0, 4)
+              return (
+                <li
+                  key={p.id}
+                  className={`rounded border p-3 ${
+                    hidden ? 'border-dashed border-line-strong bg-bg' : 'border-line bg-surface'
+                  }`}
+                >
+                  <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
+                    <span className="font-medium leading-7">{productName(p, locale)}</span>
+                    {packLabel(p) && (
+                      <span className="num text-xs text-faint">{isolateNumbers(packLabel(p)!)}</span>
+                    )}
+                    {m.isDefault && (
+                      <span className="rounded bg-brand-soft px-1.5 text-xs text-brand">
+                        {t.materialDefault}
+                      </span>
+                    )}
+                    {!m.isDefault && i === 0 && materials.length > 1 && (
+                      <span className="rounded bg-surface-2 px-1.5 text-xs text-muted">
+                        {t.materialCheaper}
+                      </span>
+                    )}
+                    {hidden && (
+                      <span className="ms-auto rounded bg-gold-soft px-1.5 text-xs text-gold">
+                        {p.priceVerified ? t.materialPreview : t.materialUnverified}
+                      </span>
+                    )}
+                  </div>
+
+                  {productSubtitle(p) && (
+                    <p className="mt-0.5 text-xs text-muted">{productSubtitle(p)}</p>
+                  )}
+
+                  {specPairs.length > 0 && (
+                    <dl className="mt-2 grid gap-x-4 gap-y-1 sm:grid-cols-2">
+                      {specPairs.map(([k, v]) => (
+                        <div key={k} className="flex gap-2 text-xs leading-6">
+                          <dt className="shrink-0 text-faint">{k}</dt>
+                          <dd className="text-ink-soft">{v}</dd>
+                        </div>
+                      ))}
+                    </dl>
+                  )}
+
+                  {/* كلفة المادّة للفريق وحده: هي وسعرُ المقال يكشفان الهامش */}
+                  {isStaff && (
+                    <p className="mt-2 border-t border-line pt-2 text-xs text-muted">
+                      {perUnit === null ? (
+                        t.materialNoCoverage
+                      ) : (
+                        <>
+                          <b className="num text-ink">
+                            {isolateNumbers(formatMillimes(perUnit, locale))}
+                          </b>{' '}
+                          {t.materialPerUnit} <span className="num">{a.unit}</span>
+                          {m.coverageNote ? ` · ${m.coverageNote}` : ''}
+                        </>
+                      )}
+                    </p>
+                  )}
+                </li>
+              )
+            })}
           </ul>
         </section>
       )}

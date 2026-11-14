@@ -112,6 +112,8 @@ values ('product-media', 'product-media', false, 5242880,
         array['image/jpeg', 'image/png', 'image/webp'])
 on conflict (id) do nothing;
 
+-- الهجرات تُعاد كلّها في كلّ تشغيل، فكلّ جملة تحتمل الإعادة
+drop trigger if exists products_touch on products;
 create trigger products_touch before update on products
   for each row execute function touch_updated_at();
 
