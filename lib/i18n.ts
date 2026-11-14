@@ -1171,7 +1171,17 @@ const ar = {
     catalogue: {
       pageTitle: 'الكاتالوج — اللَّبنة',
       title: 'شنوّة يدخل في بناية',
-      lede: 'المواد والأشغال اللي نخدمو بيهم، بأسعارهم المعتمدة ووحدة القيس متاع كلّ واحد. تتصفّح بلا حساب.',
+      lede: 'المواد والأشغال اللي نخدمو بيهم، بوحدة القيس وسعر استرشادي لكلّ مستوى تشطيب. تتصفّح بلا حساب.',
+      priceNoticeTitle: 'أسعار استرشادية، موش عرض',
+      priceNoticeBody:
+        'الأرقام هاذي معيَّرة على السوق التونسي وتنفعك باش تعرف الترتيب والفرق بين المستويات. السعر اللي يلزمك إنت يتحدّد في عرض تفصيلي بعد المعاينة، وحسب الكمّيات والمنطقة.',
+      priceDateLabel: 'الأسعار محيَّنة في',
+      standingLabel: 'مستوى التشطيب',
+      standingAll: 'كلّ المستويات',
+      standingHint:
+        'لكلّ مقال سعر في كلّ مستوى تشطيب — نفس الاسم بمواد وتجهيزات مختلفة. بدّل المستوى باش تشوف أسعارو.',
+      otherStandings: 'نفس المقال في المستويات الأخرى',
+      otherStandingsLede: 'الفرق في السعر فرق مستوى، موش فرق مزاج.',
       closedTitle: 'الكاتالوج ما زال ما تفتحش',
       closedBody: 'الأسعار تحت المراجعة. كي تعتمدهم الإدارة يتفتح هنا. إذا تحبّ تقدير لمشروعك توّا، عمّر الاستمارة ولّا عيّطلنا.',
       searchLabel: 'لوّج',
@@ -1216,6 +1226,7 @@ const ar = {
       compareMissing: 'فمّا مقال ما لقيناهش في الكاتالوج العمومي.',
       compareRows: {
         price_ht: 'السعر بلا أداء',
+        standing: 'مستوى التشطيب',
         unit: 'وحدة القيس',
         availability: 'التوفّر',
         lead_time: 'أجل التوريد',
@@ -2575,7 +2586,17 @@ const fr: Dictionary = {
     catalogue: {
       pageTitle: 'Catalogue — AL-LUBNA',
       title: 'Ce qui entre dans une construction',
-      lede: 'Les matériaux et travaux que nous utilisons, avec leurs prix validés et leur unité de mesure. Consultation libre, sans compte.',
+      lede: 'Les matériaux et travaux que nous utilisons, avec leur unité de mesure et un prix indicatif par niveau de finition. Consultation libre, sans compte.',
+      priceNoticeTitle: 'Prix indicatifs, pas un devis',
+      priceNoticeBody:
+        'Ces montants sont calibrés sur le marché tunisien et servent à situer les ordres de grandeur et l’écart entre niveaux. Votre prix est fixé dans un devis détaillé après visite, selon les quantités et la région.',
+      priceDateLabel: 'Prix mis à jour le',
+      standingLabel: 'Niveau de finition',
+      standingAll: 'Tous les niveaux',
+      standingHint:
+        'Chaque article a un prix par niveau de finition — même désignation, matériaux et équipements différents. Changez de niveau pour voir ses prix.',
+      otherStandings: 'Le même article aux autres niveaux',
+      otherStandingsLede: 'L’écart de prix est un écart de niveau, pas une variation arbitraire.',
       closedTitle: 'Le catalogue n’est pas encore ouvert',
       closedBody: 'Les prix sont en cours de validation. Il s’ouvrira ici une fois approuvés. Pour une estimation dès maintenant, remplissez le formulaire ou appelez-nous.',
       searchLabel: 'Rechercher',
@@ -2620,6 +2641,7 @@ const fr: Dictionary = {
       compareMissing: 'Un des articles ne figure pas au catalogue public.',
       compareRows: {
         price_ht: 'Prix HT',
+        standing: 'Niveau de finition',
         unit: 'Unité',
         availability: 'Disponibilité',
         lead_time: 'Délai',

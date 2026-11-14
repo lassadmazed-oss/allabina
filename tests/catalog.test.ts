@@ -3,11 +3,13 @@ import { readFileSync } from 'node:fs'
 import {
   INTERNAL_KEYS,
   applyFilters,
+  baseCode,
   canCompare,
   matches,
   priceOf,
   comparisonRows,
   parseCodes,
+  standingIn,
   toPublic,
   toggleCode,
   type CatalogArticle,
@@ -26,6 +28,9 @@ const art = (over: Partial<CatalogArticle> = {}): CatalogArticle => ({
   lotCode: 5,
   lotNameAr: 'البناء',
   lotNameFr: 'Maçonnerie',
+  standingCode: 'B03',
+  standingNameAr: 'محسّن',
+  standingNameFr: 'Confort',
   designationAr: 'بلوك 20',
   designationFr: 'Bloc 20',
   descriptionAr: null,
@@ -229,5 +234,77 @@ describe('جدول البدائل', () => {
 
   it('لا يُقرأ بالمفتاح العمومي: الربط شأن داخلي يُعرض مشكَّلاً', () => {
     expect(sql).toMatch(/revoke all on article_alternatives from anon/)
+  })
+})
+
+/**
+ * مستوى التشطيب في الكاتالوج العمومي.
+ *
+ * لكلّ مقال نسخة في كلّ مستوى: 67 مقالاً × 5 مستويات = 333 سطراً.
+ * نشر الجدول بلا المستوى يعرض «أبواب داخلية» خمس مرّات من 425 د إلى
+ * 850 د بلا سبب على الشاشة — وهو بالضبط ما يمنعه القسم 03: لا رقم بلا
+ * ما يفسّره.
+ */
+describe('مستوى التشطيب يُرى', () => {
+  const b01 = art({ id: '1', code: 'BO-01-B01', priceHt: 425, standingCode: 'B01', standingNameAr: 'اقتصادي', standingNameFr: 'Économique' })
+  const b05 = art({ id: '2', code: 'BO-01-B05', priceHt: 850, standingCode: 'B05', standingNameAr: 'Haut Standing', standingNameFr: 'Haut standing' })
+
+  it('المستوى يخرج إلى المتصفّح مع السعر — لا سعر بلا مستواه', () => {
+    const out = toPublic({ ...b05 } as unknown as Record<string, unknown>)
+    expect(out.standingCode).toBe('B05')
+    expect(out.standingNameAr).toBe('Haut Standing')
+  })
+
+  it('الترشيح بالمستوى يرجع نسخة واحدة لا خمساً', () => {
+    expect(applyFilters([b01, b05], { standing: 'B01' }).map((a) => a.id)).toEqual(['1'])
+    // بلا ترشيح: الكلّ، لأنّ «كلّ المستويات» اختيارٌ مشروع
+    expect(applyFilters([b01, b05], {})).toHaveLength(2)
+  })
+
+  it('المقارنة تقول إنّ الفرق فرق مستوى لا فرق سعر بلا سبب', () => {
+    const rows = comparisonRows([b01, b05])
+    const st = rows.find((r) => r.key === 'standing')!
+    expect(st.differs).toBe(true)
+    expect(st.values).toEqual(['اقتصادي', 'Haut Standing'])
+    expect(comparisonRows([b01, b05], 'fr').find((r) => r.key === 'standing')!.values).toEqual([
+      'Économique',
+      'Haut standing',
+    ])
+  })
+
+  it('الاسم بالفرنسية يرجع للعربية إن غاب، والعكس', () => {
+    expect(standingIn(art({ standingNameFr: '' }), 'fr')).toBe('محسّن')
+    expect(standingIn(art({ standingNameAr: '' }), 'ar')).toBe('Confort')
+  })
+
+  it('جذع المرجع يجمع نسخ المستويات، ومرجعاً بلا لاحقة لا يُقصّ', () => {
+    expect(baseCode('BO-01-B03')).toBe('BO-01')
+    expect(baseCode('BO-01-b05')).toBe('BO-01')
+    expect(baseCode('A-05-012')).toBe('A-05-012')
+    // «B1» ليست لاحقة مستوى: اللاحقة رقمان
+    expect(baseCode('X-01-B1')).toBe('X-01-B1')
+  })
+})
+
+/**
+ * نصّ الكاتالوج لا يَدّعي ما لم يحصل.
+ *
+ * الأسعار بذرةٌ معيَّرة على السوق، ولم يراجعها أحد سطراً سطراً
+ * (updated_by فارغ في 333 سطراً). فنصّ يقول «أسعارهم المعتمدة» كذبةٌ
+ * على صفحة عمومية، لا خطأ تنسيق.
+ */
+describe('الصفحة لا تدّعي اعتماداً لم يقع', () => {
+  const src = readFileSync('lib/i18n.ts', 'utf8')
+  const ar = src.slice(src.indexOf("catalogue: {"), src.indexOf("account: {"))
+
+  it('لا «أسعارهم المعتمدة» ولا «prix validés»', () => {
+    expect(ar).not.toContain('بأسعارهم المعتمدة')
+    expect(src).not.toContain('leurs prix validés')
+  })
+
+  it('وتقول إنّها استرشادية، وتحمل تاريخها', () => {
+    expect(src).toContain('priceNoticeTitle')
+    expect(src).toContain('priceDateLabel')
+    expect(ar).toContain('استرشادية')
   })
 })

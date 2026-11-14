@@ -22,6 +22,15 @@ export type CatalogArticle = {
   lotCode: number
   lotNameAr: string
   lotNameFr: string
+  /**
+   * مستوى التشطيب — بدونه الكاتالوج يكذب.
+   *
+   * لكلّ مقال نسخة لكلّ مستوى: «أبواب داخلية» خمس مرّات من 425 د إلى
+   * 850 د. من لا يرى المستوى يرى أسعاراً عشوائية لنفس الاسم.
+   */
+  standingCode: string | null
+  standingNameAr: string
+  standingNameFr: string
   designationAr: string
   designationFr: string
   descriptionAr: string | null
@@ -48,6 +57,9 @@ const PUBLIC_KEYS = new Set<keyof CatalogArticle>([
   'lotCode',
   'lotNameAr',
   'lotNameFr',
+  'standingCode',
+  'standingNameAr',
+  'standingNameFr',
   'designationAr',
   'designationFr',
   'descriptionAr',
@@ -143,11 +155,14 @@ export type Filters = {
   availability?: Availability
   maxPriceHt?: number
   query?: string
+  /** مستوى التشطيب — غيابه يعني «كلّ المستويات» */
+  standing?: string
 }
 
 export function applyFilters(items: CatalogArticle[], f: Filters): CatalogArticle[] {
   return items.filter((a) => {
     if (f.lotCode !== undefined && a.lotCode !== f.lotCode) return false
+    if (f.standing && a.standingCode !== f.standing) return false
     if (f.unit && a.unit !== f.unit) return false
     if (f.availability && a.availability !== f.availability) return false
     if (f.maxPriceHt !== undefined) {
@@ -171,6 +186,17 @@ export const lotNameIn = (a: CatalogArticle, locale: Locale) =>
 
 export const descriptionIn = (a: CatalogArticle, locale: Locale) =>
   locale === 'fr' ? a.descriptionFr || a.descriptionAr : a.descriptionAr
+
+export const standingIn = (a: CatalogArticle, locale: Locale) =>
+  locale === 'fr' ? a.standingNameFr || a.standingNameAr : a.standingNameAr || a.standingNameFr
+
+/**
+ * المرجع بلا لاحقة المستوى: «BO-01-B03» ← «BO-01».
+ *
+ * نفس المقال في خمسة مستويات له خمسة مراجع. الجذع هو ما يجمعها، فمن
+ * رأى سعراً واحداً يرى البقيّة بدل أن يحسب الفرق سهواً.
+ */
+export const baseCode = (code: string): string => code.replace(/-B\d{2}$/i, '')
 
 // ─────────────────────────────────────────── المواصفات
 
@@ -243,7 +269,7 @@ export type CompareRow = {
  * المواصفات تُجمع من كلّ المقالات: مواصفة عند واحد وغائبة عند آخر
  * فرقٌ يستحقّ أن يُرى، لا سطرٌ يُحذف لأنّه ناقص عند أحدهم.
  */
-export function comparisonRows(items: CatalogArticle[]): CompareRow[] {
+export function comparisonRows(items: CatalogArticle[], locale: Locale = 'ar'): CompareRow[] {
   if (!items.length) return []
 
   const specKeys: string[] = []
@@ -253,6 +279,9 @@ export function comparisonRows(items: CatalogArticle[]): CompareRow[] {
 
   const rows: CompareRow[] = [
     row('price_ht', 'money', items.map((a) => (a.priceHt === null ? null : String(a.priceHt)))),
+    // المستوى سطرٌ قبل كلّ شيء: مقارنة B01 بـB05 لنفس المقال فرق مستوى
+    // لا فرق منتج، ومن لا يراه يقرأ الفرق سعراً بلا سبب.
+    row('standing', 'text', items.map((a) => standingIn(a, locale) || a.standingCode)),
     row('unit', 'text', items.map((a) => a.unit || null)),
     row('availability', 'text', items.map((a) => a.availability)),
     row('lead_time', 'days', items.map((a) => (a.leadTimeDays === null ? null : String(a.leadTimeDays)))),

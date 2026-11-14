@@ -5,11 +5,13 @@ import ArticlePrice from '@/components/ArticlePrice'
 import {
   catalogOpen,
   catalogTaxRate,
+  getPriceListDate,
   getPublicArticles,
   getPublicLots,
+  getPublicStandings,
 } from '@/lib/catalog-server'
 import { getDelegations } from '@/lib/supabase/server'
-import { applyFilters, designationIn, lotNameIn, parseCodes, toggleCode } from '@/lib/catalog'
+import { applyFilters, designationIn, lotNameIn, parseCodes, standingIn, toggleCode } from '@/lib/catalog'
 import { getDictionary, isLocale, type Locale } from '@/lib/i18n'
 import { isolateNumbers } from '@/lib/format'
 
@@ -30,7 +32,7 @@ export default async function CataloguePage({
   searchParams,
 }: {
   params: Promise<{ locale: string }>
-  searchParams: Promise<{ q?: string; lot?: string; cmp?: string; region?: string }>
+  searchParams: Promise<{ q?: string; lot?: string; cmp?: string; region?: string; st?: string }>
 }) {
   const [{ locale: raw }, sp] = await Promise.all([params, searchParams])
   const locale: Locale = isLocale(raw) ? raw : 'ar'
@@ -58,12 +60,30 @@ export default async function CataloguePage({
     ? { govCode: 'SFX', delegationId: regionId }
     : null
 
-  const [lots, all, taxRatePct, delegations] = await Promise.all([
-    getPublicLots(),
-    getPublicArticles(300, region, locale),
+  /**
+   * المستوى يُنتقى، ولا يُعرض الكلّ افتراضاً.
+   *
+   * لكلّ مقال نسخة في كلّ مستوى: 67 مقالاً تصير 333 سطراً، نفس الاسم
+   * خمس مرّات بخمسة أسعار. الافتراضي مستوى واحد — المرجعي B03 — وبقيّة
+   * المستويات بضغطة. «كلّ المستويات» تبقى متاحة لمن يريد الجدول كاملاً.
+   */
+  const standings = await getPublicStandings()
+  const wantedSt = (sp.st ?? '').toUpperCase()
+  const standing =
+    wantedSt === 'ALL'
+      ? undefined
+      : (standings.find((s) => s.code === wantedSt)?.code ??
+        standings.find((s) => s.code === 'B03')?.code ??
+        standings[0]?.code)
+
+  const [lots, all, taxRatePct, delegations, priceDate] = await Promise.all([
+    getPublicLots(standing),
+    getPublicArticles(400, region, locale, standing),
     catalogTaxRate(),
     getDelegations('SFX'),
+    getPriceListDate(),
   ])
+  const level = standings.find((s) => s.code === standing) ?? null
 
   const lotCode = sp.lot ? Number(sp.lot) : undefined
   const query = (sp.q ?? '').slice(0, 80)
@@ -78,12 +98,14 @@ export default async function CataloguePage({
   // قائمة المقارنة تعيش في العنوان: تشتغل بلا جافاسكريبت، وتُنسَخ وتُرسَل
   const selected = parseCodes(sp.cmp)
 
-  const href = (over: { lot?: number | null; q?: string; cmp?: string[] }) => {
+  const href = (over: { lot?: number | null; q?: string; cmp?: string[]; st?: string }) => {
     const p = new URLSearchParams()
     if (region) p.set('region', String(region.delegationId))
+    const st = over.st === undefined ? (wantedSt === 'ALL' ? 'all' : standing) : over.st
     const lot = over.lot === undefined ? lotCode : over.lot
     const q = over.q === undefined ? query : over.q
     const cmp = over.cmp === undefined ? selected : over.cmp
+    if (st) p.set('st', st)
     if (lot) p.set('lot', String(lot))
     if (q) p.set('q', q)
     if (cmp.length) p.set('cmp', cmp.join(','))
@@ -96,9 +118,22 @@ export default async function CataloguePage({
       <h1 className="display text-2xl font-semibold sm:text-3xl">{t.title}</h1>
       <p className="mt-2 max-w-2xl leading-8 text-muted">{t.lede}</p>
 
+      {/* استرشادي يُقال فوق لا في حاشية: من يقرأ رقماً يقرأ معه ما هو */}
+      <div className="mt-5 rounded border border-line bg-gold-soft p-4">
+        <p className="font-semibold">{t.priceNoticeTitle}</p>
+        <p className="mt-1 text-sm leading-7 text-ink-soft">{t.priceNoticeBody}</p>
+        {priceDate && (
+          <p className="mt-1.5 text-xs text-muted">
+            {t.priceDateLabel}{' '}
+            <span className="num">{isolateNumbers(priceDate.slice(0, 10))}</span>
+          </p>
+        )}
+      </div>
+
       {/* بحث بلا جافاسكريبت: النتيجة في العنوان فتُشارَك وتُحفظ */}
       <form action={`/${locale}/catalogue`} className="mt-6 flex flex-wrap gap-2">
         {lotCode ? <input type="hidden" name="lot" value={lotCode} /> : null}
+        <input type="hidden" name="st" value={wantedSt === 'ALL' ? 'all' : (standing ?? '')} />
         <label className="flex-1 basis-56">
           <span className="sr-only">{t.searchLabel}</span>
           <input
@@ -129,6 +164,46 @@ export default async function CataloguePage({
         </button>
       </form>
       <p className="mt-2 text-xs leading-7 text-faint">{t.regionHint}</p>
+
+      {/* المستوى: سبب اختلاف خمسة أسعار لنفس الاسم — يُختار ويُسمّى */}
+      {standings.length > 1 && (
+        <section className="mt-5 rounded border border-line bg-surface p-4">
+          <h2 className="text-sm font-semibold">{t.standingLabel}</h2>
+          <nav className="mt-2.5 flex flex-wrap gap-2 text-sm">
+            {standings.map((s) => (
+              <Link
+                key={s.code}
+                href={href({ st: s.code })}
+                aria-current={s.code === standing ? 'true' : undefined}
+                className={`rounded-full border px-3 py-1.5 ${
+                  s.code === standing
+                    ? 'border-brand bg-brand-soft font-medium text-brand'
+                    : 'border-line text-muted'
+                }`}
+              >
+                {locale === 'fr' ? s.nameFr || s.nameAr : s.nameAr || s.nameFr}
+              </Link>
+            ))}
+            <Link
+              href={href({ st: 'all' })}
+              aria-current={standing === undefined ? 'true' : undefined}
+              className={`rounded-full border px-3 py-1.5 ${
+                standing === undefined
+                  ? 'border-brand bg-brand-soft font-medium text-brand'
+                  : 'border-line text-muted'
+              }`}
+            >
+              {t.standingAll}
+            </Link>
+          </nav>
+          {level && (locale === 'fr' ? level.descFr : level.descAr) && (
+            <p className="mt-2.5 text-sm leading-7 text-ink-soft">
+              {locale === 'fr' ? level.descFr : level.descAr}
+            </p>
+          )}
+          <p className="mt-1.5 text-xs leading-7 text-faint">{t.standingHint}</p>
+        </section>
+      )}
 
       <nav className="mt-5 flex flex-wrap gap-2 text-sm">
         <Link
@@ -182,6 +257,11 @@ export default async function CataloguePage({
                 <span className="num text-xs text-faint">{isolateNumbers(a.code)}</span>
                 <span className="mt-1 font-semibold leading-7">{designationIn(a, locale)}</span>
                 <span className="mt-0.5 text-xs text-muted">{lotNameIn(a, locale)}</span>
+                {standingIn(a, locale) && (
+                  <span className="mt-1.5 self-start rounded-full bg-surface-2 px-2 py-0.5 text-xs text-muted">
+                    {standingIn(a, locale)}
+                  </span>
+                )}
                 <span className="mt-3 flex items-baseline gap-2">
                   <ArticlePrice article={a} taxRatePct={taxRatePct} locale={locale} t={t} compact />
                 </span>

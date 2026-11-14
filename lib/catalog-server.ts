@@ -1,7 +1,7 @@
 import 'server-only'
 import { cache } from 'react'
 import { db } from '@/lib/supabase/server'
-import { toPublic, type Availability, type CatalogArticle } from '@/lib/catalog'
+import { baseCode, toPublic, type Availability, type CatalogArticle } from '@/lib/catalog'
 import { ARTICLE_MEDIA_BUCKET, isPublishable } from '@/lib/article-media'
 import { applyRegion, pickRule, type RegionRule } from '@/lib/region-rules'
 
@@ -14,20 +14,32 @@ import { applyRegion, pickRule, type RegionRule } from '@/lib/region-rules'
 const SELECT =
   'id, code, unit, designation_ar, designation_fr, description, description_fr, ' +
   'pu_fourniture_ht, pu_main_oeuvre_ht, availability, lead_time_days, ' +
-  'installation_note, usage_note, specs, is_active, lot_id, lots(code, name_ar, name_fr)'
+  'installation_note, usage_note, specs, is_active, lot_id, standing, ' +
+  'lots(code, name_ar, name_fr), standing_levels(code, name_ar, name_fr, sort_order)'
 
 type Lot = { code: number; name_ar: string; name_fr: string }
+type Level = {
+  code: string
+  name_ar: string
+  name_fr: string
+  sort_order: number
+  description_ar?: string | null
+  description_fr?: string | null
+}
 type Row = Record<string, unknown>
 
 /** supabase-js يُرجع العلاقة كائناً أو مصفوفة حسب الاستدلال — نقبل الاثنين */
-const lotOf = (r: Row): Lot | null => {
-  const v = r.lots as Lot | Lot[] | null | undefined
+const one = <T,>(v: T | T[] | null | undefined): T | null => {
   if (!v) return null
   return Array.isArray(v) ? (v[0] ?? null) : v
 }
 
+const lotOf = (r: Row): Lot | null => one(r.lots as Lot | Lot[] | null)
+const levelOf = (r: Row): Level | null => one(r.standing_levels as Level | Level[] | null)
+
 function shape(r: Row): CatalogArticle {
   const lot = lotOf(r)
+  const level = levelOf(r)
   const fourniture = Number(r.pu_fourniture_ht ?? 0)
   const main = Number(r.pu_main_oeuvre_ht ?? 0)
   const sum = fourniture + main
@@ -37,6 +49,9 @@ function shape(r: Row): CatalogArticle {
     lotCode: Number(lot?.code ?? 0),
     lotNameAr: String(lot?.name_ar ?? ''),
     lotNameFr: String(lot?.name_fr ?? ''),
+    standingCode: r.standing === null || r.standing === undefined ? null : String(r.standing),
+    standingNameAr: String(level?.name_ar ?? ''),
+    standingNameFr: String(level?.name_fr ?? ''),
     designationAr: String(r.designation_ar ?? ''),
     designationFr: String(r.designation_fr ?? ''),
     descriptionAr: (r.description as string) ?? null,
@@ -191,13 +206,100 @@ export const catalogTaxRate = cache(async (): Promise<number | null> => {
   return typeof rate === 'number' && rate > 0 ? rate : null
 })
 
-/** اللوطات التي فيها مقال منشور واحد على الأقلّ — لا صفحات أصناف فارغة */
-export const getPublicLots = cache(async (): Promise<{ code: number; nameAr: string; nameFr: string; count: number }[]> => {
+/**
+ * مستويات التشطيب الموجودة فعلاً في الكاتالوج المنشور.
+ *
+ * تُقرأ من المنشور لا من جدول المستويات: مستوى بلا مقال منشور لا يُعرض
+ * في المُنتقي ثمّ يعطي صفحة فارغة.
+ */
+export type PublicStanding = {
+  code: string
+  nameAr: string
+  nameFr: string
+  descAr: string | null
+  descFr: string | null
+  sort: number
+}
+
+export const getPublicStandings = cache(async (): Promise<PublicStanding[]> => {
   const { data } = await db
+    .from('articles')
+    .select(
+      'standing, standing_levels(code, name_ar, name_fr, sort_order, description_ar, description_fr)'
+    )
+    .eq('is_public', true)
+    .eq('is_active', true)
+    .not('standing', 'is', null)
+
+  const byCode = new Map<string, PublicStanding>()
+  for (const r of (data ?? []) as unknown as Row[]) {
+    const lv = levelOf(r)
+    if (!lv || byCode.has(lv.code)) continue
+    byCode.set(lv.code, {
+      code: lv.code,
+      nameAr: lv.name_ar,
+      nameFr: lv.name_fr,
+      descAr: lv.description_ar ?? null,
+      descFr: lv.description_fr ?? null,
+      sort: Number(lv.sort_order ?? 0),
+    })
+  }
+  return [...byCode.values()].sort((a, b) => a.sort - b.sort)
+})
+
+/**
+ * تاريخ قائمة الأسعار — رقمٌ بلا تاريخه لا يُراجَع.
+ *
+ * ولا يُقرأ من articles.updated_at: على الجدول مُطلِقٌ يحرّك العمود عند
+ * **أيّ** تحديث، وزرّ النشر تحديث. فأوّل نشر كان يجعل الصفحة تقول
+ * «الأسعار محيَّنة اليوم» وما تبدّل منها سنتيم. المصدر الصحيح تغييرُ
+ * سعرٍ فعلي (المُطلِق يكتبه حين يختلف السعر وحده)، وإلّا فتاريخٌ
+ * مُعلَن في المعطيات المرجعية.
+ */
+export const getPriceListDate = cache(async (): Promise<string | null> => {
+  const { data: hist } = await db
+    .from('article_price_history')
+    .select('changed_at')
+    .order('changed_at', { ascending: false })
+    .limit(1)
+    .maybeSingle()
+  if (hist?.changed_at) return String(hist.changed_at)
+
+  const { data } = await db
+    .from('app_settings')
+    .select('value')
+    .eq('key', 'catalog.price_list_date')
+    .maybeSingle()
+  const v = data?.value
+  return typeof v === 'string' && /^\d{4}-\d{2}-\d{2}/.test(v) ? v : null
+})
+
+/**
+ * مراجع المقالات المنشورة — لخريطة الموقع وحدها.
+ *
+ * صفحةٌ منشورة لا يصل إليها أحد ليست منشورة. ولا نعيد استعمال
+ * getPublicArticles هنا: تلك تجلب كلّ الأعمدة وتوقّع روابط الصور،
+ * وخريطة الموقع لا تحتاج إلّا المرجع.
+ */
+export const getPublicArticleCodes = cache(async (): Promise<string[]> => {
+  const { data } = await db
+    .from('articles')
+    .select('code')
+    .eq('is_public', true)
+    .eq('is_active', true)
+    .order('code')
+  return (data ?? []).map((r) => String(r.code))
+})
+
+/** اللوطات التي فيها مقال منشور واحد على الأقلّ — لا صفحات أصناف فارغة */
+export const getPublicLots = cache(async (standing?: string): Promise<{ code: number; nameAr: string; nameFr: string; count: number }[]> => {
+  let q = db
     .from('articles')
     .select('lots(code, name_ar, name_fr)')
     .eq('is_public', true)
     .eq('is_active', true)
+  if (standing) q = q.eq('standing', standing)
+  const { data } = await q
 
   const byCode = new Map<number, { code: number; nameAr: string; nameFr: string; count: number }>()
   for (const r of (data ?? []) as unknown as Row[]) {
@@ -213,15 +315,18 @@ export const getPublicLots = cache(async (): Promise<{ code: number; nameAr: str
 export async function getPublicArticles(
   limit = 300,
   region: Region | null = null,
-  locale: 'ar' | 'fr' = 'ar'
+  locale: 'ar' | 'fr' = 'ar',
+  standing?: string
 ): Promise<CatalogArticle[]> {
-  const { data } = await db
+  let q = db
     .from('articles')
     .select(SELECT)
     .eq('is_public', true)
     .eq('is_active', true)
-    .order('code')
-    .limit(limit)
+  // الترشيح في الاستعلام لا في العرض: سقف 300 يقطع قبل الترشيح، فلو
+  // رُشّح بعد القراءة لظهر مستوى ناقصاً بلا أن يقول أحد لماذا
+  if (standing) q = q.eq('standing', standing)
+  const { data } = await q.order('code').limit(limit)
 
   const rows = (data ?? []) as unknown as Row[]
   const [covers, rules] = await Promise.all([
@@ -285,6 +390,30 @@ export async function getPublicArticlesByCodes(codes: string[]): Promise<Catalog
     rows.map((r) => [String(r.code), { ...shape(r), imageUrl: covers.get(String(r.id)) ?? null }])
   )
   return codes.map((c) => byCode.get(c)).filter((a): a is CatalogArticle => Boolean(a))
+}
+
+/**
+ * نفس المقال في بقيّة مستويات التشطيب.
+ *
+ * هذا ما يُخرج الكاتالوج من الكذب: «أبواب داخلية» بـ425 د وبـ850 د ليسا
+ * سعرين لنفس الشيء، بل مستويين. من يرى الواحد يرى السلّم كاملاً بأسعاره
+ * بدل أن يظنّ الفرق مزاجاً.
+ */
+export async function getStandingSiblings(article: CatalogArticle): Promise<CatalogArticle[]> {
+  if (!article.standingCode) return []
+  const base = baseCode(article.code)
+  if (base === article.code) return []
+
+  const { data } = await db
+    .from('articles')
+    .select(SELECT)
+    .like('code', `${base}-B%`)
+    .eq('is_public', true)
+    .eq('is_active', true)
+    .neq('id', article.id)
+    .order('standing')
+
+  return ((data ?? []) as unknown as Row[]).map(shape)
 }
 
 /**

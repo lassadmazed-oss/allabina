@@ -8,6 +8,7 @@ import {
   lotNameIn,
   parseCodes,
   priceOf,
+  standingIn,
   type CompareRow,
 } from '@/lib/catalog'
 import { catalogOpen, catalogTaxRate, getPublicArticlesByCodes } from '@/lib/catalog-server'
@@ -73,7 +74,7 @@ export default async function ComparePage({
     )
   }
 
-  const rows = comparisonRows(items)
+  const rows = comparisonRows(items, locale)
 
   const cell = (r: CompareRow, i: number) => {
     const v = r.values[i]
@@ -135,6 +136,7 @@ export default async function ComparePage({
                   </span>
                   <span className="mt-0.5 block text-xs font-normal text-muted">
                     {lotNameIn(a, locale)}
+                    {standingIn(a, locale) ? ` · ${standingIn(a, locale)}` : ''}
                   </span>
                 </th>
               ))}

@@ -6,9 +6,11 @@ import {
   catalogOpen,
   catalogTaxRate,
   getAlternatives,
+  getPriceListDate,
   getPublicArticle,
+  getStandingSiblings,
 } from '@/lib/catalog-server'
-import { descriptionIn, designationIn, lotNameIn } from '@/lib/catalog'
+import { descriptionIn, designationIn, lotNameIn, standingIn } from '@/lib/catalog'
 import { getDictionary, isLocale, type Locale } from '@/lib/i18n'
 import { isolateNumbers } from '@/lib/format'
 
@@ -24,7 +26,16 @@ export async function generateMetadata({
   const t = getDictionary(locale).catalogue
   const a = await getPublicArticle(decodeURIComponent(code))
   if (!a) return { title: t.pageTitle }
-  return { title: `${designationIn(a, locale)} — ${t.pageTitle}`, description: descriptionIn(a, locale) ?? t.lede }
+
+  // المستوى في العنوان لا في الصفحة وحدها: خمس بطاقات لنفس المقال
+  // بعنوان واحد تصير خمس نتائج متطابقة في محرّك البحث، ولا يعرف
+  // الباحث أيّها يفتح.
+  const level = standingIn(a, locale)
+  const head = level ? `${designationIn(a, locale)} — ${level}` : designationIn(a, locale)
+  return {
+    title: `${head} — ${t.pageTitle}`,
+    description: descriptionIn(a, locale) ?? `${head} · ${t.lede}`,
+  }
 }
 
 function Row({ k, v, mono = false }: { k: string; v: string | null; mono?: boolean }) {
@@ -60,7 +71,11 @@ export default async function ArticlePage({
   ])
   if (!a) notFound()
 
-  const alternatives = await getAlternatives(a.id)
+  const [alternatives, siblings, priceDate] = await Promise.all([
+    getAlternatives(a.id),
+    getStandingSiblings(a),
+    getPriceListDate(),
+  ])
 
   const specs = a.specs && typeof a.specs === 'object' ? Object.entries(a.specs) : []
 
@@ -89,7 +104,14 @@ export default async function ArticlePage({
 
       <p className="num mt-6 text-xs text-faint">{isolateNumbers(a.code)}</p>
       <h1 className="display mt-1 text-2xl font-semibold sm:text-3xl">{designationIn(a, locale)}</h1>
-      <p className="mt-1 text-sm text-muted">{lotNameIn(a, locale)}</p>
+      <p className="mt-1 flex flex-wrap items-center gap-2 text-sm text-muted">
+        <span>{lotNameIn(a, locale)}</span>
+        {standingIn(a, locale) && (
+          <span className="rounded-full bg-surface-2 px-2 py-0.5 text-xs">
+            {t.standingLabel}: {standingIn(a, locale)}
+          </span>
+        )}
+      </p>
 
       {descriptionIn(a, locale) && (
         <p className="mt-4 leading-8 text-ink-soft">{descriptionIn(a, locale)}</p>
@@ -111,7 +133,46 @@ export default async function ArticlePage({
             mono
           />
         </dl>
+        {/* الرقم وما هو في نفس الإطار: لا سعر بلا صفته وتاريخه */}
+        <p className="mt-4 border-t border-line pt-3 text-xs leading-7 text-muted">
+          <b>{t.priceNoticeTitle}.</b> {t.priceNoticeBody}
+          {priceDate && (
+            <>
+              {' '}
+              {t.priceDateLabel} <span className="num">{isolateNumbers(priceDate.slice(0, 10))}</span>.
+            </>
+          )}
+        </p>
       </div>
+
+      {siblings.length > 0 && (
+        <section className="mt-6">
+          <h2 className="display text-lg font-semibold">{t.otherStandings}</h2>
+          <p className="mt-1 text-sm leading-7 text-muted">{t.otherStandingsLede}</p>
+          <ul className="mt-3 grid gap-2">
+            {siblings.map((s) => (
+              <li key={s.id}>
+                <Link
+                  href={`/${locale}/catalogue/${encodeURIComponent(s.code)}`}
+                  className="flex flex-wrap items-baseline gap-x-3 gap-y-1 rounded border border-line bg-surface px-3 py-2.5 transition hover:border-line-strong"
+                >
+                  <span className="text-sm font-medium">{standingIn(s, locale) || s.code}</span>
+                  <span className="num text-xs text-faint">{isolateNumbers(s.code)}</span>
+                  <span className="ms-auto">
+                    <ArticlePrice
+                      article={s}
+                      taxRatePct={taxRatePct}
+                      locale={locale}
+                      t={t}
+                      compact
+                    />
+                  </span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
 
       {specs.length > 0 && (
         <section className="mt-5 rounded border border-line bg-surface p-4">
@@ -159,8 +220,6 @@ export default async function ArticlePage({
           </ul>
         </section>
       )}
-
-      <p className="mt-6 text-xs leading-7 text-faint">{t.note}</p>
 
       <section className="mt-8 rounded border border-line bg-gold-soft p-5">
         <h2 className="display text-lg font-semibold">{t.ctaTitle}</h2>
