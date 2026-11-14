@@ -12,6 +12,7 @@ import {
   reportGap,
   submitRefusals,
   sumDone,
+  timelineOf,
   type ContractLine,
   type ReportDraft,
 } from '@/lib/site-reports'
@@ -254,5 +255,47 @@ describe('حدود ما يراه الحريف', () => {
 
   it('وتفحص الملكية قبل أيّ قراءة', () => {
     expect(client).toMatch(/\.eq\('user_id', userId\)/)
+  })
+})
+
+/**
+ * الخطّ الزمني كما يراه الحريف.
+ *
+ * يُشتقّ من نفس الكمّيات التي تُحسب منها النسبة: شطرٌ «منجَز» في
+ * الخطّ و60% في النسبة تناقضٌ يراه الحريف قبل أن نراه نحن.
+ */
+describe('أشواط الورشة', () => {
+  // كلّ لوط بقيمة 1000 ليبقى الحساب مقروءاً
+  const lots = (over: Record<number, number> = {}) =>
+    [2, 3, 4, 5, 10, 14].map((lotCode) => ({
+      lotCode,
+      doneValue: ((over[lotCode] ?? 0) / 100) * 1000,
+      totalValue: 1000,
+    }))
+
+  it('الشطر المكتمل منجَز، وأوّل ناقص جارٍ، وما بعده قادم', () => {
+    // الهيكل = اللوطات 2 و3 و4 و5
+    const t = timelineOf(lots({ 2: 100, 3: 100, 4: 100, 5: 100, 10: 40 }))
+    const structure = t.find((s) => s.key === 'structure')!
+    const finish = t.find((s) => s.key === 'finish')!
+    expect(structure.state).toBe('done')
+    expect(finish.state).toBe('current')
+  })
+
+  it('ولا شطران جاريان معاً — الورشة تمشي بالتسلسل', () => {
+    const t = timelineOf(lots({ 2: 50, 10: 50 }))
+    expect(t.filter((s) => s.state === 'current')).toHaveLength(1)
+    expect(t.find((s) => s.key === 'structure')!.state).toBe('current')
+    expect(t.find((s) => s.key === 'finish')!.state).toBe('upcoming')
+  })
+
+  it('والنسبة في الخطّ هي نسبة الشطر نفسه', () => {
+    const t = timelineOf(lots({ 2: 100, 3: 100, 4: 0, 5: 0 }))
+    expect(t.find((s) => s.key === 'structure')!.pct).toBe(50)
+  })
+
+  it('وشطرٌ ليس في العقد لا يظهر في الخطّ', () => {
+    const t = timelineOf([{ lotCode: 2, doneValue: 0, totalValue: 1000 }])
+    expect(t.map((s) => s.key)).toEqual(['structure'])
   })
 })

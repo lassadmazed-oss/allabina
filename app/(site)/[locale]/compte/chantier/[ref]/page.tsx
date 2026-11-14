@@ -5,6 +5,7 @@ import { db } from '@/lib/supabase/server'
 import { getCurrentUser } from '@/lib/user-session'
 import { getClientChantier } from '@/lib/client-site'
 import { lateDays } from '@/lib/site-reports'
+import { setClientConsentAction } from '@/lib/actions/publication'
 import { getDictionary, isLocale, type Locale } from '@/lib/i18n'
 import { isolateNumbers } from '@/lib/format'
 
@@ -126,6 +127,45 @@ export default async function ClientChantierPage({
         </p>
       </section>
 
+      {/* ── الخطّ الزمني: كمّل · قاعد يتعمل · جاي ── */}
+      {site.timeline.length > 0 && (
+        <section className="mt-5 rounded border border-line bg-surface p-4">
+          <h2 className="text-sm font-semibold">{t.site.timeline}</h2>
+          <ol className="mt-3 grid gap-3">
+            {site.timeline.map((st) => (
+              <li key={st.key} className="flex items-start gap-3">
+                <span
+                  className={`mt-1 grid size-5 shrink-0 place-items-center rounded-full border text-[10px] ${
+                    st.state === 'done'
+                      ? 'border-[#1d6b45] bg-[#1d6b45] text-white'
+                      : st.state === 'current'
+                        ? 'border-brand bg-brand text-white'
+                        : 'border-line text-faint'
+                  }`}
+                >
+                  {st.state === 'done' ? '✓' : st.state === 'current' ? '•' : ''}
+                </span>
+                <span className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
+                  <span className={st.state === 'upcoming' ? 'text-muted' : 'font-medium'}>
+                    {locale === 'fr' ? st.nameFr : st.nameAr}
+                  </span>
+                  <span className="text-xs text-muted">
+                    {st.state === 'done'
+                      ? t.site.stageDone
+                      : st.state === 'current'
+                        ? `${t.site.stageCurrent} · `
+                        : t.site.stageUpcoming}
+                    {st.state === 'current' && (
+                      <span className="num">{isolateNumbers(String(st.pct))}%</span>
+                    )}
+                  </span>
+                </span>
+              </li>
+            ))}
+          </ol>
+        </section>
+      )}
+
       {/* ── الأشواط ── */}
       {site.byLot.length > 0 && (
         <section className="mt-5">
@@ -201,6 +241,37 @@ export default async function ClientChantierPage({
             ))}
           </ul>
         )}
+      </section>
+
+      {/* ── موافقة النشر: ملكُه قصّتَه ── */}
+      <section className="mt-8 rounded border border-line bg-surface p-4">
+        <h2 className="text-sm font-semibold">{t.site.publishTitle}</h2>
+        <p className="mt-1 text-sm leading-7 text-muted">{t.site.publishBody}</p>
+
+        <p className="mt-3 text-sm leading-7">
+          {site.consent.isPublic
+            ? t.site.publishLive
+            : site.consent.clientAt
+              ? t.site.publishWaiting
+              : t.site.publishPrivate}
+        </p>
+
+        <form action={setClientConsentAction} className="mt-3">
+          <input type="hidden" name="ref" value={refCode} />
+          <input type="hidden" name="consent" value={site.consent.clientAt ? '0' : '1'} />
+          <button
+            type="submit"
+            className={`min-h-10 rounded px-4 text-sm font-semibold ${
+              site.consent.clientAt
+                ? 'border border-line'
+                : 'bg-brand text-white'
+            }`}
+          >
+            {site.consent.clientAt ? t.site.publishWithdraw : t.site.publishGive}
+          </button>
+        </form>
+
+        <p className="mt-3 text-xs leading-6 text-faint">{t.site.publishNever}</p>
       </section>
 
       <p className="mt-8 text-xs leading-7 text-faint">{t.site.footer}</p>

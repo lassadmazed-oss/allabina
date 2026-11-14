@@ -13,6 +13,7 @@ const PUBLIC_SEGMENTS = [
   'a-propos',
   'budget',
   'catalogue',
+  'chantiers',
   'compte',
   'confidentialite',
   'demande',

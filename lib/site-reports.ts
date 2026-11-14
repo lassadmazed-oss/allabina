@@ -12,6 +12,8 @@
  * الأسطر بالتساوي تجعل الورشة تبدو في نصفها وهي في هيكلها.
  */
 
+import { PHASES, phaseOfLot, type PhaseKey } from '@/lib/budget-reach'
+
 export type ChantierStatus = 'preparing' | 'running' | 'paused' | 'delivered' | 'stopped'
 export type ReportStatus = 'draft' | 'submitted' | 'approved' | 'rejected'
 
@@ -200,4 +202,57 @@ export function reportGap(lastApproved: string | null, today = new Date()): numb
   const d = new Date(lastApproved)
   if (Number.isNaN(d.getTime())) return null
   return Math.floor((today.getTime() - d.getTime()) / 86_400_000)
+}
+
+
+// ───────────────────────────────────────────── الخطّ الزمني
+
+export type StageState = 'done' | 'current' | 'upcoming'
+
+export type TimelineStage = {
+  key: PhaseKey
+  nameAr: string
+  nameFr: string
+  state: StageState
+  pct: number
+}
+
+/**
+ * أشواط الورشة كما يراها الحريف: منجَز · جارٍ · قادم.
+ *
+ * تُشتقّ من **قيمة** ما أُنجز لا من متوسّط نسب اللوطات: لوطٌ صغير
+ * مكتمل لا يرفع الشطر كما يرفعه لوطٌ كبير. فهي نفس قاعدة النسبة
+ * العامّة، ولا يصير شطرٌ «منجَزاً» في الخطّ و60% في النسبة.
+ * والجاري هو أوّل ما لم يكتمل —
+ * الورشة تمشي بالتسلسل، وشطران «جاريان» معاً يعنيان أنّ أحدهما
+ * لم يبدأ.
+ */
+export function timelineOf(
+  byLot: { lotCode: number; doneValue: number; totalValue: number }[]
+): TimelineStage[] {
+  const sums = new Map<PhaseKey, { done: number; total: number }>()
+  for (const l of byLot) {
+    const p = phaseOfLot(l.lotCode)
+    if (!p) continue
+    const cur = sums.get(p.key) ?? { done: 0, total: 0 }
+    cur.done += Number.isFinite(l.doneValue) ? l.doneValue : 0
+    cur.total += Number.isFinite(l.totalValue) ? l.totalValue : 0
+    sums.set(p.key, cur)
+  }
+
+  const out: TimelineStage[] = []
+  let seenCurrent = false
+  for (const phase of PHASES) {
+    const s = sums.get(phase.key)
+    if (!s || s.total <= 0) continue
+    const pct = Math.round((s.done / s.total) * 1000) / 10
+    let state: StageState
+    if (pct >= 100) state = 'done'
+    else if (!seenCurrent) {
+      state = 'current'
+      seenCurrent = true
+    } else state = 'upcoming'
+    out.push({ key: phase.key, nameAr: phase.nameAr, nameFr: phase.nameFr, state, pct })
+  }
+  return out
 }

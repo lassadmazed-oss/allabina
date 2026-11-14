@@ -156,6 +156,7 @@ export default async function SiteLayout({
         { href: p('/a-propos'), label: landingCopy[locale].nav.about },
         { href: p('/systemes'), label: t.systemsPage.navLink },
         { href: p('/standing'), label: t.standingPage.navLink },
+        { href: p('/chantiers'), label: t.chantiers.title },
         { href: p('/realisations'), label: t.cases.navLink },
       ],
     },

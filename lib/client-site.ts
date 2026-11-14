@@ -7,6 +7,7 @@ import {
   type LotProgress,
   type Progress,
 } from '@/lib/site-reports'
+import { timelineOf, type TimelineStage } from '@/lib/site-reports'
 import { getApprovedEntries, getContractLines } from '@/lib/chantiers-server'
 
 /**
@@ -44,7 +45,10 @@ export type ClientChantier = {
   deliveredAt: string | null
   progress: Progress
   byLot: LotProgress[]
+  timeline: TimelineStage[]
   reports: ClientReport[]
+  /** موافقة الحريف على النشر، واعتماد الإدارة، والحالة الحاليّة */
+  consent: { clientAt: string | null; directionAt: string | null; isPublic: boolean }
 }
 
 const SITE_BUCKET = 'site-photos'
@@ -69,7 +73,9 @@ export async function getClientChantier(
 
   const { data: ch } = await db
     .from('chantiers')
-    .select('id, code, devis_id, status, status_note, started_at, expected_end, delivered_at')
+    .select(
+      'id, code, devis_id, status, status_note, started_at, expected_end, delivered_at, client_consent_at, publish_approved_at, is_public'
+    )
     .eq('request_id', requestId)
     .maybeSingle()
   if (!ch) return null
@@ -117,6 +123,8 @@ export async function getClientChantier(
     })
   }
 
+  const byLot = progressByLot(lines, entries)
+
   return {
     code: String(ch.code),
     status: (ch.status as ChantierStatus) ?? 'preparing',
@@ -125,8 +133,14 @@ export async function getClientChantier(
     expectedEnd: (ch.expected_end as string) ?? null,
     deliveredAt: (ch.delivered_at as string) ?? null,
     progress: progressOf(lines, entries),
-    byLot: progressByLot(lines, entries),
+    byLot,
+    timeline: timelineOf(byLot),
     reports,
+    consent: {
+      clientAt: (ch.client_consent_at as string) ?? null,
+      directionAt: (ch.publish_approved_at as string) ?? null,
+      isPublic: ch.is_public === true,
+    },
   }
 }
 

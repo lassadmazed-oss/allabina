@@ -15,6 +15,7 @@ export const dynamic = 'force-dynamic'
 const PAGES = [
   '',
   '/catalogue',
+  '/chantiers',
   '/demande',
   '/projet',
   '/simulateur',

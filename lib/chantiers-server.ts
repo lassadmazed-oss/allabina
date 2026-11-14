@@ -33,10 +33,16 @@ export type Chantier = {
   startedAt: string | null
   expectedEnd: string | null
   deliveredAt: string | null
+  clientConsentAt: string | null
+  publishApprovedAt: string | null
+  isPublic: boolean
+  publicTitle: string | null
+  publicSummary: string | null
 }
 
 const CH_SELECT =
   'id, code, request_id, devis_id, chef_user_id, status, status_note, started_at, expected_end, delivered_at, ' +
+  'client_consent_at, publish_approved_at, is_public, public_title, public_summary, ' +
   'housing_requests(ref_code, full_name)'
 
 function shapeChantier(r: Row): Chantier {
@@ -55,6 +61,11 @@ function shapeChantier(r: Row): Chantier {
     startedAt: (r.started_at as string) ?? null,
     expectedEnd: (r.expected_end as string) ?? null,
     deliveredAt: (r.delivered_at as string) ?? null,
+    clientConsentAt: (r.client_consent_at as string) ?? null,
+    publishApprovedAt: (r.publish_approved_at as string) ?? null,
+    isPublic: r.is_public === true,
+    publicTitle: (r.public_title as string) ?? null,
+    publicSummary: (r.public_summary as string) ?? null,
   }
 }
 

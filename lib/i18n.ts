@@ -1168,6 +1168,17 @@ const ar = {
         s5body: 'تنجّم في أيّ وقت تطلب الاطّلاع على معطياتك أو تصحيحها أو حذفها. يكفي تتّصل بينا بالرمز متاع مطلبك. معالجة المعطيات الشخصية في تونس خاضعة للقانون عدد 63 لسنة 2004 وللهيئة الوطنية لحماية المعطيات الشخصية.',
         note: 'ملاحظة: هذي نسخة تجريبية من المنصة. النصّ القانوني النهائي لهذه الصفحة يُضبط مع مختصّ قانوني قبل الإطلاق العلني.'
     },
+    chantiers: {
+      pageTitle: 'ورشاتنا — اللَّبنة',
+      title: 'ورشاتنا',
+      lede: 'مشاريع نخدمو فيها ولّا كمّلناها، معروضة بموافقة أصحابها.',
+      empty:
+        'ما زال ما عرضنا حتّى ورشة. كلّ مشروع خاصّ، وما يتعرض كان كي يوافق صاحبو وتعتمدو الإدارة.',
+      untitled: 'مشروع',
+      note: 'ما نعرضوش عنوان ولا وثائق ولا مبالغ ولا صور ناس. وصاحب المشروع ينجّم يسحب موافقتو وقتلّي يحبّ.',
+      ctaTitle: 'تحبّ مشروعك يكون الجاي؟',
+      cta: 'كوّن مشروعك',
+    },
     projet: {
       pageTitle: 'كوّن مشروعك — اللَّبنة',
       title: 'كوّن مشروعك',
@@ -1398,6 +1409,19 @@ const ar = {
         howCounted:
           'النسبة محسوبة من الكمّيات اللي تعملت فعلاً في كلّ شطر، موزونة بحجمو في المشروع — موش تقدير.',
         byLot: 'وين وصلنا، شطر بشطر',
+        timeline: 'أشواط الورشة',
+        stageDone: 'كمّل',
+        stageCurrent: 'قاعد يتعمل',
+        stageUpcoming: 'جاي',
+        publishTitle: 'نشر مشروعك',
+        publishBody:
+          'مشروعك خاصّ. إذا تحبّ نعرضوه في «ورشاتنا»، أعطينا موافقتك — ونجّم تسحبها وقتلّي تحبّ، ويتنحّى فوراً.',
+        publishGive: 'نوافق على النشر',
+        publishWithdraw: 'اسحب موافقتي',
+        publishWaiting: 'موافقتك وصلت — ينتظر مراجعة الإدارة.',
+        publishLive: 'مشروعك معروض في «ورشاتنا».',
+        publishPrivate: 'مشروعك خاصّ — ما يشوفو حتّى حدّ.',
+        publishNever: 'ما يتنشرش عنوانك ولا وثائقك ولا مبالغك ولا صور الناس.',
         reports: 'آخر الأخبار من الورشة',
         noReports: 'ما زال ما فمّاش تقرير معتمد. كي يبدا الشغل، تلقى هنا كلّ نهار شنوّة تعمل وصورو.',
         blocked: 'ما تعملش',
@@ -2729,6 +2753,17 @@ const fr: Dictionary = {
         s5body: "Vous pouvez à tout moment demander l'accès, la rectification ou la suppression de vos données, en nous contactant avec votre code de demande. Le traitement des données personnelles en Tunisie est régi par la loi n° 2004-63 et relève de l'INPDP.",
         note: "Note : version pilote de la plateforme. Le texte juridique définitif de cette page sera arrêté avec un conseil juridique avant le lancement public."
     },
+    chantiers: {
+      pageTitle: 'Nos chantiers — AL-LUBNA',
+      title: 'Nos chantiers',
+      lede: 'Des projets en cours ou livrés, publiés avec l’accord de leurs propriétaires.',
+      empty:
+        'Aucun chantier publié pour l’instant. Chaque projet est privé : il n’apparaît qu’avec l’accord de son propriétaire et la validation de la direction.',
+      untitled: 'Projet',
+      note: 'Ni adresse, ni documents, ni montants, ni photos de personnes. Le propriétaire peut retirer son accord à tout moment.',
+      ctaTitle: 'Le prochain, c’est le vôtre ?',
+      cta: 'Composer mon projet',
+    },
     projet: {
       pageTitle: 'Composer mon projet — AL-LUBNA',
       title: 'Composer mon projet',
@@ -2959,6 +2994,20 @@ const fr: Dictionary = {
         howCounted:
           'Le pourcentage est calculé à partir des quantités réellement exécutées dans chaque poste, pondérées par leur poids dans le projet — ce n’est pas une estimation.',
         byLot: 'Où nous en sommes, poste par poste',
+        timeline: 'Étapes du chantier',
+        stageDone: 'terminée',
+        stageCurrent: 'en cours',
+        stageUpcoming: 'à venir',
+        publishTitle: 'Publication de votre projet',
+        publishBody:
+          'Votre projet est privé. Pour qu’il figure dans « Nos chantiers », donnez votre accord — retirable à tout moment, avec effet immédiat.',
+        publishGive: 'Je donne mon accord',
+        publishWithdraw: 'Retirer mon accord',
+        publishWaiting: 'Accord reçu — en attente de la validation de la direction.',
+        publishLive: 'Votre projet figure dans « Nos chantiers ».',
+        publishPrivate: 'Votre projet est privé — personne ne le voit.',
+        publishNever:
+          'Ni votre adresse, ni vos documents, ni vos montants, ni des photos de personnes ne sont publiés.',
         reports: 'Dernières nouvelles du chantier',
         noReports:
           'Aucun rapport validé pour l’instant. Dès le démarrage, vous trouverez ici chaque jour ce qui a été fait, en photos.',

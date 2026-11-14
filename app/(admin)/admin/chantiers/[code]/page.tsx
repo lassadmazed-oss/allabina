@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation'
 import SitePhotoUpload from '@/components/SitePhotoUpload'
 import { requirePermission } from '@/lib/auth'
 import { getChantier, getReportEntries } from '@/lib/chantiers-server'
+import { setDirectionPublishAction } from '@/lib/actions/publication'
 import {
   reviewReportAction,
   saveReportAction,
@@ -60,6 +61,11 @@ export default async function ChantierPage({
   const editEntries = editing ? await getReportEntries(editing.id) : new Map<string, number>()
   const perLine = lineProgress(lines, entries)
   const late = lateDays(chantier.expectedEnd)
+  const pub = {
+    clientAt: chantier.clientConsentAt,
+    directionAt: chantier.publishApprovedAt,
+    isPublic: chantier.isPublic,
+  }
 
   const refusals = editing
     ? submitRefusals({
@@ -397,6 +403,81 @@ export default async function ChantierPage({
               </p>
             )}
           </div>
+        )}
+      </section>
+
+      {/* ── النشر: موافقتان لا واحدة ── */}
+      <section className="mt-5 rounded border border-line bg-surface p-4">
+        <h2 className="text-sm font-semibold">نشر المشروع</h2>
+        <p className="mt-1 text-sm leading-7 text-muted">
+          المشروع خاصّ افتراضياً. <b>ما يتنشرش إلّا بموافقة الحريف واعتماد الإدارة</b> — والقاعدة
+          روحها ترفض غير هذا. وسحب أيّ وحدة منهم ينزّلو في نفس اللحظة.
+        </p>
+
+        <ul className="mt-3 grid gap-1.5 text-sm">
+          <li className="flex items-center gap-2">
+            <span className={pub.clientAt ? 'text-[#1d6b45]' : 'text-faint'}>
+              {pub.clientAt ? '✓' : '○'}
+            </span>
+            موافقة الحريف
+            <span className="text-xs text-muted">
+              {pub.clientAt ? 'وصلت' : 'ما وصلتش — يعطيها من حسابو'}
+            </span>
+          </li>
+          <li className="flex items-center gap-2">
+            <span className={pub.directionAt ? 'text-[#1d6b45]' : 'text-faint'}>
+              {pub.directionAt ? '✓' : '○'}
+            </span>
+            اعتماد الإدارة
+            <span className="text-xs text-muted">{pub.directionAt ? 'تمّ' : 'ما تمّش'}</span>
+          </li>
+        </ul>
+
+        <form action={setDirectionPublishAction} className="mt-4 grid gap-3">
+          <input type="hidden" name="code" value={chantier.code} />
+          <input type="hidden" name="approve" value={pub.directionAt ? '0' : '1'} />
+          {!pub.directionAt && (
+            <>
+              <label className="block">
+                <span className={label}>عنوان عمومي</span>
+                <input
+                  name="public_title"
+                  defaultValue={chantier.publicTitle ?? ''}
+                  placeholder="دار 140 م² في صفاقس"
+                  className={input}
+                />
+              </label>
+              <label className="block">
+                <span className={label}>ملخّص عمومي</span>
+                <textarea
+                  name="public_summary"
+                  rows={2}
+                  defaultValue={chantier.publicSummary ?? ''}
+                  placeholder="هيكل وتشطيب، من الحفر للتسليم."
+                  className={input}
+                />
+                <span className="mt-1 block text-xs text-faint">
+                  بلا عنوان دقيق ولا مبالغ ولا صور ناس. نصّ فيه رقم تليفون ولّا بريد ما يتقبلش.
+                </span>
+              </label>
+            </>
+          )}
+          <button
+            type="submit"
+            disabled={!pub.directionAt && !pub.clientAt}
+            className="min-h-9 justify-self-start rounded border border-line px-4 text-sm disabled:opacity-40"
+          >
+            {pub.directionAt ? 'اسحب اعتماد الإدارة' : 'اعتمد النشر'}
+          </button>
+          {!pub.directionAt && !pub.clientAt && (
+            <p className="text-xs text-muted">النشر مسدود حتّى يوافق الحريف.</p>
+          )}
+        </form>
+
+        {chantier.isPublic && (
+          <p className="mt-3 rounded bg-[#e4f1ea] px-3 py-2 text-sm text-[#1d6b45]">
+            معروض في «ورشاتنا».
+          </p>
         )}
       </section>
 
