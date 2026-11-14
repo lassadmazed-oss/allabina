@@ -18,6 +18,7 @@ const PUBLIC_SEGMENTS = [
   'demande',
   'mentions-legales',
   'merci',
+  'projet',
   'proprietaire',
   'realisations',
   'reseau',

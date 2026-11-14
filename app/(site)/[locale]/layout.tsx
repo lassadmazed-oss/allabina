@@ -142,6 +142,7 @@ export default async function SiteLayout({
     {
       title: t.nav.groupStart,
       links: [
+        { href: p('/projet'), label: t.projet.title },
         { href: p('/demande'), label: t.footer.request },
         // الكاتالوج كان منشوراً بلا رابط: ما يُوصَل إليه إلّا بالعنوان
         { href: p('/budget'), label: t.budget.title },

@@ -17,6 +17,7 @@ const PAGES = [
   '/budget',
   '/catalogue',
   '/demande',
+  '/projet',
   '/simulateur',
   '/standing',
   '/systemes',
