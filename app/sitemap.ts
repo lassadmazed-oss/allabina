@@ -14,7 +14,6 @@ export const dynamic = 'force-dynamic'
 /** الصفحات العلنية فقط — merci و admin خارج الخريطة */
 const PAGES = [
   '',
-  '/budget',
   '/catalogue',
   '/demande',
   '/projet',

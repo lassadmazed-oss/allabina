@@ -1201,6 +1201,10 @@ const ar = {
       kitchens: 'المطبخ',
       bathrooms: 'الحمّام',
       redraw: 'شوف التوزيع',
+      gateTitle: 'اعمل حسابك باش تشوف رسمك وتقديرك',
+      gateBody:
+        'حساب برقم متثبّت منّو يلزم باش نولّدولك التوزيع التصوّري والتقدير. ما ثمّ لا رسم ولا تقدير بلا حساب.',
+      gateKeep: 'اللي اخترتو يتحفظ — ترجع لنفس البلاصة.',
       sketchCaption: 'توزيع تقريبي للمساحات — موش مخطّط، والمخطّط يعملو معماري',
       tight: 'المساحة ضيّقة على هالعدد: الفضاءات رجعت لحدودها الدنيا.',
       doesntFit: 'المساحة ما تكفّيش لهالعدد من الفضاءات.',
@@ -2749,6 +2753,10 @@ const fr: Dictionary = {
       kitchens: 'Cuisine',
       bathrooms: 'Salle de bain',
       redraw: 'Voir la répartition',
+      gateTitle: 'Créez votre compte pour votre esquisse et votre estimation',
+      gateBody:
+        'Un compte vérifié est nécessaire pour générer votre esquisse indicative et votre estimation. Aucune esquisse ni estimation sans compte vérifié.',
+      gateKeep: 'Vos choix sont conservés — vous reviendrez au même endroit.',
       sketchCaption: 'Répartition indicative des surfaces — pas un plan ; le plan est l’affaire d’un architecte',
       tight: 'La surface est juste pour ce nombre d’espaces : ils sont ramenés à leur minimum.',
       doesntFit: 'La surface ne suffit pas pour ce nombre d’espaces.',

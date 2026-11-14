@@ -18,6 +18,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   if (!staff) return <>{children}</>
 
   const links: { href: string; label: string }[] = [
+    { href: '/admin/tableau', label: 'لوحة القيادة' },
     { href: '/admin', label: 'المطالب' },
     { href: '/admin/properties', label: 'العقارات' },
     { href: '/admin/cases', label: 'الحالات المنجزة' },

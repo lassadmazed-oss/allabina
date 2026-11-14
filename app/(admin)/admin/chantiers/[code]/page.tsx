@@ -278,10 +278,52 @@ export default async function ChantierPage({
               )}
             </div>
 
+            {/* ملاحظات داخلية: لا تخرج للحريف — وبلا خانة لها تُكتب في
+                «ما تعملش» فتصل إليه */}
+            <label className="block rounded border border-line-strong bg-bg p-3">
+              <span className={label}>ملاحظات داخلية</span>
+              <span className="mb-1.5 block text-xs leading-6 text-muted">
+                يشوفها فريق اللَّبنة برك — <b>ما تدخلش في نسخة الحريف</b>.
+              </span>
+              <textarea
+                name="internal_note"
+                rows={2}
+                defaultValue={editing?.internalNote ?? ''}
+                placeholder="مثال: نتفاهمو مع المناول على الرزنامة"
+                className={input}
+              />
+            </label>
+
             <button type="submit" className="min-h-10 justify-self-start rounded bg-brand px-4 text-sm font-semibold text-white">
               احفظ المسوّدة
             </button>
           </form>
+        )}
+
+        {/* نسخة الحريف: ما يوصلو بالضبط، قبل ما يتبعث */}
+        {editing && (
+          <div className="mt-4 rounded border border-dashed border-line-strong bg-bg p-3">
+            <p className="text-xs font-semibold text-muted">
+              نسخة الحريف — هاذا اللي يشوفو بعد الاعتماد
+            </p>
+            <div className="mt-2 rounded border border-line bg-surface p-3 text-sm leading-7">
+              <p className="num text-xs text-faint">{isolateNumbers(editing.reportDate)}</p>
+              {editing.done ? <p className="mt-1">{editing.done}</p> : null}
+              {editing.blocked && (
+                <p className="mt-1 text-muted">
+                  ما تعملش: {editing.blocked}
+                  {editing.blockedReason ? ` — ${editing.blockedReason}` : ''}
+                </p>
+              )}
+              {editing.nextPlan && <p className="mt-1 text-muted">غدوة: {editing.nextPlan}</p>}
+              <p className="mt-1 text-xs text-faint">
+                <span className="num">{isolateNumbers(String(editing.photos))}</span> صورة
+              </p>
+            </div>
+            <p className="mt-2 text-xs leading-6 text-faint">
+              ما يوصلوش: الملاحظات الداخلية · القرار المطلوب من الإدارة · الكمّيات والأسعار.
+            </p>
+          </div>
         )}
 
         {/* ── الصور والتقديم ── */}

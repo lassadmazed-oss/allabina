@@ -1,11 +1,13 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
+import PhoneGate from '@/components/PhoneGate'
 import SketchPlan from '@/components/SketchPlan'
 import { recordEvent } from '@/lib/analytics-server'
 import { budgetReach, configFromParams } from '@/lib/budget-server'
 import { neededFor, type Coverage } from '@/lib/budget-reach'
 import { sketchOf } from '@/lib/sketch'
 import { getDelegations } from '@/lib/supabase/server'
+import { getCurrentUser } from '@/lib/user-session'
 import { getDictionary, isLocale, type Locale } from '@/lib/i18n'
 import { THIN_NBSP, formatMoney, isolateNumbers } from '@/lib/format'
 
@@ -53,6 +55,15 @@ export default async function ProjetPage({
   const hasBudget = Number.isFinite(budget) && budget > 0
 
   if (step === 1) await recordEvent('trial_start', { projectType: type || null })
+
+  /*
+   * الرسم والتقدير خلف حساب متثبَّت منه — قرار الواجهة (F02):
+   * «Aucune esquisse ni estimation sans compte vérifié».
+   * الخطوة الأولى مفتوحة: الاختيار يسبق الحساب، فمن لا يعرف ما يريد
+   * لا يُطلب منه رقمه.
+   */
+  const user = step >= 2 ? await getCurrentUser() : null
+  const needsAccount = step >= 2 && !user
 
   const delegations = await getDelegations('SFX')
   const sketch = step >= 2 ? sketchOf(config) : null
@@ -158,8 +169,34 @@ export default async function ProjetPage({
         </section>
       )}
 
+      {/* ── الحساب قبل الرسم والتقدير ── */}
+      {needsAccount && (
+        <section className="mt-7">
+          <h1 className="display text-2xl font-semibold sm:text-3xl">{t.gateTitle}</h1>
+          <p className="mt-2 leading-8 text-muted">{t.gateBody}</p>
+          {type && (
+            <p className="mt-3 text-sm text-muted">
+              {t.summaryType}: <b className="text-ink">{t.types[type]}</b> · {t.gateKeep}
+            </p>
+          )}
+          <div className="mt-7 max-w-sm">
+            <PhoneGate
+              locale={locale}
+              t={dict.account}
+              next={href({}).replace(/^https?:\/\/[^/]+/, '')}
+            />
+          </div>
+          <Link
+            href={href({ e: 1 })}
+            className="mt-6 inline-block text-sm text-muted underline underline-offset-4"
+          >
+            {t.back}
+          </Link>
+        </section>
+      )}
+
       {/* ── 2 · الحاجة ── */}
-      {step === 2 && (
+      {!needsAccount && step === 2 && (
         <section className="mt-7">
           <h1 className="display text-2xl font-semibold sm:text-3xl">{t.q2}</h1>
 
@@ -256,7 +293,7 @@ export default async function ProjetPage({
       )}
 
       {/* ── 3 · الميزانية ── */}
-      {step === 3 && (
+      {!needsAccount && step === 3 && (
         <section className="mt-7">
           <h1 className="display text-2xl font-semibold sm:text-3xl">{t.q3}</h1>
 
@@ -375,7 +412,7 @@ export default async function ProjetPage({
       )}
 
       {/* ── 4 · الملخّص ── */}
-      {step === 4 && (
+      {!needsAccount && step === 4 && (
         <section className="mt-7">
           <h1 className="display text-2xl font-semibold sm:text-3xl">{t.q4}</h1>
 

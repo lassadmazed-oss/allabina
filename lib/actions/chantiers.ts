@@ -134,6 +134,8 @@ export async function saveReportAction(formData: FormData) {
     blocked_reason: text(formData.get('blocked_reason')),
     decision_needed: text(formData.get('decision_needed')),
     next_plan: text(formData.get('next_plan')),
+    // لا تخرج للحريف أبداً — لا في لوحته ولا في نسخة التقرير
+    internal_note: text(formData.get('internal_note')),
     author: actor.userId,
     status: 'draft' as const,
     review_note: null,

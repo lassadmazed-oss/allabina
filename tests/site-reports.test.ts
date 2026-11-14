@@ -223,3 +223,36 @@ describe('ما تحرسه القاعدة', () => {
     }
   })
 })
+
+/**
+ * ما لا يصل الحريف أبداً.
+ *
+ * خانةٌ داخلية تتسرّب لا تُحدث خطأً: تُحدث قراءةَ الحريف لنقاشٍ لم
+ * يكن له. والحارس هنا على **مصدر القراءة** لا على الشاشة: شاشةٌ
+ * تُصلَح، وقراءةٌ تحمل الحقل تبقى تحمله لكلّ شاشة تأتي بعدها.
+ */
+describe('حدود ما يراه الحريف', () => {
+  const client = readFileSync('lib/client-site.ts', 'utf8')
+
+  it('قراءة الحريف ما تطلبش الملاحظات الداخلية', () => {
+    expect(client).not.toContain('internal_note')
+    expect(client).not.toContain('internalNote')
+  })
+
+  it('ولا القرار المطلوب من الإدارة', () => {
+    expect(client).not.toContain('decision_needed')
+  })
+
+  it('ولا الكمّيات المنجزة ولا أسعار الأسطر', () => {
+    expect(client).not.toContain('site_report_lines')
+    expect(client).not.toContain('qty_done')
+  })
+
+  it('وما تقرا إلّا المعتمَد', () => {
+    expect(client).toMatch(/\.eq\('status', 'approved'\)/)
+  })
+
+  it('وتفحص الملكية قبل أيّ قراءة', () => {
+    expect(client).toMatch(/\.eq\('user_id', userId\)/)
+  })
+})

@@ -69,6 +69,8 @@ export type SiteReport = {
   blockedReason: string | null
   decisionNeeded: string | null
   nextPlan: string | null
+  /** داخلية — تُقرأ في اللوحة ولا تُمرَّر إلى أيّ قراءة للحريف */
+  internalNote: string | null
   status: ReportStatus
   reviewNote: string | null
   photos: number
@@ -176,7 +178,7 @@ export async function getChantier(code: string): Promise<ChantierDetail | null> 
     db
       .from('site_reports')
       .select(
-        'id, chantier_id, report_date, weather, planned, done, blocked, blocked_reason, decision_needed, next_plan, status, review_note'
+        'id, chantier_id, report_date, weather, planned, done, blocked, blocked_reason, decision_needed, next_plan, internal_note, status, review_note'
       )
       .eq('chantier_id', chantier.id)
       .order('report_date', { ascending: false }),
@@ -199,6 +201,7 @@ export async function getChantier(code: string): Promise<ChantierDetail | null> 
       blockedReason: (r.blocked_reason as string) ?? null,
       decisionNeeded: (r.decision_needed as string) ?? null,
       nextPlan: (r.next_plan as string) ?? null,
+      internalNote: (r.internal_note as string) ?? null,
       status: (r.status as ReportStatus) ?? 'draft',
       reviewNote: (r.review_note as string) ?? null,
       photos: count ?? 0,
