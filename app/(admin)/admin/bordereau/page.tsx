@@ -95,6 +95,9 @@ export default async function BordereauPage({
       <section className="mt-4 rounded border border-line bg-surface p-4">
         <div className="flex flex-wrap items-center gap-3">
           <h2 className="text-sm font-semibold">الكاتالوج العمومي</h2>
+          <Link href="/admin/bordereau/import" className="text-xs underline underline-offset-4">
+            استيراد من ملفّ
+          </Link>
           <span className={`rounded px-2 py-0.5 text-xs font-medium ${catalogIsOpen ? 'bg-[#e4f1ea] text-[#1d6b45]' : 'bg-surface-2 text-muted'}`}>
             {catalogIsOpen ? 'مفتوح للزوّار' : 'مغلق'}
           </span>

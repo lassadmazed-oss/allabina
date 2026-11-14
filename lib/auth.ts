@@ -26,6 +26,8 @@ export type StaffEventType =
   | 'password_set'
   | 'password_changed'
   | 'member_removed'
+  /** تبديل إعداد مرجعي: أوزان، أسعار، اتّصال، هويّة، كاتالوج، استيراد */
+  | 'settings.update'
 
 /** سجلّ التدقيق. لا يرمي أبداً: فشل التسجيل لا يوقف العملية الأصلية. */
 export async function logStaffEvent(entry: {
