@@ -165,3 +165,31 @@ export const lotNameIn = (a: CatalogArticle, locale: Locale) =>
 
 export const descriptionIn = (a: CatalogArticle, locale: Locale) =>
   locale === 'fr' ? a.descriptionFr || a.descriptionAr : a.descriptionAr
+
+// ─────────────────────────────────────────── المواصفات
+
+/**
+ * المواصفات تُحرَّر سطراً سطراً «المفتاح: القيمة».
+ *
+ * لماذا نصّ لا خانات ثابتة؟ لأنّ مواصفات الآجرّ ليست مواصفات الكابل
+ * ولا مواصفات المطبخ. خانات ثابتة تعني عشرين خانة فارغة في كلّ بطاقة،
+ * أو جدولاً لكلّ لوط.
+ */
+export function parseSpecs(text: string): Record<string, string> | null {
+  const out: Record<string, string> = {}
+  for (const line of (text ?? '').split(/\r?\n/)) {
+    const i = line.indexOf(':')
+    if (i <= 0) continue
+    const k = line.slice(0, i).trim()
+    const v = line.slice(i + 1).trim()
+    if (k && v) out[k] = v
+  }
+  return Object.keys(out).length ? out : null
+}
+
+export const formatSpecs = (specs: Record<string, string> | null | undefined): string =>
+  specs
+    ? Object.entries(specs)
+        .map(([k, v]) => `${k}: ${v}`)
+        .join('\n')
+    : ''

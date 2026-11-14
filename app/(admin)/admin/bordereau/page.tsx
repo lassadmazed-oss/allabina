@@ -258,7 +258,10 @@ export default async function BordereauPage({
             {shown.map((a) => (
               <tr key={a.id} className="border-t border-line align-middle">
                 <td className="num px-3 py-2" dir="ltr">
-                  {a.code}
+                  {/* بطاقة المقال: الصور والمواصفات والتوفّر — ما يراه الزائر */}
+                  <Link href={`/admin/articles/${encodeURIComponent(a.code)}`} className="underline underline-offset-4">
+                    {a.code}
+                  </Link>
                 </td>
                 <td className="px-3 py-2">{a.designation_ar}</td>
                 <td className="px-3 py-2 text-xs">{UNITS[a.unit] ?? a.unit}</td>

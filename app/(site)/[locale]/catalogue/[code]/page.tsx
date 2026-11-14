@@ -57,6 +57,16 @@ export default async function ArticlePage({
         {t.back}
       </Link>
 
+      {a.imageUrl && (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={a.imageUrl}
+          alt={designationIn(a, locale)}
+          decoding="async"
+          className="mt-6 aspect-[4/3] w-full rounded border border-line object-cover"
+        />
+      )}
+
       <p className="num mt-6 text-xs text-faint">{isolateNumbers(a.code)}</p>
       <h1 className="display mt-1 text-2xl font-semibold sm:text-3xl">{designationIn(a, locale)}</h1>
       <p className="mt-1 text-sm text-muted">{lotNameIn(a, locale)}</p>

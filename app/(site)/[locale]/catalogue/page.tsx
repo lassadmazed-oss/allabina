@@ -135,6 +135,16 @@ export default async function CataloguePage({
                 href={`/${locale}/catalogue/${encodeURIComponent(a.code)}`}
                 className="flex h-full flex-col rounded border border-line bg-surface p-4 transition hover:border-line-strong"
               >
+                {a.imageUrl && (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={a.imageUrl}
+                    alt=""
+                    loading="lazy"
+                    decoding="async"
+                    className="mb-3 aspect-[4/3] w-full rounded object-cover"
+                  />
+                )}
                 <span className="num text-xs text-faint">{isolateNumbers(a.code)}</span>
                 <span className="mt-1 font-semibold leading-7">{designationIn(a, locale)}</span>
                 <span className="mt-0.5 text-xs text-muted">{lotNameIn(a, locale)}</span>

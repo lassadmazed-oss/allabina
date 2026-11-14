@@ -2,6 +2,7 @@ import 'server-only'
 import { cache } from 'react'
 import { db } from '@/lib/supabase/server'
 import { toPublic, type Availability, type CatalogArticle } from '@/lib/catalog'
+import { ARTICLE_MEDIA_BUCKET, isPublishable } from '@/lib/article-media'
 
 /**
  * قراءات الكاتالوج العمومي.
@@ -49,6 +50,42 @@ function shape(r: Row): CatalogArticle {
     specs: (r.specs as Record<string, string>) ?? null,
     imageUrl: null,
   })
+}
+
+
+/**
+ * صورة الغلاف لكلّ مقال — المنشورة وحدها.
+ *
+ * «صور وحقوقها»: صورة بلا مصدر وإذن لا تخرج. الترشيح هنا لا في
+ * الصفحة، فصفحة تنسى الشرط لا تنشر ما ليس لها.
+ * الدلو خاصّ، فالروابط موقّعة لساعة.
+ */
+async function coverUrls(articleIds: string[]): Promise<Map<string, string>> {
+  if (!articleIds.length) return new Map()
+  const { data } = await db
+    .from('article_media')
+    .select('article_id, storage_path, credit, license, sort_order')
+    .in('article_id', articleIds)
+    .order('sort_order')
+
+  const first = new Map<string, string>()
+  for (const m of data ?? []) {
+    if (!isPublishable({ credit: m.credit as string, license: m.license as string })) continue
+    const id = String(m.article_id)
+    if (!first.has(id)) first.set(id, String(m.storage_path))
+  }
+  if (!first.size) return new Map()
+
+  const paths = [...first.values()]
+  const { data: signed } = await db.storage.from(ARTICLE_MEDIA_BUCKET).createSignedUrls(paths, 3600)
+  const urlByPath = new Map((signed ?? []).map((s) => [String(s.path), s.signedUrl]))
+
+  const out = new Map<string, string>()
+  for (const [id, path] of first) {
+    const url = urlByPath.get(path)
+    if (url) out.set(id, url)
+  }
+  return out
 }
 
 /** هل الكاتالوج مفتوح أصلاً؟ قرار في «المعطيات المرجعية». */
@@ -99,7 +136,10 @@ export async function getPublicArticles(limit = 300): Promise<CatalogArticle[]> 
     .eq('is_active', true)
     .order('code')
     .limit(limit)
-  return ((data ?? []) as unknown as Row[]).map(shape)
+
+  const rows = (data ?? []) as unknown as Row[]
+  const covers = await coverUrls(rows.map((r) => String(r.id)))
+  return rows.map((r) => ({ ...shape(r), imageUrl: covers.get(String(r.id)) ?? null }))
 }
 
 /**
@@ -109,5 +149,8 @@ export async function getPublicArticles(limit = 300): Promise<CatalogArticle[]> 
  */
 export async function getPublicArticle(code: string): Promise<CatalogArticle | null> {
   const { data } = await db.from('articles').select(SELECT).eq('code', code).eq('is_public', true).maybeSingle()
-  return data ? shape(data as unknown as Row) : null
+  if (!data) return null
+  const row = data as unknown as Row
+  const covers = await coverUrls([String(row.id)])
+  return { ...shape(row), imageUrl: covers.get(String(row.id)) ?? null }
 }
