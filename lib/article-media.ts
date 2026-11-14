@@ -19,6 +19,9 @@ const EXT: Record<string, string> = {
 }
 
 export const ALLOWED_ARTICLE_MIME = Object.keys(EXT)
+
+/** امتداد الملفّ من نوعه — تستعمله صور المنتجات أيضاً */
+export const mediaExt = (mime: string): string => EXT[mime] ?? 'bin'
 export const MAX_ARTICLE_PHOTO_BYTES = 5 * 1024 * 1024
 
 export type MediaRejection = 'type' | 'size' | 'empty'

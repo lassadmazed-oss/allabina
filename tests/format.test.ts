@@ -8,6 +8,7 @@ import {
   formatSignedMoney,
   LRI,
   PDI,
+  formatMillimes,
 } from '@/lib/format'
 import { formatTND } from '@/lib/finance'
 
@@ -104,5 +105,24 @@ describe('العدّ العربي', () => {
   it('المئات تتبع خانتيها: 105 جمع قلّة و112 تمييز مفرد', () => {
     expect(countAr(105, F)).toContain('عروض')
     expect(countAr(112, F)).toContain('عرضاً')
+  })
+})
+
+/**
+ * كلفة المادّة للوحدة أغلبها تحت الدينار: 0,756 د للمتر دهناً.
+ * formatMoney تدوّرها إلى «1 د.ت» فتمسح المعنى.
+ */
+describe('المليمات', () => {
+  it('تُعرض بثلاث خانات وفاصلة عشرية لا نقطة', () => {
+    expect(formatMillimes(0.756)).toBe(`0,756${THIN_NBSP}د.ت`)
+    expect(formatMillimes(0.756, 'fr')).toBe(`0,756${THIN_NBSP}DT`)
+  })
+
+  it('والآلاف تبقى بمسافة رفيعة', () => {
+    expect(formatMillimes(1234.5)).toBe(`1${THIN_NBSP}234,500${THIN_NBSP}د.ت`)
+  })
+
+  it('وما ليس عدداً لا يُعرض صفراً', () => {
+    expect(formatMillimes(Number.NaN)).toBe('—')
   })
 })

@@ -22,6 +22,18 @@ export function formatNumber(value: number, decimals = 0): string {
 
 export const currencyLabel = (locale: Locale = 'ar') => (locale === 'fr' ? 'DT' : 'د.ت')
 
+/**
+ * مبلغ بالمليم: «0,756 د.ت».
+ *
+ * كلفة المادّة للمتر الواحد أغلبها تحت الدينار، وformatMoney تدوّر
+ * فتمسحها — 0,756 تصير «1». والفاصلة العشرية فاصلة لا نقطة: هكذا
+ * يُكتب الدينار في تونس، وآلاف الوحدات تبقى بمسافة رفيعة.
+ */
+export function formatMillimes(value: number, locale: Locale = 'ar'): string {
+  if (!Number.isFinite(value)) return '—'
+  return `${formatNumber(value, 3).replace('.', ',')}${THIN_NBSP}${currencyLabel(locale)}`
+}
+
 /** مبلغ بالدينار: «91 733 د.ت» / « 91 733 DT » */
 export function formatMoney(value: number, locale: Locale = 'ar'): string {
   return `${formatNumber(Math.round(value))}${THIN_NBSP}${currencyLabel(locale)}`
