@@ -35,6 +35,8 @@ export type CatalogArticle = {
   usageNote: string | null
   specs: Record<string, string> | null
   imageUrl: string | null
+  /** متوقّف: يبقى بمرجعه في الملفّات القديمة ولا يُقترح للجديد */
+  isActive: boolean
 }
 
 /** ما يُسمح بخروجه إلى المتصفّح. كلّ ما عداه يبقى في الخادم. */
@@ -56,6 +58,7 @@ const PUBLIC_KEYS = new Set<keyof CatalogArticle>([
   'usageNote',
   'specs',
   'imageUrl',
+  'isActive',
 ])
 
 /** حقول داخلية لا تخرج أبداً — تُفحص بالاسم لا بالثقة */

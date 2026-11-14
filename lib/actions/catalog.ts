@@ -128,3 +128,53 @@ export async function updateArticleCardAction(formData: FormData) {
   done(code)
 }
 
+/**
+ * ربط بديل بمقال.
+ *
+ * السطر يُكتب باتّجاه واحد والقراءة تأخذ الاتّجاهين، فإضافة نفس
+ * العلاقة مقلوبةً لا تُنشئ سطراً ثانياً — نتثبّت من الاتّجاه المعاكس
+ * قبل الكتابة.
+ */
+export async function addAlternativeAction(formData: FormData) {
+  const actor = await staffWithPermission('reference.manage')
+  if (!actor) return
+  const code = String(formData.get('code') ?? '').trim()
+  const altCode = String(formData.get('alt_code') ?? '').trim().toUpperCase()
+  if (!code || !altCode || code.toUpperCase() === altCode) return
+
+  const { data: pair } = await db.from('articles').select('id, code').in('code', [code, altCode])
+  const byCode = new Map((pair ?? []).map((r) => [String(r.code).toUpperCase(), String(r.id)]))
+  const id = byCode.get(code.toUpperCase())
+  const altId = byCode.get(altCode)
+  if (!id || !altId || id === altId) return
+
+  // موجودة مقلوبةً؟ لا نكتب سطراً ثانياً لنفس العلاقة
+  const { data: reverse } = await db
+    .from('article_alternatives')
+    .select('article_id')
+    .eq('article_id', altId)
+    .eq('alternative_id', id)
+    .maybeSingle()
+  if (reverse) return done(code)
+
+  const { error } = await db
+    .from('article_alternatives')
+    .upsert({ article_id: id, alternative_id: altId }, { onConflict: 'article_id,alternative_id' })
+  if (error) console.error('add alternative', error.message)
+  done(code)
+}
+
+export async function removeAlternativeAction(formData: FormData) {
+  const actor = await staffWithPermission('reference.manage')
+  if (!actor) return
+  const code = String(formData.get('code') ?? '').trim()
+  const altId = String(formData.get('alt_id') ?? '').trim()
+  const id = String(formData.get('article_id') ?? '').trim()
+  if (!id || !altId) return
+
+  // يُحذف الاتّجاهان: المستعمل لا يعرف أيّهما كُتب
+  await db.from('article_alternatives').delete().eq('article_id', id).eq('alternative_id', altId)
+  await db.from('article_alternatives').delete().eq('article_id', altId).eq('alternative_id', id)
+  done(code)
+}
+

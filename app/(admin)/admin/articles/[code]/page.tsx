@@ -4,7 +4,11 @@ import { requirePermission } from '@/lib/auth'
 import { db } from '@/lib/supabase/server'
 import ArticleMediaUpload from '@/components/ArticleMediaUpload'
 import { deleteArticleMediaAction } from '@/lib/actions/article-media'
-import { updateArticleCardAction } from '@/lib/actions/catalog'
+import {
+  addAlternativeAction,
+  removeAlternativeAction,
+  updateArticleCardAction,
+} from '@/lib/actions/catalog'
 import { ARTICLE_MEDIA_BUCKET, isPublishable, sortMedia } from '@/lib/article-media'
 import { formatSpecs } from '@/lib/catalog'
 import { formatMoney, isolateNumbers } from '@/lib/format'
@@ -43,6 +47,20 @@ export default async function AdminArticlePage({
   const a = row as unknown as Record<string, unknown> & { lots?: Lot | Lot[] | null }
   const lot = Array.isArray(a.lots) ? a.lots[0] : a.lots
   const priceHt = Number(a.pu_fourniture_ht ?? 0) + Number(a.pu_main_oeuvre_ht ?? 0)
+
+  const [{ data: fwd }, { data: bwd }] = await Promise.all([
+    db.from('article_alternatives').select('alternative_id').eq('article_id', a.id),
+    db.from('article_alternatives').select('article_id').eq('alternative_id', a.id),
+  ])
+  const altIds = [
+    ...new Set([
+      ...(fwd ?? []).map((r) => String(r.alternative_id)),
+      ...(bwd ?? []).map((r) => String(r.article_id)),
+    ]),
+  ].filter((x) => x !== String(a.id))
+  const { data: altRows } = altIds.length
+    ? await db.from('articles').select('id, code, designation_ar, unit, is_public').in('id', altIds).order('code')
+    : { data: [] as { id: string; code: string; designation_ar: string; unit: string; is_public: boolean }[] }
 
   const { data: mediaRows } = await db
     .from('article_media')
@@ -182,6 +200,60 @@ export default async function AdminArticlePage({
           احفظ البطاقة
         </button>
       </form>
+
+      {/* ── البدائل ── */}
+      <section className="mt-6 rounded border border-line bg-surface p-4">
+        <h2 className="text-sm font-semibold">البدائل</h2>
+        <p className="mt-1 text-xs leading-7 text-muted">
+          تظهر في البطاقة العمومية، وتُقترح كي يولّي المقال متوقّفاً. العلاقة في الاتّجاهين:
+          اللي تزيدو هنا يشوف هالمقال بديلاً عندو.
+        </p>
+
+        {(altRows ?? []).length > 0 && (
+          <ul className="mt-3 grid gap-2">
+            {(altRows ?? []).map((alt) => (
+              <li key={String(alt.id)} className="flex flex-wrap items-center gap-3 rounded border border-line px-3 py-2">
+                <Link href={`/admin/articles/${encodeURIComponent(String(alt.code))}`} className="num text-xs underline underline-offset-4">
+                  {String(alt.code)}
+                </Link>
+                <span className="flex-1 text-sm">{String(alt.designation_ar)}</span>
+                <span className="num text-xs text-faint">{String(alt.unit)}</span>
+                {String(alt.unit) !== String(a.unit) && (
+                  <span className="rounded bg-[#fbf0d8] px-2 py-0.5 text-xs text-[#8a5b05]">وحدة مختلفة</span>
+                )}
+                {!alt.is_public && (
+                  <span className="rounded bg-surface-2 px-2 py-0.5 text-xs text-muted">غير منشور</span>
+                )}
+                <form action={removeAlternativeAction}>
+                  <input type="hidden" name="code" value={String(a.code)} />
+                  <input type="hidden" name="article_id" value={String(a.id)} />
+                  <input type="hidden" name="alt_id" value={String(alt.id)} />
+                  <button type="submit" className="text-xs text-[#a32a24] underline underline-offset-4">
+                    شيل
+                  </button>
+                </form>
+              </li>
+            ))}
+          </ul>
+        )}
+
+        <form action={addAlternativeAction} className="mt-3 flex flex-wrap items-end gap-2">
+          <input type="hidden" name="code" value={String(a.code)} />
+          <label className="flex-1 basis-56">
+            <span className="mb-1.5 block text-xs font-medium">مرجع المقال البديل</span>
+            <input
+              name="alt_code"
+              required
+              dir="ltr"
+              placeholder="MA-01-B02"
+              className="num w-full rounded border border-line bg-surface px-3 py-2 text-sm"
+            />
+          </label>
+          <button type="submit" className="min-h-10 rounded border border-line px-4 text-sm">
+            اربط
+          </button>
+        </form>
+      </section>
 
       {/* ── الصور ── */}
       <section className="mt-6 rounded border border-line bg-surface p-4">

@@ -13,7 +13,7 @@ import { ARTICLE_MEDIA_BUCKET, isPublishable } from '@/lib/article-media'
 const SELECT =
   'id, code, unit, designation_ar, designation_fr, description, description_fr, ' +
   'pu_fourniture_ht, pu_main_oeuvre_ht, availability, lead_time_days, ' +
-  'installation_note, usage_note, specs, lots(code, name_ar, name_fr)'
+  'installation_note, usage_note, specs, is_active, lots(code, name_ar, name_fr)'
 
 type Lot = { code: number; name_ar: string; name_fr: string }
 type Row = Record<string, unknown>
@@ -49,6 +49,7 @@ function shape(r: Row): CatalogArticle {
     usageNote: (r.usage_note as string) ?? null,
     specs: (r.specs as Record<string, string>) ?? null,
     imageUrl: null,
+    isActive: r.is_active !== false,
   })
 }
 
@@ -175,5 +176,42 @@ export async function getPublicArticlesByCodes(codes: string[]): Promise<Catalog
     rows.map((r) => [String(r.code), { ...shape(r), imageUrl: covers.get(String(r.id)) ?? null }])
   )
   return codes.map((c) => byCode.get(c)).filter((a): a is CatalogArticle => Boolean(a))
+}
+
+/**
+ * بدائل مقال — في الاتّجاهين.
+ *
+ * العلاقة متماثلة منطقياً: «ب بديل أ» يعني «أ بديل ب». تُكتب باتّجاه
+ * واحد ليبقى السطر واحداً، وتُقرأ في الاتّجاهين حتّى لا يقع ما يقع
+ * دائماً: يُضاف البديل من بطاقة، فلا يظهر في البطاقة الأخرى، فيُضاف
+ * ثانيةً مقلوباً، فيصير سطران لنفس العلاقة.
+ *
+ * ولا يُقترح إلّا المنشور والمشتغل: بديل متوقّف ليس بديلاً.
+ */
+export async function getAlternatives(articleId: string): Promise<CatalogArticle[]> {
+  const [{ data: forward }, { data: back }] = await Promise.all([
+    db.from('article_alternatives').select('alternative_id').eq('article_id', articleId),
+    db.from('article_alternatives').select('article_id').eq('alternative_id', articleId),
+  ])
+
+  const ids = [
+    ...new Set([
+      ...(forward ?? []).map((r) => String(r.alternative_id)),
+      ...(back ?? []).map((r) => String(r.article_id)),
+    ]),
+  ].filter((id) => id !== articleId)
+  if (!ids.length) return []
+
+  const { data } = await db
+    .from('articles')
+    .select(SELECT)
+    .in('id', ids)
+    .eq('is_public', true)
+    .eq('is_active', true)
+    .order('code')
+
+  const rows = (data ?? []) as unknown as Row[]
+  const covers = await coverUrls(rows.map((r) => String(r.id)))
+  return rows.map((r) => ({ ...shape(r), imageUrl: covers.get(String(r.id)) ?? null }))
 }
 

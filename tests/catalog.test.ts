@@ -38,6 +38,7 @@ const art = (over: Partial<CatalogArticle> = {}): CatalogArticle => ({
   usageNote: null,
   specs: null,
   imageUrl: null,
+  isActive: true,
   ...over,
 })
 
@@ -201,5 +202,31 @@ describe('صفوف المقارنة', () => {
 
   it('بلا مقالات: بلا صفوف', () => {
     expect(comparisonRows([])).toEqual([])
+  })
+})
+
+describe('المقال المتوقّف', () => {
+  it('حالة التوقّف تخرج إلى الواجهة — بطاقته تقولها لا تخفيها', () => {
+    const out = toPublic({ ...art({ isActive: false }) } as unknown as Record<string, unknown>)
+    expect(out.isActive).toBe(false)
+    expect(Object.keys(out)).toContain('isActive')
+  })
+
+  it('المشتغل افتراضياً: خانة غائبة لا تعني متوقّفاً', () => {
+    const row = { ...art() } as unknown as Record<string, unknown>
+    delete row.isActive
+    expect(toPublic(row).isActive).toBeNull()
+  })
+})
+
+describe('جدول البدائل', () => {
+  const sql = readFileSync('supabase/migrations/0058_catalog_public.sql', 'utf8')
+
+  it('مفتاح مركّب يمنع سطرين لنفس العلاقة في نفس الاتّجاه', () => {
+    expect(sql).toMatch(/primary key \(article_id, alternative_id\)/)
+  })
+
+  it('لا يُقرأ بالمفتاح العمومي: الربط شأن داخلي يُعرض مشكَّلاً', () => {
+    expect(sql).toMatch(/revoke all on article_alternatives from anon/)
   })
 })

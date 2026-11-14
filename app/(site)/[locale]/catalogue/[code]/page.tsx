@@ -2,7 +2,12 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import ArticlePrice from '@/components/ArticlePrice'
-import { catalogOpen, catalogTaxRate, getPublicArticle } from '@/lib/catalog-server'
+import {
+  catalogOpen,
+  catalogTaxRate,
+  getAlternatives,
+  getPublicArticle,
+} from '@/lib/catalog-server'
 import { descriptionIn, designationIn, lotNameIn } from '@/lib/catalog'
 import { getDictionary, isLocale, type Locale } from '@/lib/i18n'
 import { isolateNumbers } from '@/lib/format'
@@ -49,6 +54,8 @@ export default async function ArticlePage({
   ])
   if (!a) notFound()
 
+  const alternatives = await getAlternatives(a.id)
+
   const specs = a.specs && typeof a.specs === 'object' ? Object.entries(a.specs) : []
 
   return (
@@ -65,6 +72,13 @@ export default async function ArticlePage({
           decoding="async"
           className="mt-6 aspect-[4/3] w-full rounded border border-line object-cover"
         />
+      )}
+
+      {!a.isActive && (
+        <div className="mt-6 rounded border border-line bg-gold-soft p-4">
+          <p className="font-semibold">{t.discontinuedTitle}</p>
+          <p className="mt-1 leading-7 text-muted">{t.discontinuedBody}</p>
+        </div>
       )}
 
       <p className="num mt-6 text-xs text-faint">{isolateNumbers(a.code)}</p>
@@ -103,6 +117,35 @@ export default async function ArticlePage({
         <section className="mt-5 grid gap-4 rounded border border-line bg-surface p-4">
           <Row k={t.installation} v={a.installationNote} />
           <Row k={t.usage} v={a.usageNote} />
+        </section>
+      )}
+
+      {alternatives.length > 0 && (
+        <section className="mt-6">
+          <h2 className="display text-lg font-semibold">{t.alternatives}</h2>
+          <p className="mt-1 text-sm leading-7 text-muted">{t.alternativesLede}</p>
+          <ul className="mt-3 grid gap-3 sm:grid-cols-2">
+            {alternatives.map((alt) => (
+              <li key={alt.id}>
+                <Link
+                  href={`/${locale}/catalogue/${encodeURIComponent(alt.code)}`}
+                  className="flex h-full flex-col rounded border border-line bg-surface p-3 transition hover:border-line-strong"
+                >
+                  <span className="num text-xs text-faint">{isolateNumbers(alt.code)}</span>
+                  <span className="mt-0.5 font-medium leading-7">{designationIn(alt, locale)}</span>
+                  <span className="mt-2">
+                    <ArticlePrice
+                      article={alt}
+                      taxRatePct={taxRatePct}
+                      locale={locale}
+                      t={t}
+                      compact
+                    />
+                  </span>
+                </Link>
+              </li>
+            ))}
+          </ul>
         </section>
       )}
 

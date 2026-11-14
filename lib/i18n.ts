@@ -1224,6 +1224,10 @@ const ar = {
       } as Record<string, string>,
       compareSame: 'نفس الشي',
       compareNone: '—',
+      alternatives: 'بدائل',
+      alternativesLede: 'مقالات تنجّم تعوّضو. الاختيار يبقى اختيارك.',
+      discontinuedTitle: 'هالمقال ما عادش يتعرض',
+      discontinuedBody: 'يبقى بمرجعو في الملفّات اللي فيها، وسعرو كيما تسجّل. إذا تحبّ حاجة تعوّضو، هاو البدائل.',
     },
     account: {
       pageTitle: 'حسابك في اللَّبنة',
@@ -2620,6 +2624,10 @@ const fr: Dictionary = {
       } as Record<string, string>,
       compareSame: 'Identique',
       compareNone: '—',
+      alternatives: 'Alternatives',
+      alternativesLede: 'Des articles qui peuvent le remplacer. Le choix reste le vôtre.',
+      discontinuedTitle: 'Cet article n’est plus proposé',
+      discontinuedBody: 'Il reste sous sa référence dans les dossiers qui le contiennent, à son prix d’origine. Voici ce qui peut le remplacer.',
     },
     account: {
       pageTitle: 'Votre compte AL-LUBNA',
