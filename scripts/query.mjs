@@ -23,10 +23,13 @@ banner(env, writes.length ? 'استعلام يكتب' : 'استعلام قراء
 const client = await connect({ env, quiet: true })
 try {
   for (const sql of queries) {
-    const r = await client.query(sql)
+    const out = await client.query(sql)
     console.log('—', sql.length > 70 ? sql.slice(0, 70) + '…' : sql)
-    if (r.rows.length) console.table(r.rows)
-    else console.log('  (لا نتائج · ' + (r.rowCount ?? 0) + ' سطراً)')
+    // نصّ فيه أكثر من جملة يرجع مصفوفة نتائج لا نتيجة واحدة
+    for (const r of Array.isArray(out) ? out : [out]) {
+      if (r.rows?.length) console.table(r.rows)
+      else console.log('  (لا نتائج · ' + (r.rowCount ?? 0) + ' سطراً)')
+    }
   }
 } finally {
   await client.end()
