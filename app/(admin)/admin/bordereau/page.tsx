@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { setCatalogOpenAction, setLotPublicAction } from '@/lib/actions/catalog'
 import { requirePermission } from '@/lib/auth'
 import { db, getStandingLevels } from '@/lib/supabase/server'
 import { formatNumber } from '@/lib/format'
@@ -55,6 +56,25 @@ export default async function BordereauPage({
   const countByLot = new Map<number, number>()
   for (const a of articles) countByLot.set(a.lot_id, (countByLot.get(a.lot_id) ?? 0) + 1)
 
+  // حالة النشر: كم مقالاً منشوراً في كلّ لوط، والمفتاح العامّ
+  const { data: pubRows } = await db
+    .from('articles')
+    .select('lot_id, is_public')
+    .eq('is_active', true)
+  const publishedByLot = new Map<number, number>()
+  const totalByLot = new Map<number, number>()
+  for (const r of pubRows ?? []) {
+    const id = Number(r.lot_id)
+    totalByLot.set(id, (totalByLot.get(id) ?? 0) + 1)
+    if (r.is_public) publishedByLot.set(id, (publishedByLot.get(id) ?? 0) + 1)
+  }
+  const { data: openRow } = await db
+    .from('app_settings')
+    .select('value')
+    .eq('key', 'catalog.public_enabled')
+    .maybeSingle()
+  const catalogIsOpen = openRow?.value === true
+
   return (
     <div className="mx-auto max-w-6xl px-4 py-8 sm:px-5 sm:py-10">
       <Link href="/admin" className="text-sm text-muted hover:text-brand">
@@ -70,6 +90,53 @@ export default async function BordereauPage({
         <b>تنبيه:</b> تغيير سعر يُطبَّق على العروض <b>الجديدة</b> فقط. العروض اللي تولّدت قبل
         يبقاو بأسعارهم كما هي — كل سطر عرض ينسخ سعره وقت التوليد.
       </div>
+
+      {/* النشر قرار إدارة: القسم 03 — «النشر يتم بعد موافقة الإدارة» */}
+      <section className="mt-4 rounded border border-line bg-surface p-4">
+        <div className="flex flex-wrap items-center gap-3">
+          <h2 className="text-sm font-semibold">الكاتالوج العمومي</h2>
+          <span className={`rounded px-2 py-0.5 text-xs font-medium ${catalogIsOpen ? 'bg-[#e4f1ea] text-[#1d6b45]' : 'bg-surface-2 text-muted'}`}>
+            {catalogIsOpen ? 'مفتوح للزوّار' : 'مغلق'}
+          </span>
+          <form action={setCatalogOpenAction} className="ms-auto">
+            <input type="hidden" name="open" value={catalogIsOpen ? '0' : '1'} />
+            <button type="submit" className="min-h-9 rounded border border-line px-3 text-sm">
+              {catalogIsOpen ? 'غلق الكاتالوج' : 'فتح الكاتالوج'}
+            </button>
+          </form>
+        </div>
+        <p className="mt-2 text-sm leading-7 text-muted">
+          المقال ما يظهرش للزائر حتّى تنشرو. السعر المعروض هو التوريد + اليد العاملة بلا أداء،
+          وما يظهر لا هامش ولا مورّد. <b>افتح اللوط كي تتثبّت من أسعارو.</b>
+        </p>
+        <ul className="mt-3 grid gap-2 sm:grid-cols-2">
+          {lots.map((lot) => {
+            const total = totalByLot.get(lot.id) ?? 0
+            const pub = publishedByLot.get(lot.id) ?? 0
+            const allPublished = total > 0 && pub === total
+            return (
+              <li key={lot.id} className="flex items-center gap-3 rounded border border-line px-3 py-2">
+                <span className="num text-xs text-faint">{lot.code}</span>
+                <span className="flex-1 text-sm">{lot.name_ar}</span>
+                <span className="num text-xs text-muted">
+                  {pub}/{total}
+                </span>
+                <form action={setLotPublicAction}>
+                  <input type="hidden" name="lot_id" value={lot.id} />
+                  <input type="hidden" name="publish" value={allPublished ? '0' : '1'} />
+                  <button
+                    type="submit"
+                    disabled={total === 0}
+                    className="min-h-8 rounded border border-line px-2 text-xs disabled:opacity-40"
+                  >
+                    {allPublished ? 'سحب' : 'نشر'}
+                  </button>
+                </form>
+              </li>
+            )
+          })}
+        </ul>
+      </section>
 
       {/* الـLots */}
       <div className="mt-4 flex flex-wrap gap-2 text-sm">

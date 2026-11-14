@@ -5,6 +5,7 @@ import { siteUrl } from '@/lib/site'
 /** الصفحات العلنية فقط — merci و admin خارج الخريطة */
 const PAGES = [
   '',
+  '/catalogue',
   '/demande',
   '/simulateur',
   '/standing',

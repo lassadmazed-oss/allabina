@@ -1,0 +1,148 @@
+import { describe, expect, it } from 'vitest'
+import { readFileSync } from 'node:fs'
+import {
+  INTERNAL_KEYS,
+  applyFilters,
+  canCompare,
+  matches,
+  priceOf,
+  toPublic,
+  type CatalogArticle,
+} from '@/lib/catalog'
+
+/**
+ * الكاتالوج العمومي.
+ *
+ * ثلاثة أخطاء هنا لا تُحدث عطباً بل كذبة على الشاشة، ولذلك تُختبر:
+ * سعر غائب يُعرض صفراً («مجّاني»)، ومقارنة سعر القطعة بسعر المتر
+ * (تبدو صحيحة وتضلّل)، وحقل داخلي يتسرّب إلى المتصفّح.
+ */
+const art = (over: Partial<CatalogArticle> = {}): CatalogArticle => ({
+  id: 'a1',
+  code: 'A-05-012',
+  lotCode: 5,
+  lotNameAr: 'البناء',
+  lotNameFr: 'Maçonnerie',
+  designationAr: 'بلوك 20',
+  designationFr: 'Bloc 20',
+  descriptionAr: null,
+  descriptionFr: null,
+  unit: 'm2',
+  priceHt: 42,
+  availability: 'in_stock',
+  leadTimeDays: null,
+  installationNote: null,
+  usageNote: null,
+  specs: null,
+  imageUrl: null,
+  ...over,
+})
+
+describe('السعر لا يُحسب صفراً', () => {
+  it('السعر المعروف يُعرض، ومعه TTC إن طُلب', () => {
+    expect(priceOf(art(), 19)).toEqual({ kind: 'known', ht: 42, ttc: 42 * 1.19 })
+    expect(priceOf(art())).toEqual({ kind: 'known', ht: 42, ttc: null })
+  })
+
+  it('الغائب «غير متاح» لا صفر — وصفرٌ معروضٌ معناه مجّاني', () => {
+    expect(priceOf(art({ priceHt: null }))).toEqual({ kind: 'unavailable' })
+    expect(priceOf(art({ priceHt: 0 }))).toEqual({ kind: 'unavailable' })
+    expect(priceOf(art({ priceHt: Number.NaN }))).toEqual({ kind: 'unavailable' })
+  })
+
+  it('ما يُحدَّد بعد المعاينة له حالته الخاصّة', () => {
+    expect(priceOf(art({ availability: 'on_survey', priceHt: 42 }))).toEqual({ kind: 'on_survey' })
+  })
+
+  it('«بعد المعاينة» تسبق السعر ولو كان مُدخَلاً', () => {
+    const p = priceOf(art({ availability: 'on_survey', priceHt: 999 }), 19)
+    expect(p.kind).toBe('on_survey')
+  })
+})
+
+describe('المقارنة', () => {
+  it('وحدتان مختلفتان لا تُقارنان — سعر القطعة ليس سعر المتر', () => {
+    const d = canCompare([art({ unit: 'm2' }), art({ unit: 'u' })])
+    expect(d).toEqual({ ok: false, reason: 'mixed_units' })
+  })
+
+  it('نفس الوحدة تُقارن، واثنان يكفيان', () => {
+    expect(canCompare([art(), art()])).toEqual({ ok: true })
+    expect(canCompare([art(), art(), art()])).toEqual({ ok: true })
+  })
+
+  it('واحد لا يُقارن بنفسه، وأربعة فوق الحدّ', () => {
+    expect(canCompare([art()])).toEqual({ ok: false, reason: 'too_few' })
+    expect(canCompare([art(), art(), art(), art()])).toEqual({ ok: false, reason: 'too_many' })
+  })
+})
+
+describe('ما يخرج إلى المتصفّح', () => {
+  it('القائمة بيضاء: حقل غريب لا يمرّ ولو لم يُمنع بالاسم', () => {
+    const row = { ...art(), secret_new_column_2027: 'x', margin: 35, pu_achat: 12 }
+    const out = toPublic(row as unknown as Record<string, unknown>)
+    expect(Object.keys(out)).not.toContain('secret_new_column_2027')
+  })
+
+  it('ولا واحد من الحقول الداخلية المعروفة يتسرّب', () => {
+    const row: Record<string, unknown> = { ...art() }
+    for (const k of INTERNAL_KEYS) row[k] = 'سرّ'
+    const out = toPublic(row)
+    for (const k of INTERNAL_KEYS) expect(Object.keys(out), k).not.toContain(k)
+  })
+
+  it('وما يخرج يحمل ما يحتاجه الزائر فعلاً', () => {
+    const out = toPublic({ ...art() } as unknown as Record<string, unknown>)
+    for (const k of ['code', 'designationAr', 'unit', 'priceHt', 'availability']) {
+      expect(Object.keys(out)).toContain(k)
+    }
+  })
+})
+
+describe('البحث والترشيح', () => {
+  const list = [
+    art({ id: '1', code: 'A-05-012', designationAr: 'بلوك 20', unit: 'm2', priceHt: 42 }),
+    art({ id: '2', code: 'A-09-003', designationAr: 'كابل كهرباء', unit: 'ml', priceHt: 8, lotCode: 9 }),
+    art({ id: '3', code: 'A-05-040', designationAr: 'آجر مجوّف', unit: 'm2', priceHt: 120 }),
+    art({ id: '4', code: 'A-05-099', designationAr: 'حجر قدّ', unit: 'm2', priceHt: null, availability: 'on_survey' }),
+  ]
+
+  it('البحث بالمرجع وبالاسم معاً', () => {
+    expect(matches(list[0], 'A-05')).toBe(true)
+    expect(matches(list[0], 'بلوك')).toBe(true)
+    expect(matches(list[0], 'كابل')).toBe(false)
+  })
+
+  it('البحث الفارغ يرجع الكلّ لا لا شيء', () => {
+    expect(applyFilters(list, { query: '   ' })).toHaveLength(4)
+  })
+
+  it('الترشيح باللوط وبالوحدة', () => {
+    expect(applyFilters(list, { lotCode: 9 }).map((a) => a.id)).toEqual(['2'])
+    expect(applyFilters(list, { unit: 'm2' })).toHaveLength(3)
+  })
+
+  it('سقف السعر يستبعد ما لا سعر له بدل أن يحسبه صفراً', () => {
+    const out = applyFilters(list, { maxPriceHt: 50 })
+    expect(out.map((a) => a.id)).toEqual(['1', '2'])
+    // «حجر قدّ» بلا سعر: لا يظهر تحت كلّ سقف
+    expect(out.map((a) => a.id)).not.toContain('4')
+  })
+})
+
+describe('النشر قرار إدارة', () => {
+  const sql = readFileSync('supabase/migrations/0058_catalog_public.sql', 'utf8')
+
+  it('المقال مغلق افتراضياً — 333 سعراً لا تخرج بهجرة', () => {
+    expect(sql).toMatch(/is_public boolean not null default false/)
+  })
+
+  it('الصورة بلا إذن لا تُنشر: الحقوق عمود لا ملاحظة', () => {
+    expect(sql).toContain('credit')
+    expect(sql).toContain('license')
+  })
+
+  it('مقال ليس بديلاً لنفسه', () => {
+    expect(sql).toMatch(/check \(article_id <> alternative_id\)/)
+  })
+})
