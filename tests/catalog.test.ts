@@ -6,7 +6,10 @@ import {
   canCompare,
   matches,
   priceOf,
+  comparisonRows,
+  parseCodes,
   toPublic,
+  toggleCode,
   type CatalogArticle,
 } from '@/lib/catalog'
 
@@ -144,5 +147,59 @@ describe('النشر قرار إدارة', () => {
 
   it('مقال ليس بديلاً لنفسه', () => {
     expect(sql).toMatch(/check \(article_id <> alternative_id\)/)
+  })
+})
+
+describe('قائمة المقارنة في العنوان', () => {
+  it('الزيادة والإزالة من نفس الزرّ', () => {
+    expect(toggleCode([], 'A-01')).toEqual(['A-01'])
+    expect(toggleCode(['A-01'], 'A-01')).toEqual([])
+    expect(toggleCode(['A-01'], 'A-02')).toEqual(['A-01', 'A-02'])
+  })
+
+  it('الحدّ ثلاثة: الرابع لا يُزاد ولا يطرد أحداً', () => {
+    const three = ['A-01', 'A-02', 'A-03']
+    expect(toggleCode(three, 'A-04')).toEqual(three)
+  })
+
+  it('حالة الحرف لا تصنع مرجعين', () => {
+    expect(toggleCode(['A-01'], 'a-01')).toEqual([])
+  })
+
+  it('القراءة من العنوان تُنظّف الفراغ والتكرار والزيادة', () => {
+    expect(parseCodes(' a-01 , A-02,,A-01 , A-03 , A-04 ')).toEqual(['A-01', 'A-02', 'A-03'])
+    expect(parseCodes(undefined)).toEqual([])
+  })
+})
+
+describe('صفوف المقارنة', () => {
+  const a = art({ id: '1', code: 'A-1', priceHt: 40, unit: 'm2', specs: { 'اللون': 'رمادي' } })
+  const b = art({ id: '2', code: 'A-2', priceHt: 40, unit: 'm2', specs: { 'المقاومة': '60 بار' } })
+
+  it('ما يختلف يُوسَم، وما يتطابق لا', () => {
+    const rows = comparisonRows([a, b])
+    const price = rows.find((r) => r.key === 'price_ht')!
+    const unit = rows.find((r) => r.key === 'unit')!
+    expect(price.differs).toBe(false)
+    expect(unit.differs).toBe(false)
+    expect(comparisonRows([a, art({ ...b, priceHt: 55 })]).find((r) => r.key === 'price_ht')!.differs).toBe(true)
+  })
+
+  it('مواصفة عند واحد وغائبة عند آخر فرقٌ يُرى لا سطرٌ يُحذف', () => {
+    const rows = comparisonRows([a, b])
+    const color = rows.find((r) => r.specKey === 'اللون')!
+    expect(color.values).toEqual(['رمادي', null])
+    expect(color.differs).toBe(true)
+    expect(rows.find((r) => r.specKey === 'المقاومة')!.values).toEqual([null, '60 بار'])
+  })
+
+  it('الخانة الفارغة والمعدومة سواء في العرض', () => {
+    const rows = comparisonRows([art({ installationNote: '' }), art({ installationNote: null })])
+    expect(rows.find((r) => r.key === 'installation')!.values).toEqual([null, null])
+    expect(rows.find((r) => r.key === 'installation')!.differs).toBe(false)
+  })
+
+  it('بلا مقالات: بلا صفوف', () => {
+    expect(comparisonRows([])).toEqual([])
   })
 })

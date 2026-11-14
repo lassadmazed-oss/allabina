@@ -193,3 +193,74 @@ export const formatSpecs = (specs: Record<string, string> | null | undefined): s
         .map(([k, v]) => `${k}: ${v}`)
         .join('\n')
     : ''
+
+// ─────────────────────────────────────────── المقارنة
+
+/**
+ * إضافة مرجع إلى قائمة المقارنة أو إزالته.
+ *
+ * القائمة تعيش في عنوان الصفحة لا في ذاكرة المتصفّح: تشتغل بلا
+ * جافاسكريبت، وتُنسَخ وتُرسَل كما هي. والحدّ ثلاثة كما في الكرّاس —
+ * ما فوقها لا يُقارَن بل يُتصفَّح.
+ */
+export function toggleCode(codes: string[], code: string, max = 3): string[] {
+  const c = code.trim().toUpperCase()
+  if (!c) return codes
+  if (codes.includes(c)) return codes.filter((x) => x !== c)
+  return codes.length >= max ? codes : [...codes, c]
+}
+
+/** «A-01,A-02» → [A-01, A-02]، بلا فراغ ولا تكرار ولا أكثر من الحدّ */
+export function parseCodes(raw: string | undefined, max = 3): string[] {
+  const seen: string[] = []
+  for (const part of (raw ?? '').split(',')) {
+    const c = part.trim().toUpperCase()
+    if (c && !seen.includes(c) && seen.length < max) seen.push(c)
+  }
+  return seen
+}
+
+export type CompareKind = 'money' | 'days' | 'text'
+export type CompareRow = {
+  key: string
+  kind: CompareKind
+  /** مفتاح المواصفة حين يكون السطر مواصفة لا خانة ثابتة */
+  specKey?: string
+  values: (string | null)[]
+  /** يختلف بين المقالات — يُبرَز، وهو سبب المقارنة أصلاً */
+  differs: boolean
+}
+
+/**
+ * صفوف المقارنة: خانة لكلّ سطر، ومقال لكلّ عمود.
+ *
+ * المواصفات تُجمع من كلّ المقالات: مواصفة عند واحد وغائبة عند آخر
+ * فرقٌ يستحقّ أن يُرى، لا سطرٌ يُحذف لأنّه ناقص عند أحدهم.
+ */
+export function comparisonRows(items: CatalogArticle[]): CompareRow[] {
+  if (!items.length) return []
+
+  const specKeys: string[] = []
+  for (const a of items) {
+    for (const k of Object.keys(a.specs ?? {})) if (!specKeys.includes(k)) specKeys.push(k)
+  }
+
+  const rows: CompareRow[] = [
+    row('price_ht', 'money', items.map((a) => (a.priceHt === null ? null : String(a.priceHt)))),
+    row('unit', 'text', items.map((a) => a.unit || null)),
+    row('availability', 'text', items.map((a) => a.availability)),
+    row('lead_time', 'days', items.map((a) => (a.leadTimeDays === null ? null : String(a.leadTimeDays)))),
+    row('installation', 'text', items.map((a) => a.installationNote)),
+    row('usage', 'text', items.map((a) => a.usageNote)),
+  ]
+  for (const k of specKeys) {
+    rows.push({ ...row('spec', 'text', items.map((a) => a.specs?.[k] ?? null)), specKey: k })
+  }
+  return rows
+}
+
+function row(key: string, kind: CompareKind, values: (string | null)[]): CompareRow {
+  const shown = values.map((v) => (v === null || v === '' ? null : v))
+  const first = shown[0]
+  return { key, kind, values: shown, differs: shown.some((v) => v !== first) }
+}

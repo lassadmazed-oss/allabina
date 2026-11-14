@@ -154,3 +154,26 @@ export async function getPublicArticle(code: string): Promise<CatalogArticle | n
   const covers = await coverUrls([String(row.id)])
   return { ...shape(row), imageUrl: covers.get(String(row.id)) ?? null }
 }
+
+/**
+ * مقالات بمراجعها، بترتيب المراجع كما طلبها الزائر.
+ * ترتيب القاعدة ليس ترتيب الأعمدة الذي يراه: من يختار «ب ثمّ أ» يتوقّع
+ * «ب ثمّ أ».
+ */
+export async function getPublicArticlesByCodes(codes: string[]): Promise<CatalogArticle[]> {
+  if (!codes.length) return []
+  const { data } = await db
+    .from('articles')
+    .select(SELECT)
+    .in('code', codes)
+    .eq('is_public', true)
+    .eq('is_active', true)
+
+  const rows = (data ?? []) as unknown as Row[]
+  const covers = await coverUrls(rows.map((r) => String(r.id)))
+  const byCode = new Map(
+    rows.map((r) => [String(r.code), { ...shape(r), imageUrl: covers.get(String(r.id)) ?? null }])
+  )
+  return codes.map((c) => byCode.get(c)).filter((a): a is CatalogArticle => Boolean(a))
+}
+

@@ -7,7 +7,7 @@ import {
   getPublicArticles,
   getPublicLots,
 } from '@/lib/catalog-server'
-import { applyFilters, designationIn, lotNameIn } from '@/lib/catalog'
+import { applyFilters, designationIn, lotNameIn, parseCodes, toggleCode } from '@/lib/catalog'
 import { getDictionary, isLocale, type Locale } from '@/lib/i18n'
 import { isolateNumbers } from '@/lib/format'
 
@@ -28,7 +28,7 @@ export default async function CataloguePage({
   searchParams,
 }: {
   params: Promise<{ locale: string }>
-  searchParams: Promise<{ q?: string; lot?: string }>
+  searchParams: Promise<{ q?: string; lot?: string; cmp?: string }>
 }) {
   const [{ locale: raw }, sp] = await Promise.all([params, searchParams])
   const locale: Locale = isLocale(raw) ? raw : 'ar'
@@ -63,12 +63,17 @@ export default async function CataloguePage({
     query,
   })
 
-  const href = (over: { lot?: number | null; q?: string }) => {
+  // قائمة المقارنة تعيش في العنوان: تشتغل بلا جافاسكريبت، وتُنسَخ وتُرسَل
+  const selected = parseCodes(sp.cmp)
+
+  const href = (over: { lot?: number | null; q?: string; cmp?: string[] }) => {
     const p = new URLSearchParams()
     const lot = over.lot === undefined ? lotCode : over.lot
     const q = over.q === undefined ? query : over.q
+    const cmp = over.cmp === undefined ? selected : over.cmp
     if (lot) p.set('lot', String(lot))
     if (q) p.set('q', q)
+    if (cmp.length) p.set('cmp', cmp.join(','))
     const s = p.toString()
     return `/${locale}/catalogue${s ? `?${s}` : ''}`
   }
@@ -130,10 +135,10 @@ export default async function CataloguePage({
       ) : (
         <ul className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {items.map((a) => (
-            <li key={a.id}>
+            <li key={a.id} className="flex flex-col">
               <Link
                 href={`/${locale}/catalogue/${encodeURIComponent(a.code)}`}
-                className="flex h-full flex-col rounded border border-line bg-surface p-4 transition hover:border-line-strong"
+                className="flex flex-1 flex-col rounded border border-line bg-surface p-4 transition hover:border-line-strong"
               >
                 {a.imageUrl && (
                   // eslint-disable-next-line @next/next/no-img-element
@@ -152,12 +157,47 @@ export default async function CataloguePage({
                   <ArticlePrice article={a} taxRatePct={taxRatePct} locale={locale} t={t} compact />
                 </span>
               </Link>
+              {/* الاختيار رابط لا خانة: يشتغل بلا جافاسكريبت */}
+              <Link
+                href={href({ cmp: toggleCode(selected, a.code) })}
+                aria-pressed={selected.includes(a.code)}
+                className={`mt-1.5 rounded border px-3 py-1.5 text-center text-xs ${
+                  selected.includes(a.code)
+                    ? 'border-brand bg-brand-soft font-medium text-brand'
+                    : 'border-line text-muted'
+                }`}
+              >
+                {selected.includes(a.code) ? `✓ ${t.comparing}` : t.compare}
+              </Link>
             </li>
           ))}
         </ul>
       )}
 
       <p className="mt-8 text-xs leading-7 text-faint">{t.note}</p>
+
+      {/* شريط الاختيار: ثابت أسفل الشاشة ما دام فيه مقال */}
+      {selected.length > 0 && (
+        <div
+          className="sticky bottom-0 z-10 mt-6 flex flex-wrap items-center gap-2 rounded border border-line bg-surface p-3 shadow-sm"
+          style={{ bottom: 'env(safe-area-inset-bottom, 0px)' }}
+        >
+          <span className="num text-sm font-semibold">{isolateNumbers(String(selected.length))}</span>
+          <span className="text-sm text-muted">{t.comparing}</span>
+          <Link
+            href={`/${locale}/catalogue/comparer?codes=${encodeURIComponent(selected.join(','))}`}
+            className={`ms-auto rounded px-4 py-2 text-sm font-semibold text-white ${
+              selected.length >= 2 ? 'bg-brand' : 'pointer-events-none bg-line-strong'
+            }`}
+            aria-disabled={selected.length < 2}
+          >
+            {t.compareOpen}
+          </Link>
+          <Link href={href({ cmp: [] })} className="rounded border border-line px-3 py-2 text-sm text-muted">
+            {t.compareClear}
+          </Link>
+        </div>
+      )}
 
       <section className="mt-10 rounded border border-line bg-gold-soft p-5">
         <h2 className="display text-lg font-semibold">{t.ctaTitle}</h2>
