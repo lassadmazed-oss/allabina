@@ -7,6 +7,7 @@ import { db } from '@/lib/supabase/server'
 import { getDictionary, isLocale, type Locale } from '@/lib/i18n'
 import { isolateNumbers } from '@/lib/format'
 import { publicStateOf } from '@/lib/public-state'
+import { getClientChantiers } from '@/lib/client-site'
 
 export const dynamic = 'force-dynamic'
 
@@ -53,6 +54,9 @@ export default async function ComptePage({
     .order('created_at', { ascending: false })
     .limit(20)
 
+  // الورشة تُقرأ مرشَّحةً بالحساب — المعتمَد وحده، بلا كمّيات ولا أسعار
+  const sites = await getClientChantiers(user.id)
+
   const claimed = Number(sp.claimed ?? '')
   const justClaimed = Number.isFinite(claimed) && claimed > 0
 
@@ -74,18 +78,59 @@ export default async function ComptePage({
 
       <section className="mt-8">
         <h2 className="text-sm font-semibold tracking-wide text-faint">{t.myFiles}</h2>
-        <ul className="mt-3 divide-y divide-line rounded border border-line bg-surface">
-          {(files ?? []).map((f) => (
-            <li key={String(f.id)} className="flex items-center justify-between gap-3 px-3 py-3">
-              <span className="num text-sm font-semibold">{isolateNumbers(String(f.ref_code))}</span>
-              {/* الحالة بلغة الحريف لا باسم القيمة في القاعدة */}
-              <span className="text-xs text-muted">
-                {dict.suivi.states[publicStateOf(String(f.status))] ?? ''}
-              </span>
-            </li>
-          ))}
+        <ul className="mt-3 grid gap-3">
+          {(files ?? []).map((f) => {
+            const site = sites.get(String(f.id))
+            return (
+              <li key={String(f.id)} className="rounded border border-line bg-surface">
+                <div className="flex items-center justify-between gap-3 px-3 py-3">
+                  <span className="num text-sm font-semibold">
+                    {isolateNumbers(String(f.ref_code))}
+                  </span>
+                  {/* الحالة بلغة الحريف لا باسم القيمة في القاعدة */}
+                  <span className="text-xs text-muted">
+                    {site
+                      ? t.site.status[site.status]
+                      : (dict.suivi.states[publicStateOf(String(f.status))] ?? '')}
+                  </span>
+                </div>
+
+                {site && (
+                  <div className="border-t border-line px-3 py-3">
+                    {site.progress.pct !== null && (
+                      <>
+                        <div className="flex items-baseline gap-2">
+                          <span className="num text-lg font-semibold">
+                            {isolateNumbers(String(site.progress.pct))}%
+                          </span>
+                          <span className="text-xs text-muted">{t.site.progress}</span>
+                        </div>
+                        <div className="mt-2 h-2 rounded bg-surface-2">
+                          <div
+                            className="h-2 rounded bg-brand"
+                            style={{ width: `${Math.min(100, site.progress.pct)}%` }}
+                          />
+                        </div>
+                      </>
+                    )}
+
+                    <Link
+                      href={`/${locale}/compte/chantier/${encodeURIComponent(
+                        String(f.ref_code)
+                      )}`}
+                      className="mt-3 inline-block text-sm text-brand underline underline-offset-4"
+                    >
+                      {t.site.open}
+                    </Link>
+                  </div>
+                )}
+              </li>
+            )
+          })}
           {!files?.length && (
-            <li className="px-3 py-4 text-sm text-muted">{t.claimedNone}</li>
+            <li className="rounded border border-line bg-surface px-3 py-4 text-sm text-muted">
+              {t.claimedNone}
+            </li>
           )}
         </ul>
       </section>
