@@ -137,8 +137,16 @@ export async function generateDevisAction(formData: FormData) {
     .select('id, code, unit, qty_formula, pu_fourniture_ht, pu_main_oeuvre_ht, designation_ar, lots(code, name_ar)')
     .eq('is_active', true)
 
-  if (standing) query = query.or(`standing.is.null,standing.eq.${standing}`)
-  else query = query.is('standing', null)
+  /*
+   * بلا مستوى لا يُؤخذ المستوى المرجعي: كلّ مقالات البوردرو لها مستوى،
+   * فترشيحٌ بـ«بلا مستوى» وحده كان يعطي عرضاً **فارغاً**. وقد صار
+   * المطلب يأتي بلا مستوى بعد أن رُفع السؤال من الاستمارة — التصنيف
+   * لا يُعرض على الحريف — فالمرجعي هو الأساس حتّى تختار الإدارة غيره.
+   */
+  // المستوى المرجعي — أساس التسعير حين لا يُحدَّد مستوى.
+  // غير مُصدَّر: ملفّ 'use server' لا يصدّر إلّا دوالّ غير متزامنة.
+  const effective = standing || 'B03'
+  query = query.or(`standing.is.null,standing.eq.${effective}`)
 
   const { data: rows, error: articlesError } = await query
   if (articlesError) {

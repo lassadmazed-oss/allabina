@@ -23,6 +23,27 @@ export async function generateMetadata({
   return { title: t.pageTitle }
 }
 
+/**
+ * أنواع المسار ليست أنواع المطلب: المسار يسأل بلغة الحريف («دار»)،
+ * والقاعدة تخزّن بلغتها («build_on_land»). وبلا هذا الربط كان يصل
+ * «maison» إلى الاستمارة فلا تعرفه، وتقع على مسوّدة قديمة.
+ */
+const TO_REQUEST: Record<string, string> = {
+  maison: 'build_on_land',
+  renovation: 'renovation',
+  immobilier: 'other',
+  usine: 'other',
+  commerce: 'other',
+  autre: 'other',
+}
+
+const LOT_AR: Record<number, string> = {
+  10: 'الفرش والتغطية',
+  11: 'الألمنيوم',
+  12: 'النجارة الخشبية',
+  14: 'الدهن',
+}
+
 const TYPES = ['maison', 'immobilier', 'usine', 'commerce', 'renovation', 'autre'] as const
 const field = 'w-full rounded border border-line bg-surface px-3 py-2.5'
 
@@ -81,6 +102,8 @@ export default async function ProjetPage({
       cu: config.kitchens,
       sdb: config.bathrooms,
       del: sp.del,
+      tr: sp.tr,
+      bank: sp.bank,
       b: hasBudget ? budget : undefined,
       ...over,
     }
@@ -103,6 +126,8 @@ export default async function ProjetPage({
           cu: config.kitchens,
           sdb: config.bathrooms,
           del: sp.del,
+          tr: sp.tr,
+          bank: sp.bank,
           b: hasBudget ? budget : undefined,
         }
         return v[k] === undefined ? null : (
@@ -202,7 +227,7 @@ export default async function ProjetPage({
 
           <form action={`/${locale}/projet`} className="mt-6 grid gap-4">
             <input type="hidden" name="e" value="2" />
-            {carry(['type'])}
+            {carry(['type', 'bank'])}
 
             <div className="grid gap-3 sm:grid-cols-2">
               <label className="block">
@@ -224,6 +249,16 @@ export default async function ProjetPage({
                   defaultValue={config.surface}
                   className={`num ${field}`}
                 />
+              </label>
+              <label className="block">
+                <span className="mb-1.5 block text-sm font-medium">{t.terrain}</span>
+                <select name="tr" defaultValue={sp.tr ?? 'empty'} className={field}>
+                  {Object.entries(t.terrainOpts).map(([k, v]) => (
+                    <option key={k} value={k}>
+                      {v}
+                    </option>
+                  ))}
+                </select>
               </label>
             </div>
 
@@ -395,6 +430,42 @@ export default async function ProjetPage({
             </div>
           )}
 
+          {/* الكاتالوج كفكرة لا كقرار: اختيار المواد يجي بعد الدراسة */}
+          <section className="mt-7 rounded border border-line bg-surface p-4">
+            <h2 className="text-sm font-semibold">{t.finishes}</h2>
+            <p className="mt-0.5 text-xs leading-6 text-faint">{t.finishesHint}</p>
+            <ul className="mt-3 flex flex-wrap gap-2">
+              {[10, 14, 11, 12].map((lot) => (
+                <li key={lot}>
+                  <Link
+                    href={`/${locale}/catalogue?lot=${lot}`}
+                    className="inline-block rounded border border-line px-3 py-1.5 text-sm text-muted transition hover:border-line-strong"
+                  >
+                    {LOT_AR[lot]}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </section>
+
+          <form action={`/${locale}/projet`} className="mt-4">
+            <input type="hidden" name="e" value="3" />
+            {carry(['type', 's', 'l', 'ch', 'sa', 'cu', 'sdb', 'del', 'tr', 'b'])}
+            <label className="flex items-center gap-2 text-sm">
+              <input
+                type="checkbox"
+                name="bank"
+                value="1"
+                defaultChecked={sp.bank === '1'}
+                className="size-4"
+              />
+              {t.bank}
+            </label>
+            <button type="submit" className="mt-2 text-xs text-muted underline underline-offset-4">
+              {dict.budget.submit}
+            </button>
+          </form>
+
           <div className="mt-6 flex flex-wrap items-center gap-3">
             <Link href={href({ e: 2 })} className="text-sm text-muted underline underline-offset-4">
               {t.back}
@@ -448,6 +519,12 @@ export default async function ProjetPage({
                   {t.bathsShort}
                 </dd>
               </div>
+              {sp.tr && t.terrainOpts[sp.tr] && (
+                <div>
+                  <dt className="text-xs text-faint">{t.terrain}</dt>
+                  <dd className="mt-0.5 font-medium">{t.terrainOpts[sp.tr]}</dd>
+                </div>
+              )}
               {hasBudget && (
                 <div>
                   <dt className="text-xs text-faint">{t.summaryBudget}</dt>
@@ -482,7 +559,18 @@ export default async function ProjetPage({
               {t.back}
             </Link>
             <Link
-              href={`/${locale}/demande${type ? `?type=${encodeURIComponent(type)}` : ''}`}
+              href={`/${locale}/demande?${new URLSearchParams(
+                Object.entries({
+                  type: TO_REQUEST[type] ?? '',
+                  s: String(config.surface),
+                  l: String(config.levels),
+                  ch: String(config.bedrooms),
+                  sa: String(config.livingRooms),
+                  cu: String(config.kitchens),
+                  sdb: String(config.bathrooms),
+                  del: sp.del ?? '',
+                }).filter(([, v]) => v) as [string, string][]
+              ).toString()}`}
               className="ms-auto rounded bg-brand px-6 py-3 font-semibold text-white"
             >
               {t.send}

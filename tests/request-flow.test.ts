@@ -52,13 +52,29 @@ describe('المصفوفة — عمود عمود', () => {
     expect(f.flexibility).toContain('zone')
   })
 
-  it('شقّة جاهزة بلا تشطيب، وفي طور البناء بتشطيب وتنازل «تشطيب أبسط»', () => {
-    const ready = requestFlow({ requestType: 'apartment', apartmentState: 'ready' })
+  /**
+   * قرار 14 نوفمبر 2026: لا يُصنَّف الحريف. سؤال «مستوى التشطيب» رُفع
+   * من الاستمارة كلّها — ما عاد يُسأل لا في بناءٍ ولا في شقّة في طور
+   * البناء. والتسعير يرجع للمستوى المرجعي حين لا يُحدَّد.
+   *
+   * ويبقى «تشطيب أبسط» بين التنازلات: ذاك خيارٌ يعرضه الحريف على
+   * نفسه حين تضيق الميزانية، لا تصنيفاً يوضع عليه.
+   */
+  it('المستوى ما عاد يُسأل في أيّ مسار', () => {
+    for (const type of ['build_on_land', 'land_and_house', 'apartment', 'renovation']) {
+      expect(requestFlow({ requestType: type }).has('standing'), type).toBe(false)
+    }
+    expect(
+      requestFlow({ requestType: 'apartment', apartmentState: 'off_plan' }).has('standing')
+    ).toBe(false)
+  })
+
+  it('ويبقى «تشطيب أبسط» تنازلاً معروضاً لا تصنيفاً مفروضاً', () => {
     const offPlan = requestFlow({ requestType: 'apartment', apartmentState: 'off_plan' })
-    expect(ready.has('standing')).toBe(false)
-    expect(ready.flexibility).not.toContain('standing')
-    expect(offPlan.has('standing')).toBe(true)
     expect(offPlan.flexibility).toContain('standing')
+    expect(requestFlow({ requestType: 'apartment', apartmentState: 'ready' }).flexibility).not.toContain(
+      'standing'
+    )
   })
 
   it('ترميم بلا أشغال محدّدة: نوع الأشغال والمساحة الحالية والدار الحالية — لا مساحة مطلوبة', () => {

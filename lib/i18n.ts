@@ -1205,6 +1205,15 @@ const ar = {
       gateBody:
         'حساب برقم متثبّت منّو يلزم باش نولّدولك التوزيع التصوّري والتقدير. ما ثمّ لا رسم ولا تقدير بلا حساب.',
       gateKeep: 'اللي اخترتو يتحفظ — ترجع لنفس البلاصة.',
+      terrain: 'حالة الأرض',
+      terrainOpts: {
+        empty: 'أرض فارغة',
+        built: 'فيها بناء',
+        none: 'ما زال ما عنديش أرض',
+      } as Record<string, string>,
+      finishes: 'الكاتالوج: أفكار للتشطيب (اختياري)',
+      finishesHint: 'تختارهم من بعد — ما يبدّلوش التقدير توّا.',
+      bank: 'نحبّ توجيه بنكي (اختياري)',
       sketchCaption: 'توزيع تقريبي للمساحات — موش مخطّط، والمخطّط يعملو معماري',
       tight: 'المساحة ضيّقة على هالعدد: الفضاءات رجعت لحدودها الدنيا.',
       doesntFit: 'المساحة ما تكفّيش لهالعدد من الفضاءات.',
@@ -2757,6 +2766,15 @@ const fr: Dictionary = {
       gateBody:
         'Un compte vérifié est nécessaire pour générer votre esquisse indicative et votre estimation. Aucune esquisse ni estimation sans compte vérifié.',
       gateKeep: 'Vos choix sont conservés — vous reviendrez au même endroit.',
+      terrain: 'État du terrain',
+      terrainOpts: {
+        empty: 'Terrain vide',
+        built: 'Terrain avec construction',
+        none: 'Pas encore de terrain',
+      } as Record<string, string>,
+      finishes: 'Catalogue : idées de finitions (optionnel)',
+      finishesHint: 'À choisir plus tard — sans effet sur l’estimation à ce stade.',
+      bank: 'Je souhaite une orientation bancaire (optionnel)',
       sketchCaption: 'Répartition indicative des surfaces — pas un plan ; le plan est l’affaire d’un architecte',
       tight: 'La surface est juste pour ce nombre d’espaces : ils sont ramenés à leur minimum.',
       doesntFit: 'La surface ne suffit pas pour ce nombre d’espaces.',

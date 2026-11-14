@@ -148,20 +148,25 @@ export function requestFlow(input: FlowInput): Flow {
   const fields = new Set<Field>()
   const add = (...fs: Field[]) => fs.forEach((f) => fields.add(f))
 
+  /*
+   * «standing» لم يعد يُسأل: قرار 14 نوفمبر — لا يُصنَّف الحريف، يختار.
+   * المفتاح يبقى في النوع لأنّ الإدارة تستعمله داخلياً، والتسعير يرجع
+   * للمستوى المرجعي حين لا يُحدَّد (lib/actions/devis.ts).
+   */
   // المشترك بين الكلّ
   add('horizon', 'urgency', 'problemNote')
 
   switch (type) {
     case 'build_on_land':
       add(
-        'builtArea', 'bedrooms', 'constructionSystem', 'standing',
+        'builtArea', 'bedrooms', 'constructionSystem',
         'levels', 'bathrooms', 'livingRooms', 'kitchens', 'extras',
         'flexibility', 'landStep'
       )
       break
     case 'land_and_house':
       add(
-        'builtArea', 'landArea', 'bedrooms', 'constructionSystem', 'standing',
+        'builtArea', 'landArea', 'bedrooms', 'constructionSystem',
         'levels', 'bathrooms', 'livingRooms', 'kitchens', 'extras', 'flexibility'
       )
       break
@@ -170,10 +175,9 @@ export function requestFlow(input: FlowInput): Flow {
         'builtArea', 'bedrooms', 'apartmentState', 'floorPref',
         'elevatorNeeded', 'parkingNeeded', 'bathrooms', 'flexibility'
       )
-      if (offPlan) add('standing')
       break
     case 'renovation':
-      add('works', 'currentArea', 'standing', 'extras', 'flexibility', 'homeStep')
+      add('works', 'currentArea', 'extras', 'flexibility', 'homeStep')
       if (extension) add('extensionArea', 'bedrooms', 'bathrooms', 'livingRooms', 'kitchens')
       if (structural) add('constructionSystem')
       if (addFloor) add('levels')

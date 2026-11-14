@@ -201,6 +201,8 @@ export default function RequestForm({
           govCode: 'SFX',
           horizon: '',
           employment: '',
+          // ما جمعه مكوّن المشروع يُمرَّر هنا، فلا يُسأل الحريف مرّتين
+          ...(initialValues ?? {}),
         }
   )
 
@@ -212,9 +214,15 @@ export default function RequestForm({
       const saved = localStorage.getItem(STORAGE_KEY)
       if (saved) {
         const draft = JSON.parse(saved) as Record<string, string | boolean>
+        /*
+         * ما جاء من «كوّن مشروعك» يغلب المسوّدة: الحريف ملأه قبل
+         * دقيقتين، والمسوّدة قد تكون من شهر. وبلا هذا كان يصل من
+         * المكوّن بمساحةٍ ويجد مساحةً أخرى.
+         */
         setValues((v) => ({
           ...draft,
           ...(v.requestType ? { requestType: v.requestType } : {}),
+          ...(initialValues ?? {}),
         }))
         // حقول الاتّصال غير مقيَّدة، فالمسوّدة تُكتب فيها بأيدينا
         for (const k of UNCONTROLLED) {
