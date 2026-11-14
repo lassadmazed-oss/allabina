@@ -114,14 +114,22 @@ export default async function ComptePage({
                       </>
                     )}
 
-                    <Link
-                      href={`/${locale}/compte/chantier/${encodeURIComponent(
-                        String(f.ref_code)
-                      )}`}
-                      className="mt-3 inline-block text-sm text-brand underline underline-offset-4"
-                    >
-                      {t.site.open}
-                    </Link>
+                    <span className="mt-3 flex flex-wrap gap-x-4 gap-y-1">
+                      <Link
+                        href={`/${locale}/compte/chantier/${encodeURIComponent(
+                          String(f.ref_code)
+                        )}`}
+                        className="text-sm text-brand underline underline-offset-4"
+                      >
+                        {t.site.open}
+                      </Link>
+                      <Link
+                        href={`/${locale}/compte/devis/${encodeURIComponent(String(f.ref_code))}`}
+                        className="text-sm text-muted underline underline-offset-4"
+                      >
+                        {t.devis.open}
+                      </Link>
+                    </span>
                   </div>
                 )}
               </li>

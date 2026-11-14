@@ -69,6 +69,31 @@ export default async function ApprobationsPage() {
 
   const byRequest = new Map((requests ?? []).map((r) => [String(r.id), r]))
 
+  /*
+   * مركز اعتماد واحد (B04): الوثائق والتقارير والنشر في شاشة واحدة.
+   * ثلاث شاشات تعني ثلاثة أماكن يُنسى فيها ما ينتظر قراراً.
+   */
+  const [{ data: pendingReports }, { data: pendingPublish }] = await Promise.all([
+    db
+      .from('site_reports')
+      .select('id, report_date, submitted_at, chantiers(code, housing_requests(full_name))')
+      .eq('status', 'submitted')
+      .order('report_date', { ascending: true })
+      .limit(30),
+    db
+      .from('chantiers')
+      .select('code, client_consent_at, publish_approved_at, is_public, housing_requests(full_name)')
+      .not('client_consent_at', 'is', null)
+      .is('publish_approved_at', null)
+      .limit(30),
+  ])
+
+  const nameOfRow = (row: Record<string, unknown>): string => {
+    const raw = row.housing_requests as Record<string, unknown> | Record<string, unknown>[] | null
+    const r = Array.isArray(raw) ? raw[0] : raw
+    return String(r?.full_name ?? '—')
+  }
+
   /** مجموع النسخة السابقة لنفس الملفّ — أساس «قبل/بعد» */
   const previousTotal = (requestId: string, version: number): number | null => {
     const earlier = (siblings ?? [])
@@ -116,7 +141,77 @@ export default async function ApprobationsPage() {
         </p>
       )}
 
-      <div className="mt-6 grid gap-3">
+      {/* ── التقارير والنشر: نفس الشاشة ── */}
+      <div className="mt-6 grid gap-4 sm:grid-cols-2">
+        <section className="rounded border border-line bg-surface p-4">
+          <h2 className="text-sm font-semibold">
+            تقارير الورشة{' '}
+            <span className="num text-xs text-muted">
+              {isolateNumbers(String((pendingReports ?? []).length))}
+            </span>
+          </h2>
+          {(pendingReports ?? []).length === 0 ? (
+            <p className="mt-2 text-sm text-muted">ما ثمّ تقرير ينتظر.</p>
+          ) : (
+            <ul className="mt-3 grid gap-1.5">
+              {(pendingReports ?? []).map((r) => {
+                const raw = r.chantiers as Record<string, unknown> | Record<string, unknown>[] | null
+                const ch = Array.isArray(raw) ? raw[0] : raw
+                const code = String(ch?.code ?? '')
+                return (
+                  <li key={String(r.id)}>
+                    <Link
+                      href={`/admin/chantiers/${encodeURIComponent(code)}?d=${r.report_date}`}
+                      className="flex flex-wrap items-baseline gap-x-2 text-sm underline underline-offset-4"
+                    >
+                      <span className="num text-xs text-faint">
+                        {isolateNumbers(String(r.report_date))}
+                      </span>
+                      <span>{ch ? nameOfRow(ch) : '—'}</span>
+                      <span className="num text-xs text-muted">{isolateNumbers(code)}</span>
+                    </Link>
+                  </li>
+                )
+              })}
+            </ul>
+          )}
+        </section>
+
+        <section className="rounded border border-line bg-surface p-4">
+          <h2 className="text-sm font-semibold">
+            نشر ينتظر اعتمادك{' '}
+            <span className="num text-xs text-muted">
+              {isolateNumbers(String((pendingPublish ?? []).length))}
+            </span>
+          </h2>
+          <p className="mt-0.5 text-xs leading-6 text-faint">
+            الحريف وافق. <b>ما ينشرش حتّى تعتمد إنت</b> — الموافقتان شرطان في القاعدة.
+          </p>
+          {(pendingPublish ?? []).length === 0 ? (
+            <p className="mt-2 text-sm text-muted">ما ثمّ مشروع ينتظر.</p>
+          ) : (
+            <ul className="mt-3 grid gap-1.5">
+              {(pendingPublish ?? []).map((c) => (
+                <li key={String(c.code)}>
+                  <Link
+                    href={`/admin/chantiers/${encodeURIComponent(String(c.code))}`}
+                    className="flex flex-wrap items-baseline gap-x-2 text-sm underline underline-offset-4"
+                  >
+                    <span>{nameOfRow(c as Record<string, unknown>)}</span>
+                    <span className="num text-xs text-muted">
+                      {isolateNumbers(String(c.code))}
+                    </span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+      </div>
+
+      <h2 className="mt-8 text-sm font-semibold">الوثائق</h2>
+
+      <div className="mt-3 grid gap-3">
         {queue.map((it) => {
           const hours = ageHours(it.submittedAt)
           const prio = priorityOf(hours, sla)

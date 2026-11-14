@@ -197,3 +197,24 @@ input[type="range"]::-moz-range-thumb {
   background: var(--color-brand);
   box-shadow: 0 1px 4px rgb(18 32 47 / 0.28);
 }
+
+
+/* ---------------------------------------------------------------
+   الطباعة: العرض يُحفظ PDF من المتصفّح نفسه، فلا نولّده في الخادم.
+   ما يُطبع هو الورقة: بلا ترويسة ولا قائمة ولا ذيل ولا أزرار.
+   --------------------------------------------------------------- */
+@media print {
+  body > header,
+  body > footer,
+  header[class*="sticky"],
+  nav,
+  .print\:hidden {
+    display: none !important;
+  }
+  body {
+    background: #fff;
+  }
+  a[href]::after {
+    content: none !important;
+  }
+}
