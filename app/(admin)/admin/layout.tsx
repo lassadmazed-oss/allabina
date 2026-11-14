@@ -33,6 +33,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     links.push({ href: '/admin/systemes', label: 'طرق البناء' })
     links.push({ href: '/admin/bordereau', label: 'البوردرو' })
     links.push({ href: '/admin/standing', label: 'مستويات التشطيب' })
+    links.push({ href: '/admin/regions', label: 'قواعد المناطق' })
     links.push({ href: '/admin/partners', label: 'الشركاء' })
     links.push({ href: '/admin/reference', label: 'المعطيات المرجعية' })
   }

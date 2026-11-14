@@ -7,6 +7,7 @@ import {
   getPublicArticles,
   getPublicLots,
 } from '@/lib/catalog-server'
+import { getDelegations } from '@/lib/supabase/server'
 import { applyFilters, designationIn, lotNameIn, parseCodes, toggleCode } from '@/lib/catalog'
 import { getDictionary, isLocale, type Locale } from '@/lib/i18n'
 import { isolateNumbers } from '@/lib/format'
@@ -28,7 +29,7 @@ export default async function CataloguePage({
   searchParams,
 }: {
   params: Promise<{ locale: string }>
-  searchParams: Promise<{ q?: string; lot?: string; cmp?: string }>
+  searchParams: Promise<{ q?: string; lot?: string; cmp?: string; region?: string }>
 }) {
   const [{ locale: raw }, sp] = await Promise.all([params, searchParams])
   const locale: Locale = isLocale(raw) ? raw : 'ar'
@@ -50,10 +51,17 @@ export default async function CataloguePage({
     )
   }
 
-  const [lots, all, taxRatePct] = await Promise.all([
+  // المنطقة من العنوان: السعر المعروض سعرُها، والسبب يُقال تحته
+  const regionId = Number(sp.region)
+  const region = Number.isFinite(regionId) && regionId > 0
+    ? { govCode: 'SFX', delegationId: regionId }
+    : null
+
+  const [lots, all, taxRatePct, delegations] = await Promise.all([
     getPublicLots(),
-    getPublicArticles(),
+    getPublicArticles(300, region, locale),
     catalogTaxRate(),
+    getDelegations('SFX'),
   ])
 
   const lotCode = sp.lot ? Number(sp.lot) : undefined
@@ -68,6 +76,7 @@ export default async function CataloguePage({
 
   const href = (over: { lot?: number | null; q?: string; cmp?: string[] }) => {
     const p = new URLSearchParams()
+    if (region) p.set('region', String(region.delegationId))
     const lot = over.lot === undefined ? lotCode : over.lot
     const q = over.q === undefined ? query : over.q
     const cmp = over.cmp === undefined ? selected : over.cmp
@@ -96,10 +105,26 @@ export default async function CataloguePage({
             className="w-full rounded border border-line bg-surface px-3 py-2.5"
           />
         </label>
+        <label className="basis-44">
+          <span className="sr-only">{t.regionLabel}</span>
+          <select
+            name="region"
+            defaultValue={region ? String(region.delegationId) : ''}
+            className="w-full rounded border border-line bg-surface px-3 py-2.5 text-sm"
+          >
+            <option value="">{t.regionAll}</option>
+            {delegations.map((d) => (
+              <option key={d.id} value={String(d.id)}>
+                {d.name_ar}
+              </option>
+            ))}
+          </select>
+        </label>
         <button type="submit" className="rounded bg-brand px-5 font-semibold text-white">
           {t.searchLabel}
         </button>
       </form>
+      <p className="mt-2 text-xs leading-7 text-faint">{t.regionHint}</p>
 
       <nav className="mt-5 flex flex-wrap gap-2 text-sm">
         <Link
@@ -156,6 +181,9 @@ export default async function CataloguePage({
                 <span className="mt-3 flex items-baseline gap-2">
                   <ArticlePrice article={a} taxRatePct={taxRatePct} locale={locale} t={t} compact />
                 </span>
+                {a.regionNote && (
+                  <span className="mt-1 text-xs text-gold">{a.regionNote}</span>
+                )}
               </Link>
               {/* الاختيار رابط لا خانة: يشتغل بلا جافاسكريبت */}
               <Link

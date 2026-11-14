@@ -178,3 +178,96 @@ export async function removeAlternativeAction(formData: FormData) {
   done(code)
 }
 
+// ─────────────────────────────────────────── قواعد المناطق
+
+function regionsDone() {
+  revalidatePath('/admin/regions')
+  for (const l of ['ar', 'fr']) revalidatePath(`/${l}/catalogue`)
+}
+
+const numOrNull = (v: FormDataEntryValue | null) => {
+  const t = String(v ?? '').trim().replace(',', '.')
+  if (!t) return null
+  const n = Number(t)
+  return Number.isFinite(n) ? n : null
+}
+
+/**
+ * قاعدة منطقة جديدة — تولد **غير معتمدة**.
+ *
+ * «لا نعرض تخفيضات أو توفر غير مؤكد» (القسم 03): من يكتب القاعدة لا
+ * يعتمدها بنفس الضغطة، وإلّا صار الاعتماد توقيعاً على بياض.
+ */
+export async function saveRegionRuleAction(formData: FormData) {
+  const actor = await staffWithPermission('reference.manage')
+  if (!actor) return
+
+  const delegationId = numOrNull(formData.get('delegation_id'))
+  const lotId = numOrNull(formData.get('lot_id'))
+  const row = {
+    gov_code: String(formData.get('gov_code') ?? 'SFX'),
+    delegation_id: delegationId,
+    lot_id: lotId,
+    transport_pct: numOrNull(formData.get('transport_pct')),
+    transport_per_unit: numOrNull(formData.get('transport_per_unit')),
+    labour_factor: numOrNull(formData.get('labour_factor')),
+    availability: String(formData.get('availability') ?? '') || null,
+    lead_time_days: numOrNull(formData.get('lead_time_days')),
+    reason_ar: String(formData.get('reason_ar') ?? '').trim().slice(0, 200) || null,
+    effective_from: String(formData.get('effective_from') ?? '').trim() || null,
+    is_approved: false,
+    created_by: actor.userId,
+  }
+
+  const { error } = await db.from('region_rules').insert(row)
+  if (error) console.error('save region rule', error.message)
+  regionsDone()
+}
+
+export async function approveRegionRuleAction(formData: FormData) {
+  const actor = await staffWithPermission('docs.approve')
+  if (!actor) return
+  const id = Number(formData.get('id'))
+  if (!Number.isFinite(id)) return
+  const approve = formData.get('approve') === '1'
+
+  await db
+    .from('region_rules')
+    .update({
+      is_approved: approve,
+      approved_by: approve ? actor.userId : null,
+      approved_at: approve ? new Date().toISOString() : null,
+    })
+    .eq('id', id)
+
+  await db
+    .from('staff_events')
+    .insert({ actor: actor.userId, event_type: 'settings.update', detail: { key: 'region_rule', id, approve } })
+    .then(({ error: e }) => e && console.warn('staff_events', e.message))
+
+  regionsDone()
+}
+
+export async function deleteRegionRuleAction(formData: FormData) {
+  const actor = await staffWithPermission('reference.manage')
+  if (!actor) return
+  const id = Number(formData.get('id'))
+  if (!Number.isFinite(id)) return
+  await db.from('region_rules').delete().eq('id', id)
+  regionsDone()
+}
+
+export async function setRegionRulesEnabledAction(formData: FormData) {
+  const actor = await staffWithPermission('reference.manage')
+  if (!actor) return
+  const on = formData.get('on') === '1'
+  await db
+    .from('app_settings')
+    .upsert(
+      [{ key: 'catalog.region_rules_enabled', value: on, description: 'تطبيق قواعد المناطق على الأسعار المعروضة.' }],
+      { onConflict: 'key' }
+    )
+    .then(({ error }) => error && console.error('region rules toggle', error.message))
+  regionsDone()
+}
+

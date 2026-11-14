@@ -37,6 +37,8 @@ export type CatalogArticle = {
   imageUrl: string | null
   /** متوقّف: يبقى بمرجعه في الملفّات القديمة ولا يُقترح للجديد */
   isActive: boolean
+  /** سبب فرق سعر المنطقة — يُقال ولا يُدسّ. null = لا قاعدة. */
+  regionNote: string | null
 }
 
 /** ما يُسمح بخروجه إلى المتصفّح. كلّ ما عداه يبقى في الخادم. */
@@ -59,6 +61,7 @@ const PUBLIC_KEYS = new Set<keyof CatalogArticle>([
   'specs',
   'imageUrl',
   'isActive',
+  'regionNote',
 ])
 
 /** حقول داخلية لا تخرج أبداً — تُفحص بالاسم لا بالثقة */

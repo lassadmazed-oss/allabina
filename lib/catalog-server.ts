@@ -3,6 +3,7 @@ import { cache } from 'react'
 import { db } from '@/lib/supabase/server'
 import { toPublic, type Availability, type CatalogArticle } from '@/lib/catalog'
 import { ARTICLE_MEDIA_BUCKET, isPublishable } from '@/lib/article-media'
+import { applyRegion, pickRule, type RegionRule } from '@/lib/region-rules'
 
 /**
  * قراءات الكاتالوج العمومي.
@@ -13,7 +14,7 @@ import { ARTICLE_MEDIA_BUCKET, isPublishable } from '@/lib/article-media'
 const SELECT =
   'id, code, unit, designation_ar, designation_fr, description, description_fr, ' +
   'pu_fourniture_ht, pu_main_oeuvre_ht, availability, lead_time_days, ' +
-  'installation_note, usage_note, specs, is_active, lots(code, name_ar, name_fr)'
+  'installation_note, usage_note, specs, is_active, lot_id, lots(code, name_ar, name_fr)'
 
 type Lot = { code: number; name_ar: string; name_fr: string }
 type Row = Record<string, unknown>
@@ -50,6 +51,7 @@ function shape(r: Row): CatalogArticle {
     specs: (r.specs as Record<string, string>) ?? null,
     imageUrl: null,
     isActive: r.is_active !== false,
+    regionNote: null,
   })
 }
 
@@ -87,6 +89,85 @@ async function coverUrls(articleIds: string[]): Promise<Map<string, string>> {
     if (url) out.set(id, url)
   }
   return out
+}
+
+
+export type Region = { govCode: string; delegationId: number | null }
+
+/**
+ * قواعد المنطقة المعتمدة النافذة — تُقرأ مرّة لكلّ صفحة لا لكلّ مقال.
+ */
+export const getRegionRules = cache(async (govCode: string): Promise<RegionRule[]> => {
+  const { data: setting } = await db
+    .from('app_settings')
+    .select('value')
+    .eq('key', 'catalog.region_rules_enabled')
+    .maybeSingle()
+  if (setting?.value !== true) return []
+
+  const { data } = await db
+    .from('region_rules')
+    .select('*')
+    .eq('gov_code', govCode)
+    .eq('is_approved', true)
+
+  return (data ?? []).map((r) => ({
+    id: Number(r.id),
+    govCode: String(r.gov_code),
+    delegationId: r.delegation_id === null ? null : Number(r.delegation_id),
+    lotId: r.lot_id === null ? null : Number(r.lot_id),
+    transportPct: r.transport_pct === null ? null : Number(r.transport_pct),
+    transportPerUnit: r.transport_per_unit === null ? null : Number(r.transport_per_unit),
+    labourFactor: r.labour_factor === null ? null : Number(r.labour_factor),
+    availability: (r.availability as RegionRule['availability']) ?? null,
+    leadTimeDays: r.lead_time_days === null ? null : Number(r.lead_time_days),
+    reasonAr: (r.reason_ar as string) ?? null,
+    reasonFr: (r.reason_fr as string) ?? null,
+    isApproved: Boolean(r.is_approved),
+    effectiveFrom: (r.effective_from as string) ?? null,
+  }))
+})
+
+/**
+ * تطبيق قاعدة المنطقة على مقال مُشكَّل.
+ *
+ * الحساب يحتاج فصل التوريد عن اليد العاملة — والفصل يبقى في الخادم:
+ * ما يخرج هو السعر النهائي وسببه، لا تركيبته.
+ */
+function withRegion(
+  article: CatalogArticle,
+  row: Row,
+  rules: RegionRule[],
+  region: Region | null,
+  locale: 'ar' | 'fr'
+): CatalogArticle {
+  if (!region || !rules.length) return article
+  const rule = pickRule(rules, {
+    govCode: region.govCode,
+    delegationId: region.delegationId,
+    lotId: row.lot_id === null || row.lot_id === undefined ? null : Number(row.lot_id),
+  })
+  if (!rule) return article
+
+  const effect = applyRegion(
+    {
+      supplyHt: row.pu_fourniture_ht === null ? null : Number(row.pu_fourniture_ht),
+      labourHt: row.pu_main_oeuvre_ht === null ? null : Number(row.pu_main_oeuvre_ht),
+      availability: article.availability,
+      leadTimeDays: article.leadTimeDays,
+    },
+    rule,
+    locale
+  )
+  if (!effect.changed) return article
+
+  return {
+    ...article,
+    priceHt: effect.priceHt !== null && effect.priceHt > 0 ? effect.priceHt : article.priceHt,
+    availability: effect.availability,
+    leadTimeDays: effect.leadTimeDays,
+    regionNote: effect.reasons.find((r) => r.text)?.text ?? null,
+  }
 }
 
 /** هل الكاتالوج مفتوح أصلاً؟ قرار في «المعطيات المرجعية». */
@@ -129,7 +210,11 @@ export const getPublicLots = cache(async (): Promise<{ code: number; nameAr: str
   return [...byCode.values()].sort((a, b) => a.code - b.code)
 })
 
-export async function getPublicArticles(limit = 300): Promise<CatalogArticle[]> {
+export async function getPublicArticles(
+  limit = 300,
+  region: Region | null = null,
+  locale: 'ar' | 'fr' = 'ar'
+): Promise<CatalogArticle[]> {
   const { data } = await db
     .from('articles')
     .select(SELECT)
@@ -139,8 +224,19 @@ export async function getPublicArticles(limit = 300): Promise<CatalogArticle[]> 
     .limit(limit)
 
   const rows = (data ?? []) as unknown as Row[]
-  const covers = await coverUrls(rows.map((r) => String(r.id)))
-  return rows.map((r) => ({ ...shape(r), imageUrl: covers.get(String(r.id)) ?? null }))
+  const [covers, rules] = await Promise.all([
+    coverUrls(rows.map((r) => String(r.id))),
+    region ? getRegionRules(region.govCode) : Promise.resolve([] as RegionRule[]),
+  ])
+  return rows.map((r) =>
+    withRegion(
+      { ...shape(r), imageUrl: covers.get(String(r.id)) ?? null },
+      r,
+      rules,
+      region,
+      locale
+    )
+  )
 }
 
 /**
@@ -148,12 +244,25 @@ export async function getPublicArticles(limit = 300): Promise<CatalogArticle[]> 
  * المتوقّف (is_active = false) يبقى مقروءاً بمرجعه — «المنتج المتوقف
  * يبقى في المشاريع القديمة بمرجعه» — لكن لا يظهر في القوائم.
  */
-export async function getPublicArticle(code: string): Promise<CatalogArticle | null> {
+export async function getPublicArticle(
+  code: string,
+  region: Region | null = null,
+  locale: 'ar' | 'fr' = 'ar'
+): Promise<CatalogArticle | null> {
   const { data } = await db.from('articles').select(SELECT).eq('code', code).eq('is_public', true).maybeSingle()
   if (!data) return null
   const row = data as unknown as Row
-  const covers = await coverUrls([String(row.id)])
-  return { ...shape(row), imageUrl: covers.get(String(row.id)) ?? null }
+  const [covers, rules] = await Promise.all([
+    coverUrls([String(row.id)]),
+    region ? getRegionRules(region.govCode) : Promise.resolve([] as RegionRule[]),
+  ])
+  return withRegion(
+    { ...shape(row), imageUrl: covers.get(String(row.id)) ?? null },
+    row,
+    rules,
+    region,
+    locale
+  )
 }
 
 /**

@@ -39,6 +39,7 @@ const art = (over: Partial<CatalogArticle> = {}): CatalogArticle => ({
   specs: null,
   imageUrl: null,
   isActive: true,
+  regionNote: null,
   ...over,
 })
 

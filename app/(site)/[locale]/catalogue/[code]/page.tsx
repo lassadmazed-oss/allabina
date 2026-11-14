@@ -39,17 +39,23 @@ function Row({ k, v, mono = false }: { k: string; v: string | null; mono?: boole
 
 export default async function ArticlePage({
   params,
+  searchParams,
 }: {
   params: Promise<{ locale: string; code: string }>
+  searchParams: Promise<{ region?: string }>
 }) {
-  const { locale: raw, code } = await params
+  const [{ locale: raw, code }, sp] = await Promise.all([params, searchParams])
   const locale: Locale = isLocale(raw) ? raw : 'ar'
   const t = getDictionary(locale).catalogue
 
   if (!(await catalogOpen())) notFound()
 
+  const regionId = Number(sp.region)
+  const region =
+    Number.isFinite(regionId) && regionId > 0 ? { govCode: 'SFX', delegationId: regionId } : null
+
   const [a, taxRatePct] = await Promise.all([
-    getPublicArticle(decodeURIComponent(code)),
+    getPublicArticle(decodeURIComponent(code), region, locale),
     catalogTaxRate(),
   ])
   if (!a) notFound()
@@ -91,6 +97,11 @@ export default async function ArticlePage({
 
       <div className="mt-6 rounded border border-line bg-surface p-4">
         <ArticlePrice article={a} taxRatePct={taxRatePct} locale={locale} t={t} />
+        {a.regionNote && (
+          <p className="mt-1.5 text-sm text-gold">
+            {t.regionNoteLabel}: {a.regionNote}
+          </p>
+        )}
         <dl className="mt-4 grid gap-4 sm:grid-cols-2">
           <Row k={t.unit} v={a.unit} mono />
           <Row k={t.availabilityTitle} v={t.availability[a.availability] ?? a.availability} />
