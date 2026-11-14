@@ -1,6 +1,7 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
+import { redirect } from 'next/navigation'
 import { db } from '@/lib/supabase/server'
 import { staffWithPermission } from '@/lib/auth'
 import { mediaRejection, nextSortOrder } from '@/lib/article-media'
@@ -281,5 +282,98 @@ export async function deleteProductMediaAction(formData: FormData) {
   if (data?.storage_path) {
     await db.storage.from(PRODUCT_MEDIA_BUCKET).remove([String(data.storage_path)])
   }
+  refresh(code)
+}
+
+// ─────────────────────────────────────────────── إنشاء وربط
+
+/**
+ * منتَج جديد.
+ *
+ * أغلب مواد البناء في تونس ما عندهاش كاتالوج على الويب — الزليج
+ * والبيبان يتباعو في المعرض والديبو. فالمعطيات تدخل من هنا بعد زيارة،
+ * لا من موقع يُقرأ. ويولد مغلقاً وسعره غير متثبَّت منه كالبقيّة.
+ */
+export async function createProductAction(formData: FormData) {
+  const actor = await staffWithPermission('reference.manage')
+  if (!actor) return
+  const code = String(formData.get('code') ?? '').trim().toUpperCase().slice(0, 60)
+  const nameAr = String(formData.get('name_ar') ?? '').trim().slice(0, 200)
+  if (!code || !nameAr) return
+
+  const { data: created, error } = await db
+    .from('products')
+    .insert({
+      code,
+      name_ar: nameAr,
+      brand: String(formData.get('brand') ?? '').trim().slice(0, 80) || null,
+      range_name: String(formData.get('range_name') ?? '').trim().slice(0, 80) || null,
+      pack_size: num(formData.get('pack_size')),
+      pack_unit: String(formData.get('pack_unit') ?? '').trim().slice(0, 16) || null,
+      price: num(formData.get('price')),
+      price_includes_tax: formData.get('price_includes_tax') === 'on',
+      price_source: String(formData.get('price_source') ?? '').trim().slice(0, 500) || null,
+      price_checked_at: String(formData.get('price_checked_at') ?? '').trim() || null,
+      specs: parseSpecs(String(formData.get('specs') ?? '')),
+    })
+    .select('code')
+    .maybeSingle()
+
+  if (error) {
+    // مرجع مكرَّر: نرجع لصفحة المنتج الموجود بدل ما نصمت
+    console.error('create product', error.message)
+    refresh()
+    return
+  }
+
+  // المقال اختياري: منتج بلا مقال يبقى في القائمة موسوماً «ما هوش مربوط»
+  const articleCode = String(formData.get('article_code') ?? '').trim()
+  if (created && articleCode) {
+    await attach(created.code, articleCode)
+  }
+  refresh(created?.code)
+  if (created?.code) redirect(`/admin/produits/${encodeURIComponent(created.code)}`)
+}
+
+/** يربط منتَجاً بكلّ نسخ المقال — المستويات نسخ لنفس الشغل */
+async function attach(productCode: string, articleCode: string): Promise<number> {
+  const base = articleCode.trim().toUpperCase().replace(/-B\d{2}$/i, '')
+  const [{ data: product }, { data: articles }] = await Promise.all([
+    db.from('products').select('id').eq('code', productCode).maybeSingle(),
+    db.from('articles').select('id').or(`code.eq.${base},code.like.${base}-B%`),
+  ])
+  if (!product || !articles?.length) return 0
+
+  const rows = articles.map((a) => ({ article_id: a.id, product_id: product.id }))
+  const { error } = await db.from('article_products').upsert(rows, {
+    onConflict: 'article_id,product_id',
+    ignoreDuplicates: true,
+  })
+  if (error) console.error('attach product', error.message)
+  return articles.length
+}
+
+export async function linkProductAction(formData: FormData) {
+  const actor = await staffWithPermission('reference.manage')
+  if (!actor) return
+  const code = String(formData.get('code') ?? '').trim()
+  const articleCode = String(formData.get('article_code') ?? '').trim()
+  if (!code || !articleCode) return
+  await attach(code, articleCode)
+  refresh(code)
+}
+
+export async function unlinkProductAction(formData: FormData) {
+  const actor = await staffWithPermission('reference.manage')
+  if (!actor) return
+  const code = String(formData.get('code') ?? '').trim()
+  const productId = String(formData.get('product_id') ?? '')
+  const articleId = String(formData.get('article_id') ?? '')
+  if (!productId || !articleId) return
+  await db
+    .from('article_products')
+    .delete()
+    .eq('product_id', productId)
+    .eq('article_id', articleId)
   refresh(code)
 }

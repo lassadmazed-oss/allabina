@@ -8,7 +8,9 @@ import {
   saveProductAction,
   setCoverageAction,
   setDefaultProductAction,
+  linkProductAction,
   setProductPublicAction,
+  unlinkProductAction,
   verifyProductPriceAction,
 } from '@/lib/actions/products'
 import { formatSpecs } from '@/lib/catalog'
@@ -320,8 +322,17 @@ export default async function ProductPage({ params }: { params: Promise<{ code: 
                   </p>
                 )}
 
+                <form action={unlinkProductAction} className="mt-1.5 inline-block">
+                  <input type="hidden" name="code" value={product.code} />
+                  <input type="hidden" name="product_id" value={product.id} />
+                  <input type="hidden" name="article_id" value={l.articleId} />
+                  <button type="submit" className="text-xs text-[#a32a24] underline underline-offset-4">
+                    فكّ الربط
+                  </button>
+                </form>
+
                 {!l.isDefault && (
-                  <form action={setDefaultProductAction} className="mt-1.5">
+                  <form action={setDefaultProductAction} className="mt-1.5 ms-3 inline-block">
                     <input type="hidden" name="code" value={product.code} />
                     <input type="hidden" name="product_id" value={product.id} />
                     <input type="hidden" name="article_id" value={l.articleId} />
@@ -334,6 +345,23 @@ export default async function ProductPage({ params }: { params: Promise<{ code: 
             ))}
           </ul>
         )}
+
+        <form action={linkProductAction} className="mt-4 flex flex-wrap items-end gap-2 border-t border-line pt-3">
+          <input type="hidden" name="code" value={product.code} />
+          <label className="block">
+            <span className="mb-1 block text-xs text-muted">اربطو بمقال (المرجع)</span>
+            <input
+              name="article_code"
+              dir="ltr"
+              placeholder="RE-01"
+              className="num w-36 rounded border border-line bg-surface px-2 py-1.5 text-sm"
+            />
+          </label>
+          <button type="submit" className="min-h-8 rounded border border-line px-3 text-xs">
+            اربط
+          </button>
+          <span className="text-xs text-faint">يتربط بكلّ مستويات المقال دفعة.</span>
+        </form>
       </section>
 
       {/* ── الصور ── */}

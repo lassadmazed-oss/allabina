@@ -10,6 +10,7 @@ import {
   type ProductGap,
 } from '@/lib/products'
 import { formatMoney, isolateNumbers } from '@/lib/format'
+import { createProductAction } from '@/lib/actions/products'
 
 export const dynamic = 'force-dynamic'
 export const metadata = { title: 'المنتجات — اللَّبنة' }
@@ -55,6 +56,79 @@ export default async function ProductsPage() {
           <span className="num font-semibold">{isolateNumbers(String(ready.length))}</span> منشور
         </span>
       </div>
+
+
+      {/* الزليج والبيبان ما عندهمش كاتالوج على الويب: المعطيات تدخل
+          من هنا بعد زيارة ديبو، لا من موقع يُقرأ */}
+      <details className="mt-5 rounded border border-line bg-surface p-4">
+        <summary className="cursor-pointer text-sm font-semibold">زيد منتَج جديد</summary>
+        <p className="mt-2 text-sm leading-7 text-muted">
+          المرجع والاسم واجبين، والباقي تنجّم تكمّلو من بعد. وإذا كتبت مرجع مقال، المنتَج
+          يتربط <b>بكلّ مستوياتو</b> دفعة.
+        </p>
+        <form action={createProductAction} className="mt-3 grid gap-3">
+          <div className="grid gap-3 sm:grid-cols-2">
+            <label className="block">
+              <span className="mb-1.5 block text-sm font-medium">المرجع</span>
+              <input name="code" required dir="ltr" placeholder="SOM-GC-60" className="num w-full rounded border border-line bg-surface px-3 py-2 text-sm" />
+            </label>
+            <label className="block">
+              <span className="mb-1.5 block text-sm font-medium">مرجع المقال (اختياري)</span>
+              <input name="article_code" dir="ltr" placeholder="RE-01" className="num w-full rounded border border-line bg-surface px-3 py-2 text-sm" />
+            </label>
+          </div>
+          <label className="block">
+            <span className="mb-1.5 block text-sm font-medium">الاسم بالعربية</span>
+            <input name="name_ar" required placeholder="بلاط ڤري سيرام 60×60 بيج" className="w-full rounded border border-line bg-surface px-3 py-2 text-sm" />
+          </label>
+          <div className="grid gap-3 sm:grid-cols-4">
+            <label className="block">
+              <span className="mb-1.5 block text-sm font-medium">العلامة</span>
+              <input name="brand" className="w-full rounded border border-line bg-surface px-3 py-2 text-sm" />
+            </label>
+            <label className="block">
+              <span className="mb-1.5 block text-sm font-medium">الجمّة</span>
+              <input name="range_name" className="w-full rounded border border-line bg-surface px-3 py-2 text-sm" />
+            </label>
+            <label className="block">
+              <span className="mb-1.5 block text-sm font-medium">حجم العبوة</span>
+              <input name="pack_size" inputMode="decimal" placeholder="1.44" className="num w-full rounded border border-line bg-surface px-3 py-2 text-sm" />
+            </label>
+            <label className="block">
+              <span className="mb-1.5 block text-sm font-medium">وحدتها</span>
+              <input name="pack_unit" dir="ltr" placeholder="m2 · u · kg" className="w-full rounded border border-line bg-surface px-3 py-2 text-sm" />
+            </label>
+          </div>
+          <div className="grid gap-3 sm:grid-cols-3">
+            <label className="block">
+              <span className="mb-1.5 block text-sm font-medium">السعر</span>
+              <input name="price" inputMode="decimal" className="num w-full rounded border border-line bg-surface px-3 py-2 text-sm" />
+            </label>
+            <label className="block">
+              <span className="mb-1.5 block text-sm font-medium">تاريخ التثبّت</span>
+              <input name="price_checked_at" type="date" className="w-full rounded border border-line bg-surface px-3 py-2 text-sm" />
+            </label>
+            <label className="flex items-end gap-2 pb-2 text-sm">
+              <input type="checkbox" name="price_includes_tax" defaultChecked className="size-4" />
+              مع الأداء
+            </label>
+          </div>
+          <label className="block">
+            <span className="mb-1.5 block text-sm font-medium">مصدر السعر</span>
+            <input name="price_source" placeholder="ديبو فلان، صفاقس — فاتورة ولّا ديڤي" className="w-full rounded border border-line bg-surface px-3 py-2 text-sm" />
+          </label>
+          <label className="block">
+            <span className="mb-1.5 block text-sm font-medium">المواصفات</span>
+            <textarea name="specs" rows={4} placeholder="المقاس: 60×60 / النوع: ڤري سيرام / الصندوق: 1.44 م² — سطر لكلّ وحدة" className="w-full rounded border border-line bg-surface px-3 py-2 text-sm" />
+          </label>
+          <button type="submit" className="min-h-10 justify-self-start rounded bg-brand px-4 text-sm font-semibold text-white">
+            زيدو
+          </button>
+          <p className="text-xs leading-7 text-faint">
+            يولد <b>مغلق وسعرو غير متثبَّت منّو</b>، كيما الكلّ. ما يوصل لحريف حتّى تأكّد السعر وتنشرو.
+          </p>
+        </form>
+      </details>
 
       {products.length === 0 ? (
         <p className="mt-6 rounded border border-line bg-surface px-4 py-6 text-sm text-muted">
