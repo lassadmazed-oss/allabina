@@ -1,3 +1,4 @@
+import { guardTrack } from '@/lib/site-tracks-server'
 import IntervenantForm from '@/components/IntervenantForm'
 import { db, getDelegations, getZones } from '@/lib/supabase/server'
 import { AVAILABILITY_LABELS, LEGAL_LABELS, type CategoryRow, type FamilyRow, type SkillRow } from '@/lib/network'
@@ -12,6 +13,8 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
 }
 
 export default async function ReseauPage({ params }: { params: Promise<{ locale: string }> }) {
+  // مسار قابل للتخبئة: مخبّأ يردّ 404 للزائر، ويبقى للفريق
+  await guardTrack('reseau')
   const { locale: raw } = await params
   const locale: Locale = isLocale(raw) ? raw : 'ar'
   const t = getDictionary(locale)

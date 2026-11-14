@@ -1,3 +1,4 @@
+import { guardTrack } from '@/lib/site-tracks-server'
 import Link from 'next/link'
 import SupportRequestForm from '@/components/SupportRequestForm'
 import { getDelegations } from '@/lib/supabase/server'
@@ -12,6 +13,8 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
 }
 
 export default async function AskHelpPage({ params }: { params: Promise<{ locale: string }> }) {
+  // مسار قابل للتخبئة: مخبّأ يردّ 404 للزائر، ويبقى للفريق
+  await guardTrack('soutien')
   const { locale: raw } = await params
   const locale: Locale = isLocale(raw) ? raw : 'ar'
   const t = getDictionary(locale)

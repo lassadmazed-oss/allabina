@@ -1,4 +1,7 @@
 import Link from 'next/link'
+import { TRACKS } from '@/lib/site-tracks'
+import { getHiddenPaths } from '@/lib/site-tracks-server'
+import { setTrackHiddenAction } from '@/lib/actions/settings'
 import { notFound } from 'next/navigation'
 import { requirePermission } from '@/lib/auth'
 import { db, getBuildTiers, getFinanceContext, getFinancingProducts } from '@/lib/supabase/server'
@@ -37,6 +40,8 @@ export default async function ReferencePage() {
         .order('product'),
     ])
 
+  const hiddenPaths = await getHiddenPaths()
+
   const imadaCount = new Map<number, number>()
   for (const i of imadas ?? []) imadaCount.set(i.delegation_id, (imadaCount.get(i.delegation_id) ?? 0) + 1)
   const totalImadas = (imadas ?? []).length
@@ -47,10 +52,49 @@ export default async function ReferencePage() {
         ← رجوع للوحة القيادة
       </Link>
       <h1 className="display mt-1 text-lg font-semibold">المعطيات المرجعية للمشروع</h1>
+
       <p className="mt-2 max-w-2xl text-muted">
         الفرضيات والأسعار اللي تشتغل بيها المنصة. كل شي مخزّن في قاعدة البيانات ويتبدّل بلا ما
         يتعاود نشر الكود.
       </p>
+
+      {/* مسارات الموقع: قرار «شنوّة يشوف الزائر» — بلا نشر */}
+      <section className="mt-6 rounded border border-line bg-surface p-4">
+        <h2 className="text-sm font-semibold">مسارات الموقع العمومي</h2>
+        <p className="mt-1 max-w-3xl text-sm leading-7 text-muted">
+          المرحلة الأولى بناء ومقاولات. <b>المخبّأ ما يتحذفش</b> — يخرج من القائمة ومن خريطة
+          الموقع ويردّ 404 للزائر، ويبقى يتفتح عندك إنت باش تشوفو قبل ما ترجّعو.
+        </p>
+        <ul className="mt-3 grid gap-2 sm:grid-cols-2">
+          {TRACKS.map((tr) => {
+            const off = hiddenPaths.includes(tr.segment)
+            return (
+              <li
+                key={tr.segment}
+                className={`rounded border p-3 ${off ? 'border-dashed border-line-strong bg-bg' : 'border-line'}`}
+              >
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="font-medium">{tr.labelAr}</span>
+                  <code className="text-xs text-faint">/{tr.segment}</code>
+                  <span
+                    className={`rounded px-1.5 text-xs ${off ? 'bg-surface-2 text-muted' : 'bg-[#e4f1ea] text-[#1d6b45]'}`}
+                  >
+                    {off ? 'مخبّأ' : 'ظاهر'}
+                  </span>
+                  <form action={setTrackHiddenAction} className="ms-auto">
+                    <input type="hidden" name="segment" value={tr.segment} />
+                    <input type="hidden" name="hide" value={off ? '0' : '1'} />
+                    <button type="submit" className="min-h-8 rounded border border-line px-3 text-xs">
+                      {off ? 'رجّعو' : 'خبّيه'}
+                    </button>
+                  </form>
+                </div>
+                <p className="mt-1 text-xs leading-6 text-muted">{tr.noteAr}</p>
+              </li>
+            )
+          })}
+        </ul>
+      </section>
 
       {/* الفرضيات البنكية */}
       <Section title="الفرضيات البنكية والمالية">

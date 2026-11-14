@@ -1,3 +1,4 @@
+import { guardTrack } from '@/lib/site-tracks-server'
 import Simulator from '@/components/Simulator'
 import { getBanks, getBuildTiers, getFinanceContext, getFinancingProducts } from '@/lib/supabase/server'
 import { getDictionary, isLocale, type Locale } from '@/lib/i18n'
@@ -9,6 +10,8 @@ export default async function SimulateurPage({
 }: {
   params: Promise<{ locale: string }>
 }) {
+  // مسار قابل للتخبئة: مخبّأ يردّ 404 للزائر، ويبقى للفريق
+  await guardTrack('simulateur')
   const { locale: raw } = await params
   const locale: Locale = isLocale(raw) ? raw : 'ar'
   const t = getDictionary(locale)

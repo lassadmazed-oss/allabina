@@ -12,6 +12,8 @@ import ServiceWorkerRegister from '@/components/ServiceWorkerRegister'
 import InstallApp from '@/components/InstallApp'
 import MobileCta from '@/components/MobileCta'
 import DesktopNav, { type DesktopNavItem } from '@/components/DesktopNav'
+import { getHiddenPaths } from '@/lib/site-tracks-server'
+import { visibleLinks } from '@/lib/site-tracks'
 import { IcArrow, IcTrack } from '@/components/landing/icons'
 import { LOCALES, dirOf, getDictionary, isLocale, otherLocale, path, type Locale } from '@/lib/i18n'
 import { canonicalUrl, languageAlternates, siteUrl } from '@/lib/site'
@@ -113,7 +115,11 @@ export default async function SiteLayout({
    * الهويّة القانونية ورقم الهاتف في الذيل: «شكون انتوما؟» و«كيفاش
    * نعيّطلكم؟» أوّل سؤالين عند حريف بناء، وكانا بلا جواب في كلّ صفحة.
    */
-  const [identity, contact] = await Promise.all([getLegalIdentity(), getPlatformContact()])
+  const [identity, contact, hiddenPaths] = await Promise.all([
+    getLegalIdentity(),
+    getPlatformContact(),
+    getHiddenPaths(),
+  ])
   const li = legalInLocale(identity, locale)
   const wa = waHref(contact.whatsapp, t.footer.waPrefillFooter)
   const legalLine = [
@@ -137,6 +143,8 @@ export default async function SiteLayout({
       title: t.nav.groupStart,
       links: [
         { href: p('/demande'), label: t.footer.request },
+        // الكاتالوج كان منشوراً بلا رابط: ما يُوصَل إليه إلّا بالعنوان
+        { href: p('/catalogue'), label: t.catalogue.title },
         { href: p('/simulateur'), label: t.nav.simulator },
         { href: p('/suivi'), label: t.nav.track },
       ],
@@ -159,27 +167,35 @@ export default async function SiteLayout({
         { href: p('/soutien/demande'), label: t.soutien.askHelp.navCta },
       ],
     },
-  ]
+  ].map((g) => ({ ...g, links: visibleLinks(g.links, hiddenPaths) }))
+    .filter((g) => g.links.length > 0)
 
   /**
    * قائمة الحاسوب: أربعة عناصر بدل تسعة روابط في سطر — رابطان مباشران
    * وقائمتان منسدلتان بنفس تجميع قائمة التليفون. «ابدا من هنا» على الزرّ
    * وفي «تتبّع مطلبي» بجانبه، فلا تُكرَّر في القائمة.
    */
+  const learnLinks = visibleLinks(
+    [
+      { href: p('/catalogue'), label: t.catalogue.title },
+      { href: p('/simulateur'), label: t.nav.simulator },
+      { href: p('/realisations'), label: t.cases.navLink, hideFrom: 'xl' as const },
+      { href: p('/systemes'), label: t.systemsPage.navLink },
+      { href: p('/standing'), label: t.standingPage.navLink },
+    ],
+    hiddenPaths
+  )
+  const joinGroup = NAV_GROUPS.find((g) => g.title === t.nav.groupJoin)
+
   const DESKTOP_NAV: DesktopNavItem[] = [
     { kind: 'link', href: p('/a-propos'), label: landingCopy[locale].nav.about },
     { kind: 'link', href: p('/realisations'), label: t.cases.navLink, showFrom: 'xl' },
-    {
-      kind: 'menu',
-      label: t.nav.groupLearn,
-      links: [
-        { href: p('/simulateur'), label: t.nav.simulator },
-        { href: p('/realisations'), label: t.cases.navLink, hideFrom: 'xl' },
-        { href: p('/systemes'), label: t.systemsPage.navLink },
-        { href: p('/standing'), label: t.standingPage.navLink },
-      ],
-    },
-    { kind: 'menu', label: t.nav.groupJoin, links: NAV_GROUPS[2].links },
+    ...(learnLinks.length
+      ? [{ kind: 'menu' as const, label: t.nav.groupLearn, links: learnLinks }]
+      : []),
+    ...(joinGroup
+      ? [{ kind: 'menu' as const, label: t.nav.groupJoin, links: joinGroup.links }]
+      : []),
   ]
 
   return (

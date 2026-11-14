@@ -1,3 +1,4 @@
+import { guardTrack } from '@/lib/site-tracks-server'
 import Link from 'next/link'
 import { db, getConstructionSystems } from '@/lib/supabase/server'
 import { getDictionary, isLocale, path, type Locale } from '@/lib/i18n'
@@ -65,6 +66,8 @@ export default async function SystemsPage({
   params: Promise<{ locale: string }>
   searchParams: Promise<{ s?: string }>
 }) {
+  // مسار قابل للتخبئة: مخبّأ يردّ 404 للزائر، ويبقى للفريق
+  await guardTrack('systemes')
   const [{ locale: raw }, sp] = await Promise.all([params, searchParams])
   const locale: Locale = isLocale(raw) ? raw : 'ar'
   const dict = getDictionary(locale)

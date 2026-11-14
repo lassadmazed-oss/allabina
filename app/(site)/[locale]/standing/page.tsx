@@ -1,3 +1,4 @@
+import { guardTrack } from '@/lib/site-tracks-server'
 import Link from 'next/link'
 import { db, getStandingLevels } from '@/lib/supabase/server'
 import { fmt, getDictionary, isLocale, path, type Locale } from '@/lib/i18n'
@@ -31,6 +32,8 @@ export default async function StandingPage({
   params: Promise<{ locale: string }>
   searchParams: Promise<{ surface?: string; level?: string }>
 }) {
+  // مسار قابل للتخبئة: مخبّأ يردّ 404 للزائر، ويبقى للفريق
+  await guardTrack('standing')
   const [{ locale: raw }, sp] = await Promise.all([params, searchParams])
   const locale: Locale = isLocale(raw) ? raw : 'ar'
   const dict = getDictionary(locale)

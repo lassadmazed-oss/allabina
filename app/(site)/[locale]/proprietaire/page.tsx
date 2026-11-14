@@ -1,3 +1,4 @@
+import { guardTrack } from '@/lib/site-tracks-server'
 import PropertyForm from '@/components/PropertyForm'
 import { getDelegations, getGovernorates, getImadas, getZones } from '@/lib/supabase/server'
 import { getDictionary, isLocale, type Locale } from '@/lib/i18n'
@@ -15,6 +16,8 @@ export default async function ProprietairePage({
 }: {
   params: Promise<{ locale: string }>
 }) {
+  // مسار قابل للتخبئة: مخبّأ يردّ 404 للزائر، ويبقى للفريق
+  await guardTrack('proprietaire')
   const { locale: raw } = await params
   const locale: Locale = isLocale(raw) ? raw : 'ar'
   const t = getDictionary(locale)

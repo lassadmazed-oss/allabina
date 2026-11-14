@@ -2,6 +2,8 @@ import type { MetadataRoute } from 'next'
 import { LOCALES } from '@/lib/i18n'
 import { siteUrl } from '@/lib/site'
 import { catalogOpen, getPublicArticleCodes } from '@/lib/catalog-server'
+import { getHiddenPaths } from '@/lib/site-tracks-server'
+import { isHidden } from '@/lib/site-tracks'
 
 /**
  * الخريطة تُبنى عند الطلب لا عند البناء: المقال يُنشر ويُسحب من اللوحة،
@@ -44,8 +46,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     },
   })
 
+  // المخبّأ لا يدخل الخريطة: لا نَعِد محرّكات البحث بصفحات تردّ 404
+  const hidden = await getHiddenPaths()
   const pages = LOCALES.flatMap((locale) =>
-    PAGES.map((page) => entry(`/${locale}${page}`, page === '' ? 1 : 0.7))
+    PAGES.filter((page) => !isHidden(page, hidden)).map((page) =>
+      entry(`/${locale}${page}`, page === '' ? 1 : 0.7)
+    )
   )
 
   // بطاقات المقالات: لا تدخل الخريطة إلّا والكاتالوج مفتوح — وإلّا

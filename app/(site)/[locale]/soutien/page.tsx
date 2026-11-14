@@ -1,3 +1,4 @@
+import { guardTrack } from '@/lib/site-tracks-server'
 import Link from 'next/link'
 import '@/app/landing.css'
 import '@/app/landing-pages.css'
@@ -53,6 +54,8 @@ type SupportPhoto = {
  * بالأعداد، وحاجياتها المفتوحة، ورابط لصفحتها حيث الدفتر الكامل والتعهّد.
  */
 export default async function SoutienPage({ params }: { params: Promise<{ locale: string }> }) {
+  // مسار قابل للتخبئة: مخبّأ يردّ 404 للزائر، ويبقى للفريق
+  await guardTrack('soutien')
   const { locale: raw } = await params
   const locale: Locale = isLocale(raw) ? raw : 'ar'
   const dict = getDictionary(locale)

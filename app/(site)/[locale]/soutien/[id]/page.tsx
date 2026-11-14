@@ -1,3 +1,4 @@
+import { guardTrack } from '@/lib/site-tracks-server'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import '@/app/landing.css'
@@ -73,6 +74,8 @@ export default async function SupportCasePage({
 }: {
   params: Promise<{ locale: string; id: string }>
 }) {
+  // مسار قابل للتخبئة: مخبّأ يردّ 404 للزائر، ويبقى للفريق
+  await guardTrack('soutien')
   const { locale: raw, id } = await params
   const locale: Locale = isLocale(raw) ? raw : 'ar'
   const dict = getDictionary(locale)

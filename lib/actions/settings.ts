@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache'
 import { staffWithPermission } from '@/lib/auth'
 import { db } from '@/lib/supabase/server'
 import { CRITERIA, normalizeWeights, type Thresholds, type Weights } from '@/lib/support-assessment'
+import { TRACK_SEGMENTS, parseHidden, type TrackSegment } from '@/lib/site-tracks'
 
 export type SettingsState = { ok: boolean; error?: string }
 
@@ -189,4 +190,55 @@ export async function saveBankTermsAction(formData: FormData) {
 
   revalidatePath('/admin/reference')
   for (const p of ['/ar/demande', '/fr/demande', '/ar/simulateur', '/fr/simulateur']) revalidatePath(p)
+}
+
+/**
+ * تخبئة مسار من الموقع العمومي أو إرجاعه.
+ *
+ * قرار «شنوّة يشوف الزائر» قرار صاحب الشركة، يُقلب من هنا بلا نشر.
+ * والمخبّأ يردّ 404 ويخرج من القائمة ومن خريطة الموقع — لا يُخفى من
+ * القائمة ويبقى يفتح لمن يعرف العنوان.
+ */
+export async function setTrackHiddenAction(formData: FormData) {
+  const actor = await staffWithPermission('reference.manage')
+  if (!actor) return
+  const segment = String(formData.get('segment') ?? '')
+  const hide = formData.get('hide') === '1'
+  if (!TRACK_SEGMENTS.includes(segment as TrackSegment)) return
+
+  const { data } = await db
+    .from('app_settings')
+    .select('value')
+    .eq('key', 'site.hidden_paths')
+    .maybeSingle()
+  const current = new Set(parseHidden(data?.value))
+  if (hide) current.add(segment as TrackSegment)
+  else current.delete(segment as TrackSegment)
+
+  await db
+    .from('app_settings')
+    .upsert(
+      [
+        {
+          key: 'site.hidden_paths',
+          value: [...current],
+          description:
+            'مسارات الموقع العمومي المخبّأة. القيم الممكنة: proprietaire · reseau · standing · soutien · simulateur · systemes.',
+        },
+      ],
+      { onConflict: 'key' }
+    )
+    .then(({ error }) => error && console.error('hidden paths', error.message))
+
+  await db
+    .from('staff_events')
+    .insert({
+      actor: actor.userId,
+      event_type: 'settings.update',
+      detail: { key: 'site.hidden_paths', segment, hide },
+    })
+    .then(({ error: e }) => e && console.warn('staff_events', e.message))
+
+  revalidatePath('/admin/reference')
+  revalidatePath('/', 'layout')
 }
