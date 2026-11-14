@@ -33,6 +33,8 @@ export type GateError =
   | 'too_many_attempts'
   | 'wrong_code'
   | 'blocked'
+  /** حساب بالاسم: من ما عندوش اسماً محفوظاً يكتبه قبل ما يدخل */
+  | 'name_required'
   | 'failed'
 
 export type GateState = {
@@ -44,6 +46,8 @@ export type GateState = {
   notSent?: boolean
   /** ثوانٍ قبل السماح بإعادة الإرسال */
   retryAfter?: number
+  /** هل تُطلب خانة الاسم؟ من عندو اسم محفوظ لا يُسأل مرّتين */
+  needsName?: boolean
 }
 
 export const initialGateState: GateState = { step: 'phone', phone: '' }

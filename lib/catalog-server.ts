@@ -67,6 +67,16 @@ function shape(r: Row): CatalogArticle {
     imageUrl: null,
     isActive: r.is_active !== false,
     regionNote: null,
+    // الواقعة لا المبلغان: «يشمل التوريد والتركيب» تُحسب هنا ويبقى
+    // التقسيم في الخادم
+    includes:
+      fourniture > 0 && main > 0
+        ? 'both'
+        : fourniture > 0
+          ? 'supply'
+          : main > 0
+            ? 'labour'
+            : null,
   })
 }
 

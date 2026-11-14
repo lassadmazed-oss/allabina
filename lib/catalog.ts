@@ -48,6 +48,11 @@ export type CatalogArticle = {
   isActive: boolean
   /** سبب فرق سعر المنطقة — يُقال ولا يُدسّ. null = لا قاعدة. */
   regionNote: string | null
+  /**
+   * هل السعر يشمل التوريد والتركيب؟ الواقعة تخرج، لا المبلغان:
+   * تقسيم السعر داخلي، و«يشمل التركيب» هو ما يحتاجه الحريف.
+   */
+  includes: 'both' | 'supply' | 'labour' | null
 }
 
 /** ما يُسمح بخروجه إلى المتصفّح. كلّ ما عداه يبقى في الخادم. */
@@ -74,6 +79,7 @@ const PUBLIC_KEYS = new Set<keyof CatalogArticle>([
   'imageUrl',
   'isActive',
   'regionNote',
+  'includes',
 ])
 
 /** حقول داخلية لا تخرج أبداً — تُفحص بالاسم لا بالثقة */
@@ -197,6 +203,56 @@ export const standingIn = (a: CatalogArticle, locale: Locale) =>
  * رأى سعراً واحداً يرى البقيّة بدل أن يحسب الفرق سهواً.
  */
 export const baseCode = (code: string): string => code.replace(/-B\d{2}$/i, '')
+
+// ───────────────────────────────────────────── التجميع على الاختيارات
+
+export type CatalogGroup = {
+  base: string
+  /** المقال الذي يُعرض اسمه ولوطه — المرجعي إن وُجد */
+  lead: CatalogArticle
+  /** كلّ الاختيارات بأسعارها، من الأرخص للأغلى */
+  options: CatalogArticle[]
+  fromHt: number | null
+  toHt: number | null
+}
+
+/**
+ * مقال واحد في القائمة، واختياراته في بطاقته.
+ *
+ * البذرة أعطت لكلّ مقال نسخة لكلّ مستوى، فالقائمة الخام تعرض «أبواب
+ * داخلية» خمس مرّات. والتصنيف لا يُعرض على الحريف: لا يُقال له «إنت
+ * اقتصادي». فالقائمة تعرض المقال مرّة بمجال سعره، والاختيار يقع في
+ * بطاقته حيث يرى ما يشتريه بكلّ سعر.
+ */
+export function groupByBase(items: CatalogArticle[]): CatalogGroup[] {
+  const by = new Map<string, CatalogArticle[]>()
+  for (const a of items) {
+    const b = baseCode(a.code)
+    const list = by.get(b)
+    if (list) list.push(a)
+    else by.set(b, [a])
+  }
+
+  const out: CatalogGroup[] = []
+  for (const [base, list] of by) {
+    const options = [...list].sort((x, y) => (x.priceHt ?? 0) - (y.priceHt ?? 0))
+    // المرجعي يقود البطاقة إن وُجد، وإلّا الأوسط — لا الأرخص ولا الأغلى
+    const lead =
+      options.find((o) => o.standingCode === 'B03') ?? options[Math.floor((options.length - 1) / 2)]
+    const prices = options
+      .map((o) => priceOf(o))
+      .filter((p): p is { kind: 'known'; ht: number; ttc: number | null } => p.kind === 'known')
+      .map((p) => p.ht)
+    out.push({
+      base,
+      lead,
+      options,
+      fromHt: prices.length ? Math.min(...prices) : null,
+      toHt: prices.length ? Math.max(...prices) : null,
+    })
+  }
+  return out.sort((a, b) => a.base.localeCompare(b.base))
+}
 
 // ─────────────────────────────────────────── المواصفات
 

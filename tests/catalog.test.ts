@@ -4,6 +4,7 @@ import {
   INTERNAL_KEYS,
   applyFilters,
   baseCode,
+  groupByBase,
   canCompare,
   matches,
   priceOf,
@@ -45,6 +46,7 @@ const art = (over: Partial<CatalogArticle> = {}): CatalogArticle => ({
   imageUrl: null,
   isActive: true,
   regionNote: null,
+  includes: 'both',
   ...over,
 })
 
@@ -306,5 +308,86 @@ describe('الصفحة لا تدّعي اعتماداً لم يقع', () => {
     expect(src).toContain('priceNoticeTitle')
     expect(src).toContain('priceDateLabel')
     expect(ar).toContain('استرشادية')
+  })
+})
+
+/**
+ * مقال واحد في القائمة، واختياراته في بطاقته.
+ *
+ * القرار (14 نوفمبر 2026): لا يُصنَّف الحريف. «اقتصادي/عادي/محسّن» لا
+ * تُعرض كمحور للكاتالوج كلّه — الحريف يختار مقالاً مقالاً، والمستوى
+ * يطلع من اختياراته. فالقائمة تعرض المقال مرّة بمجال سعره.
+ */
+describe('التجميع على الاختيارات', () => {
+  const v = (code: string, price: number, st: string) =>
+    art({ id: code, code, priceHt: price, standingCode: st, standingNameAr: st })
+
+  const five = [
+    v('BO-01-B01', 425, 'B01'),
+    v('BO-01-B02', 514, 'B02'),
+    v('BO-01-B03', 620, 'B03'),
+    v('BO-01-B04', 744, 'B04'),
+    v('BO-01-B05', 850, 'B05'),
+  ]
+
+  it('خمس نسخ تصير بطاقة واحدة بمجال سعرها', () => {
+    const [g] = groupByBase(five)
+    expect(groupByBase(five)).toHaveLength(1)
+    expect(g.base).toBe('BO-01')
+    expect(g.options).toHaveLength(5)
+    expect(g.fromHt).toBe(425)
+    expect(g.toHt).toBe(850)
+  })
+
+  it('المرجعي يقود البطاقة — لا الأرخص ولا الأغلى', () => {
+    expect(groupByBase(five)[0].lead.code).toBe('BO-01-B03')
+  })
+
+  it('وبلا مرجعي يقودها الأوسط، لأنّ الأرخص يُظهر المقال أرخص ممّا هو', () => {
+    const noRef = five.filter((a) => a.standingCode !== 'B03')
+    const lead = groupByBase(noRef)[0].lead
+    expect(lead.priceHt).toBe(514)
+  })
+
+  it('مقال بلا نسخ يبقى مقالاً، ومجاله سعرٌ واحد', () => {
+    const [g] = groupByBase([art({ code: 'A-05-012', priceHt: 42 })])
+    expect(g.options).toHaveLength(1)
+    expect(g.fromHt).toBe(42)
+    expect(g.toHt).toBe(42)
+  })
+
+  it('سعر غير معتمد لا يدخل المجال ولا يُحسب صفراً', () => {
+    const [g] = groupByBase([
+      v('X-01-B01', 100, 'B01'),
+      art({ id: 'x2', code: 'X-01-B02', priceHt: null, standingCode: 'B02' }),
+    ])
+    expect(g.fromHt).toBe(100)
+    expect(g.toHt).toBe(100)
+    // الاختيار يبقى معروضاً، ويقول «السعر غير متاح» في مكانه
+    expect(g.options).toHaveLength(2)
+  })
+
+  it('الترتيب داخل البطاقة بالسعر: من الأرخص للأغلى', () => {
+    const [g] = groupByBase([...five].reverse())
+    expect(g.options.map((o) => o.priceHt)).toEqual([425, 514, 620, 744, 850])
+  })
+
+  it('مقالان مختلفان يبقاو بطاقتين', () => {
+    expect(groupByBase([v('BO-01-B03', 620, 'B03'), v('BO-02-B03', 300, 'B03')])).toHaveLength(2)
+  })
+})
+
+/**
+ * «يشمل التوريد والتركيب» واقعةٌ تخرج، ومبلغاها لا.
+ * تقسيم السعر بين توريد ويد عاملة شأن داخلي؛ وما يحتاجه الحريف هو
+ * الجواب لا التركيبة.
+ */
+describe('ما يشمله السعر', () => {
+  it('الواقعة في القائمة البيضاء، والمبلغان لا', () => {
+    const out = toPublic({ ...art({ includes: 'supply' }) } as unknown as Record<string, unknown>)
+    expect(out.includes).toBe('supply')
+    for (const k of ['pu_fourniture_ht', 'pu_main_oeuvre_ht', 'puFournitureHt']) {
+      expect(Object.keys(out)).not.toContain(k)
+    }
   })
 })

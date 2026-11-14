@@ -182,17 +182,25 @@ function CodeStep({
           <span className="mt-1.5 block text-xs text-faint">{t.codeHelp}</span>
         </label>
 
-        <label className="block">
-          <span className="mb-1.5 block text-sm font-medium">{t.nameLabel}</span>
-          <input
-            id="gate-name"
-            name="full_name"
-            type="text"
-            autoComplete="name"
-            placeholder={t.namePlaceholder}
-            className="w-full rounded border border-line bg-surface px-3 py-2.5"
-          />
-        </label>
+        {/*
+          الحساب بالاسم ورقم متثبَّت منه. ومن عندو اسم محفوظ ما يُسألش
+          عليه مرّة أخرى — الخانة تختفي كاملة.
+        */}
+        {state.needsName !== false && (
+          <label className="block">
+            <span className="mb-1.5 block text-sm font-medium">{t.nameLabel}</span>
+            <input
+              id="gate-name"
+              name="full_name"
+              type="text"
+              autoComplete="name"
+              required
+              minLength={3}
+              placeholder={t.namePlaceholder}
+              className="w-full rounded border border-line bg-surface px-3 py-2.5"
+            />
+          </label>
+        )}
 
         <Problem t={t} state={state} />
 

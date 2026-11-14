@@ -104,14 +104,7 @@ export default async function ArticlePage({
 
       <p className="num mt-6 text-xs text-faint">{isolateNumbers(a.code)}</p>
       <h1 className="display mt-1 text-2xl font-semibold sm:text-3xl">{designationIn(a, locale)}</h1>
-      <p className="mt-1 flex flex-wrap items-center gap-2 text-sm text-muted">
-        <span>{lotNameIn(a, locale)}</span>
-        {standingIn(a, locale) && (
-          <span className="rounded-full bg-surface-2 px-2 py-0.5 text-xs">
-            {t.standingLabel}: {standingIn(a, locale)}
-          </span>
-        )}
-      </p>
+      <p className="mt-1 text-sm text-muted">{lotNameIn(a, locale)}</p>
 
       {descriptionIn(a, locale) && (
         <p className="mt-4 leading-8 text-ink-soft">{descriptionIn(a, locale)}</p>
@@ -126,6 +119,7 @@ export default async function ArticlePage({
         )}
         <dl className="mt-4 grid gap-4 sm:grid-cols-2">
           <Row k={t.unit} v={a.unit} mono />
+          <Row k={t.includesLabel} v={a.includes ? (t.includes[a.includes] ?? null) : null} />
           <Row k={t.availabilityTitle} v={t.availability[a.availability] ?? a.availability} />
           <Row
             k={t.leadTime}
@@ -145,31 +139,47 @@ export default async function ArticlePage({
         </p>
       </div>
 
+      {/*
+        الاختيارات: نفس الشغل بمواد مختلفة، والحريف يختار.
+        المقال المفتوح يظهر معهم موسوماً — قائمة تُخفي ما أنت فيه تجعل
+        المقارنة في الذاكرة بدل الشاشة.
+      */}
       {siblings.length > 0 && (
         <section className="mt-6">
           <h2 className="display text-lg font-semibold">{t.otherStandings}</h2>
           <p className="mt-1 text-sm leading-7 text-muted">{t.otherStandingsLede}</p>
           <ul className="mt-3 grid gap-2">
-            {siblings.map((s) => (
-              <li key={s.id}>
-                <Link
-                  href={`/${locale}/catalogue/${encodeURIComponent(s.code)}`}
-                  className="flex flex-wrap items-baseline gap-x-3 gap-y-1 rounded border border-line bg-surface px-3 py-2.5 transition hover:border-line-strong"
-                >
-                  <span className="text-sm font-medium">{standingIn(s, locale) || s.code}</span>
-                  <span className="num text-xs text-faint">{isolateNumbers(s.code)}</span>
-                  <span className="ms-auto">
-                    <ArticlePrice
-                      article={s}
-                      taxRatePct={taxRatePct}
-                      locale={locale}
-                      t={t}
-                      compact
-                    />
-                  </span>
-                </Link>
-              </li>
-            ))}
+            {[...siblings, a]
+              .sort((x, y) => (x.priceHt ?? 0) - (y.priceHt ?? 0))
+              .map((s) => {
+                const current = s.id === a.id
+                return (
+                  <li key={s.id}>
+                    <Link
+                      href={`/${locale}/catalogue/${encodeURIComponent(s.code)}`}
+                      aria-current={current ? 'true' : undefined}
+                      className={`flex flex-wrap items-baseline gap-x-3 gap-y-1 rounded border px-3 py-2.5 transition ${
+                        current
+                          ? 'border-brand bg-brand-soft'
+                          : 'border-line bg-surface hover:border-line-strong'
+                      }`}
+                    >
+                      <span className="text-sm font-medium">{standingIn(s, locale) || s.code}</span>
+                      {current && <span className="text-xs text-brand">· {t.thisOne}</span>}
+                      <span className="num text-xs text-faint">{isolateNumbers(s.code)}</span>
+                      <span className="ms-auto">
+                        <ArticlePrice
+                          article={s}
+                          taxRatePct={taxRatePct}
+                          locale={locale}
+                          t={t}
+                          compact
+                        />
+                      </span>
+                    </Link>
+                  </li>
+                )
+              })}
           </ul>
         </section>
       )}

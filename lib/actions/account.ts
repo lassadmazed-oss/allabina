@@ -10,6 +10,7 @@ import {
   canVerifyOtp,
   hashOtp,
   isOtpShape,
+  nameCheck,
   newOtpCode,
   parsePhone,
   otpExpiryFrom,
@@ -78,10 +79,13 @@ export async function requestCodeAction(
 
   const { data: existing } = await db
     .from('app_users')
-    .select('id, status')
+    .select('id, status, full_name')
     .eq('phone', phone)
     .maybeSingle()
   if (existing?.status === 'blocked') return { step: 'phone', phone, error: 'blocked' }
+
+  // من عندو اسم محفوظ ما يُسألش عليه مرّة أخرى
+  const needsName = !String(existing?.full_name ?? '').trim()
 
   const code = newOtpCode()
   const { error } = await db.from('phone_verifications').insert({
@@ -99,7 +103,7 @@ export async function requestCodeAction(
   // رقم غير تونسي: الحساب يُنشأ لكن المزوّد لا يبلغه. نقولها بدل أن
   // نتركه ينتظر رمزاً لن يصل.
   if (!canReceiveSms(phone)) {
-    return { step: 'code', phone, notSent: true, retryAfter: policy.resendCooldownSeconds }
+    return { step: 'code', phone, notSent: true, needsName, retryAfter: policy.resendCooldownSeconds }
   }
 
   const outcome = await sendAccountOtp(phone, code, locale)
@@ -110,13 +114,13 @@ export async function requestCodeAction(
     // لأنّ `next build` محلّياً يجعل NODE_ENV إنتاجاً.
     if (isDevDatabase()) {
       console.log(`\n  ⟨تطوير⟩ رمز ${phone}: ${code}\n`)
-      return { step: 'code', phone, retryAfter: policy.resendCooldownSeconds }
+      return { step: 'code', phone, needsName, retryAfter: policy.resendCooldownSeconds }
     }
     return { step: 'phone', phone, error: 'failed' }
   }
 
   await recordEvent('account_requested')
-  return { step: 'code', phone, retryAfter: policy.resendCooldownSeconds }
+  return { step: 'code', phone, needsName, retryAfter: policy.resendCooldownSeconds }
 }
 
 /** القاعدة المحلّية — وحدها تسمح بطباعة الرمز في السجلّ */
@@ -136,6 +140,18 @@ export async function verifyCodeAction(
   if (!parsed.ok) return { step: 'phone', phone: '', error: parsed.reason }
   const { phone } = parsed
 
+  // الاسم يُفحص قبل الرمز: رمز يُستهلك ثمّ يُرفض الاسم يعني رسالة ثانية،
+  // والرسالة فلوس. والفحص يعرف من عندو اسم محفوظ فلا يسأله مرّتين.
+  const { data: known } = await db
+    .from('app_users')
+    .select('full_name')
+    .eq('phone', phone)
+    .maybeSingle()
+  const named = nameCheck(known?.full_name as string | null, String(formData.get('full_name') ?? ''))
+  if (!named.ok) {
+    return { step: 'code', phone, error: 'name_required', needsName: true }
+  }
+
   const code = String(formData.get('code') ?? '').replace(/\D/g, '')
   const policy = await getOtpPolicy()
 
@@ -149,7 +165,7 @@ export async function verifyCodeAction(
     .maybeSingle()
 
   const gate = canVerifyOtp(row, policy)
-  if (!gate.ok) return { step: 'code', phone, error: gate.reason }
+  if (!gate.ok) return { step: 'code', phone, error: gate.reason, needsName: !known?.full_name }
 
   // المحاولة تُحتسب قبل المقارنة: الخروج من الصفحة لا يُلغي محاولة خاطئة
   await db
@@ -158,7 +174,7 @@ export async function verifyCodeAction(
     .eq('id', row!.id)
 
   if (!isOtpShape(code) || !otpMatches(String(row!.code_hash), phone, code)) {
-    return { step: 'code', phone, error: 'wrong_code' }
+    return { step: 'code', phone, error: 'wrong_code', needsName: !known?.full_name }
   }
 
   await db
@@ -166,7 +182,7 @@ export async function verifyCodeAction(
     .update({ consumed_at: new Date().toISOString() })
     .eq('id', row!.id)
 
-  const fullName = String(formData.get('full_name') ?? '').trim().slice(0, 120)
+  const fullName = named.name.slice(0, 120)
   const user = await findOrCreateUser(phone, fullName)
   if (!user) return { step: 'code', phone, error: 'failed' }
   if (user.blocked) return { step: 'phone', phone, error: 'blocked' }

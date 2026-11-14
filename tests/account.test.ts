@@ -7,6 +7,7 @@ import {
   displayPhone,
   hashOtp,
   isTunisian,
+  nameCheck,
   issueUserSession,
   newOtpCode,
   parsePhone,
@@ -279,5 +280,35 @@ describe('عرض الرقم', () => {
       expect(back.ok, p).toBe(true)
       if (back.ok) expect(back.phone, p).toBe(p)
     }
+  })
+})
+
+/**
+ * حساب بالاسم ورقم متثبَّت منه.
+ *
+ * الملخّص (14 نوفمبر 2026): «حسابًا بالاسم ورقم هاتف متثبّت منه».
+ * والاسم يُطلب مرّة: من عندو اسم محفوظ لا يُسأل في كلّ دخول.
+ */
+describe('الاسم مع الرقم', () => {
+  it('حساب جديد بلا اسم يُرفض قبل ما يحترق الرمز', () => {
+    expect(nameCheck(null, '')).toEqual({ ok: false })
+    expect(nameCheck(null, '  ')).toEqual({ ok: false })
+    expect(nameCheck('', 'لس')).toEqual({ ok: false })
+  })
+
+  it('اسم مقبول يُنظَّف من الفراغ الزائد', () => {
+    expect(nameCheck(null, '  لسعد   المازد ')).toEqual({ ok: true, name: 'لسعد المازد' })
+  })
+
+  it('من عندو اسم محفوظ يدخل بلا ما يكتبه مرّة أخرى', () => {
+    expect(nameCheck('لسعد المازد', '')).toEqual({ ok: true, name: 'لسعد المازد' })
+  })
+
+  it('ويقدر يصلّحه إن كتب واحداً جديداً', () => {
+    expect(nameCheck('لسعد', 'لسعد المازد')).toEqual({ ok: true, name: 'لسعد المازد' })
+  })
+
+  it('واسم جديد أقصر من الحدّ لا يدهس المحفوظ', () => {
+    expect(nameCheck('لسعد المازد', 'ل')).toEqual({ ok: true, name: 'لسعد المازد' })
   })
 })

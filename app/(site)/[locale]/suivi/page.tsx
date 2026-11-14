@@ -194,7 +194,14 @@ export default async function SuiviPage({
         </div>
       </section>
 
-      {/* صورة عامّة على الخدمة — Aperçu général */}
+      {/*
+        صورة عامّة على الخدمة — Aperçu général.
+
+        تظهر إذا كان فمّا مطلب حقيقي واحد على الأقلّ. حائط أصفار يقول
+        للزائر «ما حدّش جاء» وهو أسوأ من ما نقولو شي، والخدمة جديدة لا
+        فاشلة. والتجارب ما تُحتسبش: العرض يرشّح بـis_demo.
+      */}
+      {stats.received > 0 && (
       <section className="mt-12">
         <h2 className="text-lg font-semibold">{t.suivi.statsTitle}</h2>
         <p className="mt-1 text-sm text-muted">{t.suivi.statsLede}</p>
@@ -209,6 +216,7 @@ export default async function SuiviPage({
         </p>
         <p className="mt-3 text-xs leading-6 text-faint">{t.suivi.privacyNote}</p>
       </section>
+      )}
     </div>
   )
 }

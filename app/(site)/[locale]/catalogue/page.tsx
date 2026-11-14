@@ -7,13 +7,11 @@ import {
   catalogTaxRate,
   getPriceListDate,
   getPublicArticles,
-  getPublicLots,
-  getPublicStandings,
 } from '@/lib/catalog-server'
 import { getDelegations } from '@/lib/supabase/server'
-import { applyFilters, designationIn, lotNameIn, parseCodes, standingIn, toggleCode } from '@/lib/catalog'
+import { applyFilters, designationIn, groupByBase, lotNameIn, parseCodes, toggleCode } from '@/lib/catalog'
 import { getDictionary, isLocale, type Locale } from '@/lib/i18n'
-import { isolateNumbers } from '@/lib/format'
+import { formatMoney, isolateNumbers } from '@/lib/format'
 
 export const dynamic = 'force-dynamic'
 
@@ -32,7 +30,7 @@ export default async function CataloguePage({
   searchParams,
 }: {
   params: Promise<{ locale: string }>
-  searchParams: Promise<{ q?: string; lot?: string; cmp?: string; region?: string; st?: string }>
+  searchParams: Promise<{ q?: string; lot?: string; cmp?: string; region?: string }>
 }) {
   const [{ locale: raw }, sp] = await Promise.all([params, searchParams])
   const locale: Locale = isLocale(raw) ? raw : 'ar'
@@ -60,52 +58,53 @@ export default async function CataloguePage({
     ? { govCode: 'SFX', delegationId: regionId }
     : null
 
-  /**
-   * المستوى يُنتقى، ولا يُعرض الكلّ افتراضاً.
-   *
-   * لكلّ مقال نسخة في كلّ مستوى: 67 مقالاً تصير 333 سطراً، نفس الاسم
-   * خمس مرّات بخمسة أسعار. الافتراضي مستوى واحد — المرجعي B03 — وبقيّة
-   * المستويات بضغطة. «كلّ المستويات» تبقى متاحة لمن يريد الجدول كاملاً.
-   */
-  const standings = await getPublicStandings()
-  const wantedSt = (sp.st ?? '').toUpperCase()
-  const standing =
-    wantedSt === 'ALL'
-      ? undefined
-      : (standings.find((s) => s.code === wantedSt)?.code ??
-        standings.find((s) => s.code === 'B03')?.code ??
-        standings[0]?.code)
-
-  const [lots, all, taxRatePct, delegations, priceDate] = await Promise.all([
-    getPublicLots(standing),
-    getPublicArticles(400, region, locale, standing),
+  const [all, taxRatePct, delegations, priceDate] = await Promise.all([
+    getPublicArticles(400, region, locale),
     catalogTaxRate(),
     getDelegations('SFX'),
     getPriceListDate(),
   ])
-  const level = standings.find((s) => s.code === standing) ?? null
 
   const lotCode = sp.lot ? Number(sp.lot) : undefined
   const query = (sp.q ?? '').slice(0, 80)
   // «تصفّح صنف»: يُسجَّل عند اختيار لوط لا عند كلّ فتح صفحة
   if (lotCode) await recordEvent('category_view', { govCode: 'SFX', meta: { lot: lotCode } })
 
+  /**
+   * التجميع قبل العرض: مقال واحد في القائمة، واختياراته في بطاقته.
+   * والترشيح قبل التجميع حتّى لا يُعرض مجالُ سعرٍ محسوبٌ من نسخ مُستبعَدة.
+   */
   const items = applyFilters(all, {
     lotCode: Number.isFinite(lotCode) ? lotCode : undefined,
     query,
   })
+  const groups = groupByBase(items)
+
+  // الأصناف وأعدادها تُحسب من المقالات لا من النسخ: لوط فيه ثلاثة
+  // مقالات ليس فيه خمسة عشر
+  const lotCounts = new Map<number, { code: number; nameAr: string; nameFr: string; count: number }>()
+  for (const g of groupByBase(all)) {
+    const prev = lotCounts.get(g.lead.lotCode)
+    if (prev) prev.count += 1
+    else
+      lotCounts.set(g.lead.lotCode, {
+        code: g.lead.lotCode,
+        nameAr: g.lead.lotNameAr,
+        nameFr: g.lead.lotNameFr,
+        count: 1,
+      })
+  }
+  const lots = [...lotCounts.values()].sort((a, b) => a.code - b.code)
 
   // قائمة المقارنة تعيش في العنوان: تشتغل بلا جافاسكريبت، وتُنسَخ وتُرسَل
   const selected = parseCodes(sp.cmp)
 
-  const href = (over: { lot?: number | null; q?: string; cmp?: string[]; st?: string }) => {
+  const href = (over: { lot?: number | null; q?: string; cmp?: string[] }) => {
     const p = new URLSearchParams()
     if (region) p.set('region', String(region.delegationId))
-    const st = over.st === undefined ? (wantedSt === 'ALL' ? 'all' : standing) : over.st
     const lot = over.lot === undefined ? lotCode : over.lot
     const q = over.q === undefined ? query : over.q
     const cmp = over.cmp === undefined ? selected : over.cmp
-    if (st) p.set('st', st)
     if (lot) p.set('lot', String(lot))
     if (q) p.set('q', q)
     if (cmp.length) p.set('cmp', cmp.join(','))
@@ -133,7 +132,6 @@ export default async function CataloguePage({
       {/* بحث بلا جافاسكريبت: النتيجة في العنوان فتُشارَك وتُحفظ */}
       <form action={`/${locale}/catalogue`} className="mt-6 flex flex-wrap gap-2">
         {lotCode ? <input type="hidden" name="lot" value={lotCode} /> : null}
-        <input type="hidden" name="st" value={wantedSt === 'ALL' ? 'all' : (standing ?? '')} />
         <label className="flex-1 basis-56">
           <span className="sr-only">{t.searchLabel}</span>
           <input
@@ -165,46 +163,6 @@ export default async function CataloguePage({
       </form>
       <p className="mt-2 text-xs leading-7 text-faint">{t.regionHint}</p>
 
-      {/* المستوى: سبب اختلاف خمسة أسعار لنفس الاسم — يُختار ويُسمّى */}
-      {standings.length > 1 && (
-        <section className="mt-5 rounded border border-line bg-surface p-4">
-          <h2 className="text-sm font-semibold">{t.standingLabel}</h2>
-          <nav className="mt-2.5 flex flex-wrap gap-2 text-sm">
-            {standings.map((s) => (
-              <Link
-                key={s.code}
-                href={href({ st: s.code })}
-                aria-current={s.code === standing ? 'true' : undefined}
-                className={`rounded-full border px-3 py-1.5 ${
-                  s.code === standing
-                    ? 'border-brand bg-brand-soft font-medium text-brand'
-                    : 'border-line text-muted'
-                }`}
-              >
-                {locale === 'fr' ? s.nameFr || s.nameAr : s.nameAr || s.nameFr}
-              </Link>
-            ))}
-            <Link
-              href={href({ st: 'all' })}
-              aria-current={standing === undefined ? 'true' : undefined}
-              className={`rounded-full border px-3 py-1.5 ${
-                standing === undefined
-                  ? 'border-brand bg-brand-soft font-medium text-brand'
-                  : 'border-line text-muted'
-              }`}
-            >
-              {t.standingAll}
-            </Link>
-          </nav>
-          {level && (locale === 'fr' ? level.descFr : level.descAr) && (
-            <p className="mt-2.5 text-sm leading-7 text-ink-soft">
-              {locale === 'fr' ? level.descFr : level.descAr}
-            </p>
-          )}
-          <p className="mt-1.5 text-xs leading-7 text-faint">{t.standingHint}</p>
-        </section>
-      )}
-
       <nav className="mt-5 flex flex-wrap gap-2 text-sm">
         <Link
           href={href({ lot: null })}
@@ -229,60 +187,89 @@ export default async function CataloguePage({
       </nav>
 
       <p className="mt-5 text-xs text-faint">
-        <span className="num">{isolateNumbers(String(items.length))}</span> {t.results}
+        <span className="num">{isolateNumbers(String(groups.length))}</span> {t.results}
       </p>
 
-      {items.length === 0 ? (
+      {groups.length === 0 ? (
         <p className="mt-6 rounded border border-line bg-surface px-4 py-6 text-sm text-muted">
           {t.empty}
         </p>
       ) : (
         <ul className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {items.map((a) => (
-            <li key={a.id} className="flex flex-col">
-              <Link
-                href={`/${locale}/catalogue/${encodeURIComponent(a.code)}`}
-                className="flex flex-1 flex-col rounded border border-line bg-surface p-4 transition hover:border-line-strong"
-              >
-                {a.imageUrl && (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={a.imageUrl}
-                    alt=""
-                    loading="lazy"
-                    decoding="async"
-                    className="mb-3 aspect-[4/3] w-full rounded object-cover"
-                  />
-                )}
-                <span className="num text-xs text-faint">{isolateNumbers(a.code)}</span>
-                <span className="mt-1 font-semibold leading-7">{designationIn(a, locale)}</span>
-                <span className="mt-0.5 text-xs text-muted">{lotNameIn(a, locale)}</span>
-                {standingIn(a, locale) && (
-                  <span className="mt-1.5 self-start rounded-full bg-surface-2 px-2 py-0.5 text-xs text-muted">
-                    {standingIn(a, locale)}
+          {groups.map((g) => {
+            const a = g.lead
+            const ranged = g.fromHt !== null && g.toHt !== null && g.toHt > g.fromHt
+            return (
+              <li key={g.base} className="flex flex-col">
+                <Link
+                  href={`/${locale}/catalogue/${encodeURIComponent(a.code)}`}
+                  className="flex flex-1 flex-col rounded border border-line bg-surface p-4 transition hover:border-line-strong"
+                >
+                  {a.imageUrl && (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={a.imageUrl}
+                      alt=""
+                      loading="lazy"
+                      decoding="async"
+                      className="mb-3 aspect-[4/3] w-full rounded object-cover"
+                    />
+                  )}
+                  <span className="num text-xs text-faint">{isolateNumbers(g.base)}</span>
+                  <span className="mt-1 font-semibold leading-7">{designationIn(a, locale)}</span>
+                  <span className="mt-0.5 text-xs text-muted">{lotNameIn(a, locale)}</span>
+
+                  {/* مجال لا رقم واحد: الاختيار باقٍ للحريف داخل البطاقة */}
+                  <span className="mt-3 flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
+                    {ranged ? (
+                      <>
+                        <span className="text-xs text-faint">{t.rangeFrom}</span>
+                        <b className="num text-base">
+                          {isolateNumbers(formatMoney(g.fromHt!, locale))}
+                        </b>
+                        <span className="text-xs text-faint">{t.rangeTo}</span>
+                        <b className="num text-base">
+                          {isolateNumbers(formatMoney(g.toHt!, locale))}
+                        </b>
+                        <span className="text-xs text-faint">
+                          {t.priceHt}
+                          {a.unit ? ` · ${a.unit}` : ''}
+                        </span>
+                      </>
+                    ) : (
+                      <ArticlePrice
+                        article={a}
+                        taxRatePct={taxRatePct}
+                        locale={locale}
+                        t={t}
+                        compact
+                      />
+                    )}
                   </span>
-                )}
-                <span className="mt-3 flex items-baseline gap-2">
-                  <ArticlePrice article={a} taxRatePct={taxRatePct} locale={locale} t={t} compact />
-                </span>
-                {a.regionNote && (
-                  <span className="mt-1 text-xs text-gold">{a.regionNote}</span>
-                )}
-              </Link>
-              {/* الاختيار رابط لا خانة: يشتغل بلا جافاسكريبت */}
-              <Link
-                href={href({ cmp: toggleCode(selected, a.code) })}
-                aria-pressed={selected.includes(a.code)}
-                className={`mt-1.5 rounded border px-3 py-1.5 text-center text-xs ${
-                  selected.includes(a.code)
-                    ? 'border-brand bg-brand-soft font-medium text-brand'
-                    : 'border-line text-muted'
-                }`}
-              >
-                {selected.includes(a.code) ? `✓ ${t.comparing}` : t.compare}
-              </Link>
-            </li>
-          ))}
+
+                  {g.options.length > 1 && (
+                    <span className="mt-1.5 text-xs text-muted">
+                      <span className="num">{isolateNumbers(String(g.options.length))}</span>{' '}
+                      {t.optionsCount}
+                    </span>
+                  )}
+                  {a.regionNote && <span className="mt-1 text-xs text-gold">{a.regionNote}</span>}
+                </Link>
+                {/* الاختيار رابط لا خانة: يشتغل بلا جافاسكريبت */}
+                <Link
+                  href={href({ cmp: toggleCode(selected, a.code) })}
+                  aria-pressed={selected.includes(a.code)}
+                  className={`mt-1.5 rounded border px-3 py-1.5 text-center text-xs ${
+                    selected.includes(a.code)
+                      ? 'border-brand bg-brand-soft font-medium text-brand'
+                      : 'border-line text-muted'
+                  }`}
+                >
+                  {selected.includes(a.code) ? `✓ ${t.comparing}` : t.compare}
+                </Link>
+              </li>
+            )
+          })}
         </ul>
       )}
 

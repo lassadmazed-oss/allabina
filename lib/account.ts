@@ -75,6 +75,23 @@ export function displayPhone(phone: string): string {
   return isTunisian(phone) ? phone.slice(TN_CODE.length) : `+${phone}`
 }
 
+/**
+ * حساب بالاسم ورقم متثبَّت منه.
+ *
+ * الاسم يُطلب مرّة واحدة: من عندو اسم محفوظ من قبل لا يُسأل عليه في كلّ
+ * دخول، ومن ما عندوش يكتبو الآن. والفحص يقع **قبل** استهلاك الرمز، وإلّا
+ * رُفض الاسم بعد ما احترق الرمز — ورسالة ثانية فلوس حقيقية.
+ */
+export function nameCheck(
+  savedName: string | null | undefined,
+  typed: string
+): { ok: true; name: string } | { ok: false } {
+  const saved = String(savedName ?? '').trim()
+  const name = String(typed ?? '').trim().replace(/\s+/g, ' ')
+  if (saved) return { ok: true, name: name.length >= 3 ? name : saved }
+  return name.length >= 3 ? { ok: true, name } : { ok: false }
+}
+
 export function phoneVariants(phone: string): string[] {
   const out = new Set<string>([phone, `00${phone}`])
   if (isTunisian(phone)) out.add(phone.slice(TN_CODE.length))
