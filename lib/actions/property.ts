@@ -1,6 +1,7 @@
 'use server'
 
 import { redirect } from 'next/navigation'
+import { getCurrentUser } from '@/lib/user-session'
 import { attachVoiceNotes } from '@/lib/actions/voice-note'
 import { after } from 'next/server'
 import { sendPropertyConfirmation } from '@/lib/sms/winsms'
@@ -12,7 +13,7 @@ import { attachDraftMedia } from '@/lib/actions/property-media'
 
 export type PropertyState = {
   ok: boolean
-  error?: 'banner' | 'rateLimited' | 'server' | 'mediaBusy'
+  error?: 'banner' | 'rateLimited' | 'server' | 'mediaBusy' | 'needsAccount'
   fields?: string[]
 }
 
@@ -56,10 +57,15 @@ export async function submitProperty(
   const d = parsed.data
   const ip = (await headers()).get('x-forwarded-for')?.split(',')[0] ?? 'local'
   if (rateLimited(ip) || rateLimited(d.ownerPhone)) return { ok: false, error: 'rateLimited' }
+  /** لا طلب بلا حساب — كرّاس الشروط V2، القسم 02. الفحص في الخادم لا في الواجهة. */
+  const user = await getCurrentUser()
+  if (!user) return { ok: false, error: 'needsAccount' }
+
 
   const { data: inserted, error } = await db
     .from('properties')
     .insert({
+      user_id: user.id,
       kind: d.kind,
       gov_code: d.govCode,
       delegation_id: d.delegationId,

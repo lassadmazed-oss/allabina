@@ -157,6 +157,7 @@ export default function RequestForm({
   initialValues,
   docCatalog,
   voice,
+  account,
 }: {
   locale: Locale
   t: Dictionary['form']
@@ -177,6 +178,8 @@ export default function RequestForm({
   mode?: 'create' | 'edit'
   /** القيم المسجّلة — مطلوبة في وضع التعديل */
   initialValues?: Record<string, string | boolean>
+  /** الحريف الداخل — اسمه ورقمه لا يُطلبان مرّتين */
+  account?: { phone: string; fullName: string }
   /** دليل الوثائق من القاعدة — الترشيح حسب الملفّ يقع هنا */
   docCatalog: CatalogDoc[]
   /** نصوص زرّ التسجيل — تُمرَّر صراحةً لا عبر القاموس كاملاً */
@@ -220,7 +223,18 @@ export default function RequestForm({
         }
       }
     } catch {}
-  }, [isEdit])
+
+    // «لا إعادة إدخال معلومة موجودة» — القسم 04. ما يُكتب يدوياً لا يُدهَس:
+    // المسوّدة أحدث من الحساب، وقد يسجّل الحريف لغيره.
+    if (!account) return
+    for (const [k, v] of [
+      ['fullName', account.fullName],
+      ['phone', account.phone],
+    ] as const) {
+      const el = formRef.current?.elements.namedItem(k)
+      if (el instanceof HTMLInputElement && !el.value && v) el.value = v
+    }
+  }, [isEdit, account])
 
   useEffect(() => {
     if (isEdit) return
@@ -646,8 +660,11 @@ export default function RequestForm({
    * أمّا أخطاء الخادم والحدّ الزمني فتُعرض دائماً — ليست عن حقل.
    */
   const isFieldError = state.error === 'banner' || localFields.length > 0
+  // «يلزمك حساب» ليس خطأ الحريف: لافتة حمراء في محلّها تقول له إنّه أخطأ
+  const needsAccount = state.error === 'needsAccount'
   const showBanner = Boolean(
     (state.error || localFields.length > 0) &&
+      !needsAccount &&
       (!isFieldError || badFields.length > 0 || elsewhereStep !== undefined)
   )
 
@@ -820,6 +837,21 @@ export default function RequestForm({
           })}
         </ol>
       </nav>
+
+      {needsAccount && (
+        <div
+          role="alert"
+          className="mb-6 rounded border border-line bg-gold-soft p-4 text-sm leading-7"
+        >
+          <p>{t.errors.needsAccount}</p>
+          <a
+            href={`/${locale}/compte?next=/${locale}/demande`}
+            className="mt-3 inline-block rounded bg-brand px-4 py-2 font-semibold text-white"
+          >
+            {t.errors.needsAccountCta}
+          </a>
+        </div>
+      )}
 
       {showBanner && (
         <div
@@ -2182,6 +2214,19 @@ export default function RequestForm({
           </button>
         )}
       </div>
+
+      {/* يُقال قبل الإرسال لا بعده: ستّ خطوات تُعمّر ثمّ «يلزمك حساب» مفاجأة */}
+      {!isEdit && !account && (
+        <p className="mt-4 text-sm leading-7 text-muted">
+          {t.errors.needsAccount}{' '}
+          <a
+            href={`/${locale}/compte?next=/${locale}/demande`}
+            className="font-semibold text-brand underline underline-offset-4"
+          >
+            {t.errors.needsAccountCta}
+          </a>
+        </p>
+      )}
 
       {/* الإرسال الحقيقي — زرّ مخفيّ تضغطه نافذة الملخّص وحدها */}
       {!isEdit && <button type="submit" data-confirm hidden aria-hidden="true" tabIndex={-1} />}

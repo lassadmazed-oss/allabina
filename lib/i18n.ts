@@ -117,11 +117,11 @@ const ar = {
             }
         },
         ctaTitle: 'مطلبك يبدا اليوم',
-        ctaBody: 'التسجيل مجّاني وما يلزمكش حساب. تعمّر الاستمارة، تاخو رمز مطلبك، ونحنا نتّصلو بيك.'
+        ctaBody: 'التسجيل مجّاني. تعمّر الاستمارة، تثبّت رقمك برمز يوصلك، ونحنا نتّصلو بيك.'
     },
     form: {
         pageTitle: 'سجّل مطلب سكنك',
-        pageLede: 'أقلّ من 3 دقايق، وبدون معاليم. ما يلزمكش حساب، وترجع لمطلبك برمز خاصّ.',
+        pageLede: 'أقلّ من 3 دقايق، وبدون معاليم. رقمك يتثبّت برمز، وملفّك يبقى عندك.',
         stepOf: 'الخطوة {i} من {n}',
         stepNames: [
             'المطلب',
@@ -432,6 +432,8 @@ const ar = {
             banner: 'فمّا حقول ناقصة ولا غير صحيحة. رجّعناك للخطوة اللي فيها المشكل.',
             elsewhere: 'باقي حقل ناقص في خطوة {step}.',
             rateLimited: 'عدد المحاولات كثير. عاود بعد شويّة.',
+            needsAccount: 'باش نسجّلو مطلبك، نحتاجو رقمك متثبّت منّو. دقيقة وحدة، والمسوّدة متاعك محفوظة.',
+            needsAccountCta: 'عمل الحساب',
             server: 'صار مشكل تقني في التسجيل. عاود المحاولة.',
             expired: 'جلستك سالات. عاود دخّل رمزك ورقم هاتفك.',
             noChange: 'ما بدّلت حتّى حاجة — الملفّ باقي كيما هو.',
@@ -655,6 +657,8 @@ const ar = {
             banner: 'فمّا حقول ناقصة ولا غير صحيحة.',
             elsewhere: 'Il reste un champ à compléter à l’étape {step}.',
             rateLimited: 'عدد المحاولات كثير. عاود بعد شويّة.',
+            needsAccount: 'باش نسجّلو مطلبك، نحتاجو رقمك متثبّت منّو. دقيقة وحدة، والمسوّدة متاعك محفوظة.',
+            needsAccountCta: 'عمل الحساب',
             server: 'صار مشكل تقني. عاود المحاولة.',
             fallback: 'هالحقل فيه مشكل.',
             kind: 'اختار نوع العقار.',
@@ -1118,6 +1122,8 @@ const ar = {
             errors: {
                 notFound: 'ما لقيناش مطلب بهالرمز وهالرقم. تثبّت من الاثنين.',
                 rateLimited: 'عدد المحاولات كثير. عاود بعد شويّة.',
+                needsAccount: 'باش نسجّلو مطلبك، نحتاجو رقمك متثبّت منّو. دقيقة وحدة، والمسوّدة متاعك محفوظة.',
+                needsAccountCta: 'عمل الحساب',
                 noInput: 'دخّل الرمز ورقم الهاتف الزوز.',
             },
         },
@@ -1449,11 +1455,11 @@ const fr: Dictionary = {
             }
         },
         ctaTitle: 'Votre demande commence aujourd’hui',
-        ctaBody: 'Le dépôt est gratuit et sans compte. Remplissez le formulaire, recevez votre code de demande, nous vous rappelons.'
+        ctaBody: 'Le dépôt est gratuit. Remplissez le formulaire, confirmez votre numéro par un code, nous vous rappelons.'
     },
     form: {
         pageTitle: 'Déposer votre demande de logement',
-        pageLede: 'Moins de trois minutes, sans frais. Sans compte : vous suivez votre demande avec un code.',
+        pageLede: 'Moins de trois minutes, sans frais. Votre numéro est confirmé par un code, votre dossier vous suit.',
         stepOf: 'Étape {i} sur {n}',
         stepNames: [
             'Type de demande',
@@ -1766,6 +1772,8 @@ const fr: Dictionary = {
         errors: {
             banner: "Des champs sont manquants ou invalides. Nous vous avons ramené à l'étape concernée.",
             rateLimited: 'Trop de tentatives. Réessayez dans quelques instants.',
+            needsAccount: 'Pour enregistrer votre demande, il nous faut un numéro vérifié. Une minute, et votre brouillon est conservé.',
+            needsAccountCta: 'Créer mon compte',
             server: "Une erreur technique est survenue. Merci de réessayer.",
             fallback: 'Ce champ est invalide.',
             requestType: 'Choisissez le type de demande.',
@@ -1986,6 +1994,8 @@ const fr: Dictionary = {
         errors: {
             banner: 'Des champs sont manquants ou invalides.',
             rateLimited: 'Trop de tentatives. Réessayez dans quelques instants.',
+            needsAccount: 'Pour enregistrer votre demande, il nous faut un numéro vérifié. Une minute, et votre brouillon est conservé.',
+            needsAccountCta: 'Créer mon compte',
             server: 'Une erreur technique est survenue. Merci de réessayer.',
             fallback: 'Ce champ est invalide.',
             kind: 'Choisissez le type de bien.',
@@ -2451,6 +2461,8 @@ const fr: Dictionary = {
             errors: {
                 notFound: 'Aucune demande ne correspond a ce code et a ce numero. Verifiez les deux.',
                 rateLimited: 'Trop de tentatives. Reessayez dans un moment.',
+                needsAccount: 'Pour enregistrer votre demande, il nous faut un numéro vérifié. Une minute, et votre brouillon est conservé.',
+                needsAccountCta: 'Créer mon compte',
                 noInput: 'Saisissez le code et le numero de telephone.',
             },
         },

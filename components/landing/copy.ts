@@ -188,7 +188,7 @@ const FR: LandingCopy = {
     eyebrow: 'Comment ça marche',
     title: 'Quatre étapes… de la demande aux clés',
     steps: [
-      { t: 'Déposez votre demande', d: 'Cinq étapes depuis le téléphone, moins de trois minutes, sans compte.' },
+      { t: 'Déposez votre demande', d: 'Cinq étapes depuis le téléphone, moins de trois minutes.' },
       { t: 'Nous étudions votre capacité', d: 'Budget estimatif, mensualité possible et un code privé pour suivre votre dossier.' },
       { t: 'Nous trouvons l’offre', d: 'Un projet, un terrain ou un constructeur adapté à votre zone et à votre budget.' },
       { t: 'Nous vous accompagnons', d: 'Du premier rendez-vous jusqu’à la remise des clés.' },

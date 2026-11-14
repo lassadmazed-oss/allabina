@@ -65,6 +65,16 @@ export const isTunisian = (phone: string) => phone.startsWith(TN_CODE) && phone.
  * ليس عدداً، فتبقى ثلاث صيغ محتملة لنفس الرقم. نقارن بقائمة معروفة
  * لا بتخمين: `like '%…'` يطابق أرقاماً أخرى تنتهي بنفس الأعداد.
  */
+/**
+ * الرقم كما يكتبه صاحبه لا كما يُخزَّن.
+ *
+ * التونسي يعرف رقمه ثمانية أعداد؛ عرض «21657589882» في خانة يملؤها
+ * بنفسه عادةً يجعله يشكّ أنّ الخانة فيها رقم غيره.
+ */
+export function displayPhone(phone: string): string {
+  return isTunisian(phone) ? phone.slice(TN_CODE.length) : `+${phone}`
+}
+
 export function phoneVariants(phone: string): string[] {
   const out = new Set<string>([phone, `00${phone}`])
   if (isTunisian(phone)) out.add(phone.slice(TN_CODE.length))

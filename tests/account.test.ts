@@ -4,6 +4,7 @@ import {
   canReceiveSms,
   canSendOtp,
   canVerifyOtp,
+  displayPhone,
   hashOtp,
   isTunisian,
   issueUserSession,
@@ -259,6 +260,24 @@ describe('مطابقة الملفّات القديمة', () => {
   it('ما ثمّ صيغة فارغة تطابق كلّ شيء', () => {
     for (const p of ['21698120630', '33612345678']) {
       expect(phoneVariants(p).every((x) => x.length >= 8)).toBe(true)
+    }
+  })
+})
+
+describe('عرض الرقم', () => {
+  it('التونسي يُعرض ثمانية أعداد كما يعرفه صاحبه', () => {
+    expect(displayPhone('21657589882')).toBe('57589882')
+  })
+
+  it('الدولي يُعرض بمفتاحه وبعلامة زائد', () => {
+    expect(displayPhone('33612345678')).toBe('+33612345678')
+  })
+
+  it('ما يُعرَض يعود كما كان إن أُعيد إدخاله', () => {
+    for (const p of ['21657589882', '33612345678']) {
+      const back = parsePhone(displayPhone(p))
+      expect(back.ok, p).toBe(true)
+      if (back.ok) expect(back.phone, p).toBe(p)
     }
   })
 })

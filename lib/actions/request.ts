@@ -10,12 +10,13 @@ import { buildCost, tierByKey } from '@/lib/pricing'
 import { requestSchema } from '@/lib/schema'
 import { writeClientAnswers } from '@/lib/actions/client-answers'
 import { computeScore } from '@/lib/scoring'
+import { getCurrentUser } from '@/lib/user-session'
 import { DEFAULT_LOCALE, isLocale } from '@/lib/i18n'
 
 export type SubmitState = {
   ok: boolean
   /** مفتاح رسالة عامّة: banner | rateLimited | server */
-  error?: 'banner' | 'rateLimited' | 'server'
+  error?: 'banner' | 'rateLimited' | 'server' | 'needsAccount'
   /** أسماء الحقول الخاطئة — تُترجم في الواجهة */
   fields?: string[]
 }
@@ -83,6 +84,16 @@ export async function submitRequest(
     return { ok: false, error: 'rateLimited' }
   }
 
+  /**
+   * لا مطلب بلا حساب — كرّاس الشروط V2، القسم 02.
+   *
+   * الفحص هنا لا في الواجهة: إخفاء زرّ لا يمنع استدعاءً مباشراً. والردّ
+   * رمزُ حالة لا إعادة توجيه، حتّى لا تضيع ستّ خطوات عمّرها الحريف —
+   * الواجهة تعرض البوّابة في مكانها، والمسوّدة محفوظة.
+   */
+  const user = await getCurrentUser()
+  if (!user) return { ok: false, error: 'needsAccount' }
+
   // الحريف يدخل الأقدمية بالسنين، والقاعدة والتنقيط يشتغلان بالأشهر
   const seniorityMonths = Math.round((d.seniorityYears || 0) * 12)
 
@@ -132,6 +143,7 @@ export async function submitRequest(
   const { data: inserted, error } = await db
     .from('housing_requests')
     .insert({
+      user_id: user.id,
       full_name: d.fullName,
       phone: d.phone,
       email: d.email || null,

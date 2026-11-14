@@ -1,6 +1,7 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
+import { getCurrentUser } from '@/lib/user-session'
 import { attachVoiceNotes } from '@/lib/actions/voice-note'
 import { savedRedirect } from '@/lib/actions/saved'
 import { headers } from 'next/headers'
@@ -96,7 +97,7 @@ export async function addLedgerEntryAction(formData: FormData) {
   await savedRedirect('ledger')
 }
 
-export type PledgeState = { ok: boolean; error?: 'banner' | 'rateLimited' | 'server' }
+export type PledgeState = { ok: boolean; error?: 'banner' | 'rateLimited' | 'server' | 'needsAccount' }
 
 const recent = new Map<string, number[]>()
 function rateLimited(key: string): boolean {
@@ -165,6 +166,10 @@ export async function submitPledgeAction(
 
   const ip = (await headers()).get('x-forwarded-for')?.split(',')[0] ?? 'local'
   if (rateLimited(ip) || rateLimited(phone)) return { ok: false, error: 'rateLimited' }
+  /** لا طلب بلا حساب — كرّاس الشروط V2، القسم 02. الفحص في الخادم لا في الواجهة. */
+  const user = await getCurrentUser()
+  if (!user) return { ok: false, error: 'needsAccount' }
+
 
   const { error } = await db.from('support_pledges').insert({
     support_case_id: caseId || null,
@@ -213,7 +218,7 @@ export async function updatePledgeAction(formData: FormData) {
 export type SupportRequestState = {
   ok: boolean
   ref?: string
-  error?: 'banner' | 'rateLimited' | 'server'
+  error?: 'banner' | 'rateLimited' | 'server' | 'needsAccount'
   fields?: string[]
 }
 
@@ -255,6 +260,10 @@ export async function submitSupportRequest(
   const d = parsed.data
   const ip = (await headers()).get('x-forwarded-for')?.split(',')[0] ?? 'local'
   if (rateLimited(ip) || rateLimited(d.phone)) return { ok: false, error: 'rateLimited' }
+  /** لا طلب بلا حساب — كرّاس الشروط V2، القسم 02. الفحص في الخادم لا في الواجهة. */
+  const user = await getCurrentUser()
+  if (!user) return { ok: false, error: 'needsAccount' }
+
 
   const { data: inserted, error } = await db
     .from('housing_requests')
@@ -309,6 +318,7 @@ export async function submitSupportRequest(
 
   // تصريح صاحب الطلب كما صرّح به — مرتّب على معايير الدراسة، بلا قرار فيه
   const { error: intakeErr } = await db.from('support_intake').insert({
+    user_id: user.id,
     request_id: inserted.id,
     for_whom: d.forWhom,
     beneficiary_name: d.beneficiaryName || null,

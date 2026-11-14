@@ -11,6 +11,8 @@ import {
   getZones,
 } from '@/lib/supabase/server'
 import { getDictionary, isLocale, type Locale } from '@/lib/i18n'
+import { getCurrentUser } from '@/lib/user-session'
+import { displayPhone } from '@/lib/account'
 
 export const dynamic = 'force-dynamic'
 
@@ -24,6 +26,7 @@ export default async function DemandePage({
   const [{ locale: raw }, { type }] = await Promise.all([params, searchParams])
   const locale: Locale = isLocale(raw) ? raw : 'ar'
   const t = getDictionary(locale)
+  const user = await getCurrentUser()
 
   const [governorates, delegations, imadas, zones, finance, build, systems, docCatalog, banks] =
     await Promise.all([
@@ -63,6 +66,7 @@ export default async function DemandePage({
         tiers={build.tiers}
         systems={systems}
         initialType={type ?? ''}
+        account={user ? { phone: displayPhone(user.phone), fullName: user.fullName } : undefined}
       />
     </div>
   )
