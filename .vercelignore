@@ -15,3 +15,7 @@ docs
 docs/**
 scratchpad-tmp
 scratchpad-tmp/**
+
+# نسخ احتياطية من الإنتاج — معطيات حرفاء حقيقيين. لا تُرفع أبداً.
+backups
+backups/**

@@ -27,3 +27,6 @@ scripts/.tmp/
 
 # TypeScript incremental build info
 tsconfig.tsbuildinfo
+
+# نسخ احتياطية من الإنتاج — معطيات حرفاء حقيقيين، لا تدخل git أبداً
+backups/

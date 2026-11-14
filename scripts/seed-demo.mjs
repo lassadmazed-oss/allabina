@@ -10,33 +10,16 @@
  *
  * ⚠ الأسماء والقصص كلّها مخترعة. ما فمّا حتّى معطى شخص حقيقي.
  */
-import { readFileSync } from 'node:fs'
+import { connect, loadEnv } from './lib/db.mjs'
 import { randomUUID } from 'node:crypto'
-import pg from 'pg'
 
-const env = Object.fromEntries(
-  readFileSync('.env', 'utf8')
-    .split('\n')
-    .filter((l) => l.trim() && !l.trim().startsWith('#') && l.includes('='))
-    .map((l) => {
-      const i = l.indexOf('=')
-      return [l.slice(0, i).trim(), l.slice(i + 1).trim()]
-    })
-)
+const envInfo = loadEnv()
+const env = envInfo.vars
 
 const N = 20
 const DEMO_DOMAIN = 'allabina.invalid'
 const clean = process.argv.includes('--clean')
-const ref = new URL(env.SUPABASE_URL).hostname.split('.')[0]
-
-const client = new pg.Client({
-  host: `aws-0-${process.env.SUPABASE_REGION ?? 'eu-central-1'}.pooler.supabase.com`,
-  port: 5432,
-  user: `postgres.${ref}`,
-  password: env.DATABASE_PASSWORD,
-  database: 'postgres',
-  ssl: { rejectUnauthorized: false },
-})
+const client = await connect({ env: envInfo, write: 'بذر بيانات تجريبية' })
 
 // ---------- واجهة إدارة الحسابات ----------
 const authHeaders = {
@@ -197,7 +180,6 @@ const CASE_STUDIES = [
 
 // ============================================================
 async function main() {
-  await client.connect()
 
   if (clean) {
     // الترتيب مقصود: المطالب أوّلاً لأنّ حذفها يجرّ حالات المساندة وقيود

@@ -10,21 +10,13 @@
 // الحالات التجريبية موسومة أصلاً بشارة «بيانات تجريبية» في الواجهة،
 // والرسم التوضيحي يقول ما تقوله المرحلة: أرض وجدران واطئة، ثمّ هيكل
 // وسقالات، ثمّ مسكن مكتمل.
-import { readFileSync } from 'node:fs'
+import { readEnv } from './lib/db.mjs'
 import { createClient } from '@supabase/supabase-js'
 import { renderStages } from './lib/site-scenes.mjs'
 
 const BUCKET = 'case-photos'
 
-const env = Object.fromEntries(
-  readFileSync('.env', 'utf8')
-    .split('\n')
-    .filter((l) => l.trim() && !l.trim().startsWith('#') && l.includes('='))
-    .map((l) => {
-      const i = l.indexOf('=')
-      return [l.slice(0, i).trim(), l.slice(i + 1).trim()]
-    })
-)
+const env = readEnv()
 
 const db = createClient(env.SUPABASE_URL, env.SUPABASE_SECRET_KEY, {
   auth: { persistSession: false },

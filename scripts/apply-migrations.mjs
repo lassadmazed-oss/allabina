@@ -1,55 +1,49 @@
 // تطبيق ملفّات supabase/migrations على قاعدة البيانات بالترتيب.
-// الاستعمال: node scripts/apply-migrations.mjs
+//
+//   npm run migrate              على القاعدة المحلّية (.env)
+//   npm run migrate -- --reset   يمسح schema public ثمّ يعيد البناء (محلّي فقط)
+//   npm run migrate -- --prod    على الإنتاج — يحتاج ALLOW_PROD_WRITE=1
+//
+// الهجرات تُعاد كلّها في كلّ مرّة، فيلزم تبقى قابلة للتكرار: insert بـ
+// on conflict، وcreate بـif not exists أو or replace.
 import { readFileSync, readdirSync } from 'node:fs'
 import { join } from 'node:path'
-import pg from 'pg'
-
-const env = Object.fromEntries(
-  readFileSync('.env', 'utf8')
-    .split('\n')
-    .filter((l) => l.trim() && !l.trim().startsWith('#') && l.includes('='))
-    .map((l) => {
-      const i = l.indexOf('=')
-      return [l.slice(0, i).trim(), l.slice(i + 1).trim()]
-    })
-)
-
-const ref = new URL(env.SUPABASE_URL).hostname.split('.')[0]
-const region = process.env.SUPABASE_REGION ?? 'eu-central-1'
-const hosts = [
-  `aws-0-${region}.pooler.supabase.com`,
-  `aws-1-${region}.pooler.supabase.com`,
-  `db.${ref}.supabase.co`,
-]
+import { connect, loadEnv } from './lib/db.mjs'
 
 const dir = 'supabase/migrations'
-const files = readdirSync(dir).filter((f) => f.endsWith('.sql')).sort()
+const files = readdirSync(dir)
+  .filter((f) => f.endsWith('.sql'))
+  .sort()
 
-async function connect() {
-  for (const host of hosts) {
-    const user = host.includes('pooler') ? `postgres.${ref}` : 'postgres'
-    const client = new pg.Client({
-      host,
-      port: 5432,
-      user,
-      password: env.DATABASE_PASSWORD,
-      database: 'postgres',
-      ssl: { rejectUnauthorized: false },
-      connectionTimeoutMillis: 15000,
-    })
-    try {
-      await client.connect()
-      console.log(`متّصل عبر ${host}`)
-      return client
-    } catch (e) {
-      console.log(`تعذّر عبر ${host}: ${e.message}`)
-    }
-  }
-  throw new Error('تعذّر الاتصال بقاعدة البيانات عبر كلّ المسارات المجرّبة')
+const reset = process.argv.includes('--reset')
+const env = loadEnv()
+
+// المسح الكامل محلّي حصراً — لا يكفيه إذن الكتابة، لأنّه يمحو ولا يضيف
+if (reset && !env.isLocal) {
+  console.error(`--reset يمحو كلّ الجداول. الوجهة ${env.where} ليست محلّية.`)
+  process.exit(1)
 }
 
-const client = await connect()
+const client = await connect({ env, write: reset ? 'إعادة بناء القاعدة' : 'تطبيق الهجرات' })
+client.on('notice', (n) => n.message && console.log(`  ملاحظة: ${n.message}`))
+
 try {
+  console.log(`\n${files.length} ملفّ هجرة\n`)
+  if (reset) {
+    process.stdout.write('مسح schema public ... ')
+    await client.query('drop schema if exists public cascade; create schema public;')
+    await client.query('grant usage on schema public to anon, authenticated, service_role;')
+    await client.query('grant all on schema public to postgres;')
+    await client.query(
+      'alter default privileges in schema public grant all on tables to anon, authenticated, service_role;'
+    )
+    // حسابات auth تعيش خارج schema public فلا يمسحها المسح أعلاه. وبقاؤها
+    // ليس إزعاجاً فقط (البذر يفشل بـemail_exists): اختبار استرجاع نسخة من
+    // الإنتاج يترك هنا بُرُد حرفاء حقيقيين. على المحلّي نمحوها كلّها.
+    const { rowCount } = await client.query('truncate auth.users cascade')
+    console.log(`تمّ (ومُحيت حسابات auth: ${rowCount ?? 'كلّها'})`)
+  }
+
   for (const file of files) {
     const sql = readFileSync(join(dir, file), 'utf8')
     process.stdout.write(`تطبيق ${file} ... `)
@@ -61,7 +55,7 @@ try {
     select table_name from information_schema.tables
     where table_schema = 'public' order by table_name
   `)
-  console.log('\nالجداول:', rows.map((r) => r.table_name).join(', '))
+  console.log(`\nالجداول (${rows.length}):`, rows.map((r) => r.table_name).join(', '))
 
   const counts = await client.query(`
     select (select count(*) from governorates)     as governorates,
@@ -69,7 +63,13 @@ try {
            (select count(*) from price_references) as prices,
            (select count(*) from app_settings)     as settings
   `)
-  console.log('البيانات:', counts.rows[0])
+  console.log('البيانات المرجعية:', counts.rows[0])
+
+  if (reset) {
+    console.log('\nالقاعدة خالية من الحسابات. لإعادة حساب المطوّر والبيانات التجريبية:')
+    console.log("  printf 'labina-dev-2026\\n' | node scripts/create-owner.mjs dev@allabina.invalid")
+    console.log('  node scripts/seed-demo.mjs')
+  }
 } finally {
   await client.end()
 }

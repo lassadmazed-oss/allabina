@@ -3,19 +3,11 @@
 //
 // كلمة السرّ تُطلب تفاعلياً ولا تظهر على الشاشة، ولا تُمرَّر في سطر الأوامر
 // حتى لا تُحفظ في تاريخ الطرفية.
-import { readFileSync } from 'node:fs'
+import { readEnv } from './lib/db.mjs'
 import readline from 'node:readline'
 import { createClient } from '@supabase/supabase-js'
 
-const env = Object.fromEntries(
-  readFileSync('.env', 'utf8')
-    .split('\n')
-    .filter((l) => l.trim() && !l.trim().startsWith('#') && l.includes('='))
-    .map((l) => {
-      const i = l.indexOf('=')
-      return [l.slice(0, i).trim(), l.slice(i + 1).trim()]
-    })
-)
+const env = readEnv()
 
 const email = (process.argv[2] ?? '').trim().toLowerCase()
 if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {

@@ -1,45 +1,40 @@
-// اتّصال مباشر بقاعدة البيانات لسكربتات الصيانة — نفس منطق apply-migrations.
-import { readFileSync } from 'node:fs'
+// اتّصال مباشر بقاعدة البيانات لسكربتات الصيانة.
+//
+// كلّ اتّصال يمرّ على حارس البيئة: الافتراضي محلّي، والإنتاج يحتاج --prod،
+// والكتابة في الإنتاج تحتاج ALLOW_PROD_WRITE=1 فوق ذلك. انظر lib/env.mjs.
 import pg from 'pg'
+import { assertWritable, banner, loadEnv, pgTargets } from './env.mjs'
 
+export { loadEnv, assertWritable, banner }
+
+/** يبقى للتوافق مع السكربتات القديمة — يرجع متغيّرات البيئة المختارة */
 export function readEnv() {
-  return Object.fromEntries(
-    readFileSync('.env', 'utf8')
-      .split('\n')
-      .filter((l) => l.trim() && !l.trim().startsWith('#') && l.includes('='))
-      .map((l) => {
-        const i = l.indexOf('=')
-        return [l.slice(0, i).trim(), l.slice(i + 1).trim()]
-      })
-  )
+  return loadEnv().vars
 }
 
-/** يجرّب الـpooler ثمّ الاتّصال المباشر — أوّل مضيف يستجيب يفوز. */
-export async function connect() {
-  const env = readEnv()
-  const ref = new URL(env.SUPABASE_URL).hostname.split('.')[0]
-  const region = process.env.SUPABASE_REGION ?? 'eu-central-1'
-  const hosts = [
-    `aws-0-${region}.pooler.supabase.com`,
-    `aws-1-${region}.pooler.supabase.com`,
-    `db.${ref}.supabase.co`,
-  ]
-  for (const host of hosts) {
-    const client = new pg.Client({
-      host,
-      port: 5432,
-      user: host.includes('pooler') ? `postgres.${ref}` : 'postgres',
-      password: env.DATABASE_PASSWORD,
-      database: 'postgres',
-      ssl: { rejectUnauthorized: false },
-      connectionTimeoutMillis: 15000,
-    })
+/**
+ * يجرّب مضيفات البيئة بالترتيب — أوّل من يستجيب يفوز.
+ * `write`: صفة العملية (مثلاً «تطبيق الهجرات»). تمريرها يفعّل حارس الكتابة.
+ */
+export async function connect({ env = loadEnv(), write = null, quiet = false } = {}) {
+  if (write) assertWritable(env, write)
+  if (!quiet) banner(env, write ?? 'قراءة')
+
+  let lastError = null
+  for (const target of pgTargets(env)) {
+    const client = new pg.Client(target)
     try {
       await client.connect()
       return client
-    } catch {
-      try { await client.end() } catch {}
+    } catch (e) {
+      lastError = e
+      try {
+        await client.end()
+      } catch {}
     }
   }
-  throw new Error('تعذّر الاتّصال بقاعدة البيانات')
+  throw new Error(
+    `تعذّر الاتّصال بقاعدة ${env.where}${lastError ? ` — ${lastError.message}` : ''}` +
+      (env.isLocal ? '\n  المحلّي يحتاج الحزمة مشتغلة: npm run db:start' : '')
+  )
 }
