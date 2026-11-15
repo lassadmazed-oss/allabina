@@ -2,7 +2,7 @@ import 'server-only'
 import { cache } from 'react'
 import { db } from '@/lib/supabase/server'
 import { generateDevis, type ArticleInput, type ProjectConfig } from '@/lib/devis'
-import { reachOf, type Reach } from '@/lib/budget-reach'
+import { lotInScope, reachOf, type Reach, type Scope } from '@/lib/budget-reach'
 
 // configFromParams خالصة، فمحلّها lib/budget-reach.ts — تُعاد هنا
 // لمن يستوردها من الخادم بلا تبديل مواضع الاستيراد.
@@ -56,11 +56,22 @@ export type BudgetAnswer = {
   skipped: number
 }
 
-export async function budgetReach(config: ProjectConfig, budget: number): Promise<BudgetAnswer> {
+/**
+ * النطاق يُرشّح اللوطات قبل الحساب لا بعده.
+ *
+ * من اختار «الهيكل وحده» لا يُحسب له تشطيب: تقديرٌ يحوي ما لم يطلبه
+ * يقول له إنّ مشروعه أغلى ممّا هو، فيخرج. والعكس أسوأ.
+ */
+export async function budgetReach(
+  config: ProjectConfig,
+  budget: number,
+  scope: Scope = 'finish'
+): Promise<BudgetAnswer> {
   const articles = await getBaseArticles()
   const devis = generateDevis(config, articles)
+  const lots = devis.lots.filter((l) => lotInScope(l.code, scope))
   return {
-    reach: reachOf(devis.lots, budget),
+    reach: reachOf(lots, budget),
     config,
     skipped: devis.errors.length,
   }

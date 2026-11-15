@@ -6,6 +6,9 @@ import {
   neededFor,
   phaseOfLot,
   configFromParams,
+  lotsInScope,
+  parseScope,
+  SCOPES,
   reachOf,
   type LotCost,
 } from '@/lib/budget-reach'
@@ -151,5 +154,42 @@ describe('قراءة المواصفات من العنوان', () => {
     expect(configFromParams({ s: '1200' }).surface).toBe(1200)
     expect(configFromParams({ s: '140' }).surface).toBe(140)
     expect(configFromParams({ s: '99999' }).surface).toBe(20000)
+  })
+})
+
+/**
+ * نطاق الأشغال.
+ *
+ * اختيارٌ تراكمي: من يريد التشطيب يريد الهيكل قبله — لا تُركَّب نوافذ
+ * على جدارٍ لم يُبنَ. ونطاقٌ يسقط منه الهيكل يعطي تقديراً أرخص من
+ * الحقيقة، والحريف يبني توقّعه عليه.
+ */
+describe('نطاق الأشغال', () => {
+  it('الهيكل وحده: لا تشطيب ولا تلبيس', () => {
+    const lots = lotsInScope('structure')
+    expect(lots).toContain(4)
+    expect(lots).not.toContain(10)
+    expect(lots).not.toContain(8)
+  })
+
+  it('والتراكم: كلّ نطاق يحوي ما قبله', () => {
+    const a = new Set(lotsInScope('structure'))
+    const b = new Set(lotsInScope('second'))
+    const c = new Set(lotsInScope('finish'))
+    for (const l of a) expect(b, `اللوط ${l} طاح من «التحضيرات»`).toContain(l)
+    for (const l of b) expect(c, `اللوط ${l} طاح من «التشطيب»`).toContain(l)
+  })
+
+  it('والدراسة والتسليم في كلّ نطاق — ما همش خياراً', () => {
+    for (const s of SCOPES) {
+      expect(lotsInScope(s), `الدراسة ناقصة من ${s}`).toContain(1)
+      expect(lotsInScope(s), `التسليم ناقص من ${s}`).toContain(20)
+    }
+  })
+
+  it('والقيمة الغريبة ترجع للنطاق الكامل — لا تقدير أرخص بالغلط', () => {
+    expect(parseScope('حاجة')).toBe('finish')
+    expect(parseScope(undefined)).toBe('finish')
+    expect(parseScope('structure')).toBe('structure')
   })
 })

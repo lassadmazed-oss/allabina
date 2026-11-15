@@ -51,6 +51,41 @@ export const PHASES: Phase[] = [
   { key: 'handover', nameAr: 'التنظيف والتسليم', nameFr: 'Nettoyage & livraison', lots: [20] },
 ]
 
+/**
+ * نطاق الأشغال — «Périmètre des travaux» في الماكيتة F02/F03.
+ *
+ * الحريف يقول لوين يحبّنا نمشيو معاه: الهيكل وحده، ولّا معه
+ * التحضيرات، ولّا للتشطيب كامل. وهو اختيارٌ **تراكمي**: من يريد
+ * التشطيب يريد الهيكل قبله بالضرورة — لا تُركَّب نوافذ على جدارٍ لم
+ * يُبنَ.
+ *
+ * والدراسة والتسليم في كلّ نطاق: لا شغل بلا دراسة، ولا تسليم بلا
+ * تنظيف. ليسا خياراً يُؤشَّر عليه.
+ */
+export const SCOPES = ['structure', 'second', 'finish'] as const
+export type Scope = (typeof SCOPES)[number]
+
+export const DEFAULT_SCOPE: Scope = 'finish'
+
+const SCOPE_PHASES: Record<Scope, PhaseKey[]> = {
+  structure: ['study', 'structure', 'handover'],
+  second: ['study', 'structure', 'second', 'handover'],
+  finish: ['study', 'structure', 'second', 'finish', 'outside', 'handover'],
+}
+
+export const parseScope = (v: unknown): Scope =>
+  (SCOPES as readonly string[]).includes(String(v)) ? (String(v) as Scope) : DEFAULT_SCOPE
+
+/** أرقام اللوطات الداخلة في هذا النطاق */
+export function lotsInScope(scope: Scope): number[] {
+  const keys = SCOPE_PHASES[scope]
+  return PHASES.filter((p) => keys.includes(p.key)).flatMap((p) => p.lots)
+}
+
+/** هل هذا اللوط من النطاق المختار؟ */
+export const lotInScope = (lotCode: number, scope: Scope): boolean =>
+  lotsInScope(scope).includes(lotCode)
+
 export const phaseOfLot = (lotCode: number): Phase | null =>
   PHASES.find((p) => p.lots.includes(lotCode)) ?? null
 

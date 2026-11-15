@@ -88,6 +88,7 @@ function specsOf(f: FormData) {
     delegationId: Number(String(f.get('del') ?? '')) || null,
     systemCode: String(f.get('sys') ?? '').trim() || null,
     kind: String(f.get('k') ?? '').trim() || null,
+    scope: String(f.get('sc') ?? '').trim() || null,
     units: Number(String(f.get('u') ?? '').replace(/[^\d]/g, '')) || null,
     heightM: Number(String(f.get('h') ?? '').replace(',', '.')) || null,
     spanM: Number(String(f.get('sp') ?? '').replace(',', '.')) || null,
@@ -311,6 +312,15 @@ async function createFromComposer(
       notes:
         [
           s.kind ? `الصنف: ${s.kind === 'pro' ? 'محترف' : 'فرد'}` : '',
+          s.scope
+            ? `نطاق الأشغال: ${
+                s.scope === 'structure'
+                  ? 'الهيكل'
+                  : s.scope === 'second'
+                    ? 'الهيكل والتحضيرات'
+                    : 'للتشطيب كامل'
+              }`
+            : '',
           s.budget ? `ميزانية مصرَّح بها من المكوّن: ${s.budget} د.ت` : '',
           s.units ? `عدد الوحدات: ${s.units}` : '',
           s.heightM ? `الارتفاع: ${s.heightM} م` : '',

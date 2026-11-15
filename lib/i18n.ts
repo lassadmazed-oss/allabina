@@ -760,6 +760,18 @@ const ar = {
       unitsShops: 'عدد المحلّات',
       height: 'الارتفاع (م)',
       span: 'أكبر بحر (م)',
+      scopeTitle: 'لوين تحبّنا نمشيو معاك؟',
+      scopes: {
+        structure: 'الهيكل',
+        second: 'الهيكل والتحضيرات',
+        finish: 'للتشطيب كامل',
+      } as Record<string, string>,
+      scopeHint: {
+        structure: 'حفر وأساسات وخرسانة وبناء',
+        second: 'زيد التلبيس والسباكة والكهرباء',
+        finish: 'زيد الفرش والدهن والبيبان والواجهة',
+      } as Record<string, string>,
+      scopeNote: 'الدراسة والتنظيف والتسليم في الكلّ — ما همش اختيار. والتقدير يتبدّل مع اختيارك.',
       kinds: { particulier: 'فرد', pro: 'محترف' } as Record<string, string>,
       kindHint: {
         particulier: 'تبني دارك، تكبّرها، ولّا تعمل محلّ.',
@@ -840,6 +852,7 @@ const ar = {
       kitchens: 'المطبخ',
       bathrooms: 'الحمّام',
       amount: 'الميزانية المتوفّرة',
+      currency: 'د.ت',
       submit: 'شوف وين نوصل',
       answerTitle: 'بميزانيتك توصل',
       stopAt: 'ونوقفو في',
@@ -1963,6 +1976,18 @@ const fr: Dictionary = {
       unitsShops: 'Nombre de locaux',
       height: 'Hauteur (m)',
       span: 'Portée max (m)',
+      scopeTitle: 'Jusqu’où allons-nous avec vous ?',
+      scopes: {
+        structure: 'Gros œuvre',
+        second: 'Gros œuvre et préparations',
+        finish: 'Jusqu’aux finitions',
+      } as Record<string, string>,
+      scopeHint: {
+        structure: 'Terrassement, fondations, béton, maçonnerie',
+        second: 'Plus revêtements, plomberie, électricité',
+        finish: 'Plus sols, peinture, menuiserie, façade',
+      } as Record<string, string>,
+      scopeNote: 'Études, nettoyage et livraison sont dans tous les cas — ce ne sont pas des options. L’estimation suit votre choix.',
       kinds: { particulier: 'Particulier', pro: 'Professionnel' } as Record<string, string>,
       kindHint: {
         particulier: 'Vous construisez votre maison, l’agrandissez, ou ouvrez un local.',
@@ -2044,6 +2069,7 @@ const fr: Dictionary = {
       kitchens: 'Cuisine',
       bathrooms: 'Salle de bain',
       amount: 'Budget disponible',
+      currency: 'DT',
       submit: 'Voir jusqu’où',
       answerTitle: 'Votre budget couvre',
       stopAt: 'et s’arrête dans',

@@ -4,13 +4,16 @@ import ProjectSend from '@/components/ProjectSend'
 import SketchPlan from '@/components/SketchPlan'
 import { recordEvent } from '@/lib/analytics-server'
 import { budgetReach, configFromParams } from '@/lib/budget-server'
-import { neededFor, type Coverage } from '@/lib/budget-reach'
+import { SCOPES, neededFor, parseScope, type Coverage } from '@/lib/budget-reach'
 import { sketchOf } from '@/lib/sketch'
 import { getConstructionSystems, getDelegations } from '@/lib/supabase/server'
 import { getDictionary, isLocale, type Locale } from '@/lib/i18n'
 import { THIN_NBSP, formatMoney, isolateNumbers } from '@/lib/format'
-import Icon from '@/components/Icon'
-import ProjectTypeCards, { Check, projectTypeIcon } from '@/components/ProjectTypeCards'
+import Icon, { type IconName } from '@/components/Icon'
+import ProjectTypeCards, { projectTypeIcon } from '@/components/ProjectTypeCards'
+import ChoiceCards, { FieldRow } from '@/components/ChoiceCards'
+import NumberStepper from '@/components/NumberStepper'
+import { Check } from '@/components/ProjectTypeCards'
 import {
   asksRooms,
   asksSpan,
@@ -73,6 +76,7 @@ export default async function ProjetPage({
   const kind = sp.k ? parseKind(sp.k) : type ? kindOfType(type) : parseKind(undefined)
   const kindTypes = typesFor(kind)
   const rooms = asksRooms(type)
+  const scope = parseScope(sp.sc)
   const config = configFromParams(sp)
   const budget = Number(String(sp.b ?? '').replace(/[\s,]/g, ''))
   const hasBudget = Number.isFinite(budget) && budget > 0
@@ -93,7 +97,7 @@ export default async function ProjetPage({
 
   const [delegations, systems] = await Promise.all([getDelegations('SFX'), getConstructionSystems()])
   const sketch = step >= 2 && drawsSketch(type) ? sketchOf(config) : null
-  const answer = step >= 3 && hasBudget ? await budgetReach(config, budget) : null
+  const answer = step >= 3 && hasBudget ? await budgetReach(config, budget, scope) : null
 
   /** العنوان مع ما جُمع حتّى الآن */
   const href = (over: Record<string, string | number | undefined>) => {
@@ -110,6 +114,7 @@ export default async function ProjetPage({
       tr: sp.tr,
       bank: sp.bank,
       k: kind,
+      sc: scope,
       u: sp.u,
       h: sp.h,
       sp: sp.sp,
@@ -236,9 +241,9 @@ export default async function ProjetPage({
             <input type="hidden" name="e" value="2" />
             {carry(['type', 'bank', 'sys', 'k'])}
 
-            <div className="grid gap-3 sm:grid-cols-2">
-              <label className="block">
-                <span className="mb-1.5 block text-sm font-medium">{t.where}</span>
+            {/* صفوف بإيكوناتها كما في الماكيتة F02 */}
+            <div className="grid gap-3">
+              <FieldRow icon="pin" label={t.where}>
                 <select name="del" defaultValue={sp.del ?? ''} className={field}>
                   <option value="">—</option>
                   {delegations.map((d) => (
@@ -247,18 +252,16 @@ export default async function ProjetPage({
                     </option>
                   ))}
                 </select>
-              </label>
-              <label className="block">
-                <span className="mb-1.5 block text-sm font-medium">{t.surface}</span>
+              </FieldRow>
+              <FieldRow icon="ruler" label={t.surface}>
                 <input
                   name="s"
                   inputMode="numeric"
                   defaultValue={config.surface}
                   className={`num ${field}`}
                 />
-              </label>
-              <label className="block">
-                <span className="mb-1.5 block text-sm font-medium">{t.terrain}</span>
+              </FieldRow>
+              <FieldRow icon="layers" label={t.terrain}>
                 <select name="tr" defaultValue={sp.tr ?? 'empty'} className={field}>
                   {Object.entries(t.terrainOpts).map(([k, v]) => (
                     <option key={k} value={k}>
@@ -266,7 +269,7 @@ export default async function ProjetPage({
                     </option>
                   ))}
                 </select>
-              </label>
+              </FieldRow>
             </div>
 
             {/*
@@ -274,48 +277,39 @@ export default async function ProjetPage({
               ومن يبني عمارةً يُسأل عن شققها، ومن يبني مستودعاً عن ارتفاعه.
               ورسمُ صالونٍ لمستودعٍ ليس تقريباً بل جواب عن سؤالٍ لم يُطرح.
             */}
-            <div className="grid gap-3 sm:grid-cols-4">
-              <label className="block">
-                <span className="mb-1.5 block text-sm font-medium">{t.levels}</span>
-                <input name="l" inputMode="numeric" defaultValue={config.levels} className={`num ${field}`} />
-              </label>
+            <div className="grid gap-3">
+              <FieldRow icon="layers" label={t.levels}>
+                <NumberStepper name="l" defaultValue={config.levels} min={1} max={6} />
+              </FieldRow>
 
               {rooms && (
                 <>
-                  <label className="block">
-                    <span className="mb-1.5 block text-sm font-medium">{t.bedrooms}</span>
-                    <input name="ch" inputMode="numeric" defaultValue={config.bedrooms} className={`num ${field}`} />
-                  </label>
-                  <label className="block">
-                    <span className="mb-1.5 block text-sm font-medium">{t.livingRooms}</span>
-                    <input name="sa" inputMode="numeric" defaultValue={config.livingRooms} className={`num ${field}`} />
-                  </label>
-                  <label className="block">
-                    <span className="mb-1.5 block text-sm font-medium">{t.bathrooms}</span>
-                    <input name="sdb" inputMode="numeric" defaultValue={config.bathrooms} className={`num ${field}`} />
-                  </label>
+                  <FieldRow icon="bed" label={t.bedrooms}>
+                    <NumberStepper name="ch" defaultValue={config.bedrooms} min={0} max={20} />
+                  </FieldRow>
+                  <FieldRow icon="sofa" label={t.livingRooms}>
+                    <NumberStepper name="sa" defaultValue={config.livingRooms} min={0} max={6} />
+                  </FieldRow>
+                  <FieldRow icon="roller" label={t.bathrooms}>
+                    <NumberStepper name="sdb" defaultValue={config.bathrooms} min={0} max={10} />
+                  </FieldRow>
                 </>
               )}
 
               {asksUnits(type) && (
-                <label className="block">
-                  <span className="mb-1.5 block text-sm font-medium">
-                    {type === 'immobilier' ? t.unitsFlats : t.unitsShops}
-                  </span>
-                  <input name="u" inputMode="numeric" defaultValue={sp.u ?? ''} placeholder="—" className={`num ${field}`} />
-                </label>
+                <FieldRow icon="building" label={type === 'immobilier' ? t.unitsFlats : t.unitsShops}>
+                  <NumberStepper name="u" defaultValue={Number(sp.u ?? 0)} min={0} max={200} />
+                </FieldRow>
               )}
 
               {asksSpan(type) && (
                 <>
-                  <label className="block">
-                    <span className="mb-1.5 block text-sm font-medium">{t.height}</span>
+                  <FieldRow icon="ruler" label={t.height}>
                     <input name="h" inputMode="decimal" defaultValue={sp.h ?? ''} placeholder="—" className={`num ${field}`} />
-                  </label>
-                  <label className="block">
-                    <span className="mb-1.5 block text-sm font-medium">{t.span}</span>
+                  </FieldRow>
+                  <FieldRow icon="ruler" label={t.span}>
                     <input name="sp" inputMode="decimal" defaultValue={sp.sp ?? ''} placeholder="—" className={`num ${field}`} />
-                  </label>
+                  </FieldRow>
                 </>
               )}
             </div>
@@ -362,6 +356,27 @@ export default async function ProjetPage({
                 <p className="mt-2 text-xs leading-6 text-faint">{t.methodHint}</p>
               </fieldset>
             )}
+
+            {/* ── نطاق الأشغال (الماكيتة F02/F03): لوين نمشيو معاك ── */}
+            <fieldset className="mt-1">
+              <legend className="mb-2 flex items-center gap-1.5 text-sm font-medium">
+                <Icon name="trowel" className="h-4 w-4 text-gold" />
+                {t.scopeTitle}
+              </legend>
+              <ChoiceCards
+                columns={3}
+                selected={scope}
+                choices={SCOPES.map((k) => ({
+                  key: k,
+                  label: t.scopes[k],
+                  hint: t.scopeHint[k],
+                  icon: (k === 'structure' ? 'bricks' : k === 'second' ? 'trowel' : 'roller') as IconName,
+                }))}
+                hrefOf={(k) => href({ sc: k, e: 2 })}
+              />
+              <input type="hidden" name="sc" value={scope} />
+              <p className="mt-2 text-xs leading-6 text-faint">{t.scopeNote}</p>
+            </fieldset>
 
             <button type="submit" className="min-h-11 justify-self-start rounded border border-line px-5 text-sm font-semibold">
               {rooms ? t.redraw : t.recalc}
@@ -417,23 +432,35 @@ export default async function ProjetPage({
         <section className="mt-7">
           <h1 className="display text-2xl font-semibold sm:text-3xl">{t.q3}</h1>
 
-          <form action={`/${locale}/projet`} className="mt-6 flex flex-wrap items-end gap-3">
+          {/* صندوق الميزانية كما في الماكيتة F03: الرقم كبيرٌ لأنّه السؤال */}
+          <form action={`/${locale}/projet`} className="mt-6">
             <input type="hidden" name="e" value="3" />
-            {carry(['type', 's', 'l', 'ch', 'sa', 'cu', 'sdb', 'del', 'tr', 'sys', 'k', 'u', 'h', 'sp'])}
-            <label className="block flex-1 basis-56">
-              <span className="mb-1.5 block text-sm font-medium">{dict.budget.amount}</span>
-              <input
-                name="b"
-                inputMode="numeric"
-                defaultValue={hasBudget ? String(budget) : ''}
-                placeholder={`30${THIN_NBSP}000`}
-                required
-                className={`num ${field} text-lg`}
-              />
-            </label>
-            <button type="submit" className="min-h-11 rounded border border-line px-5 text-sm font-semibold">
-              {dict.budget.submit}
-            </button>
+            {carry(['type', 's', 'l', 'ch', 'sa', 'cu', 'sdb', 'del', 'tr', 'sys', 'k', 'u', 'h', 'sp', 'sc'])}
+            <div className="rounded-xl border-2 border-line bg-surface p-4">
+              <label className="flex flex-wrap items-center gap-3">
+                <span className="flex items-center gap-2.5 text-sm font-medium">
+                  <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-gold-soft text-gold">
+                    <Icon name="coins" className="h-5 w-5" />
+                  </span>
+                  {dict.budget.amount}
+                </span>
+                <input
+                  name="b"
+                  inputMode="numeric"
+                  defaultValue={hasBudget ? String(budget) : ''}
+                  placeholder={`30${THIN_NBSP}000`}
+                  required
+                  className="num min-w-0 flex-1 basis-40 rounded-lg border border-line bg-ground px-3 py-2.5 text-2xl font-semibold"
+                />
+                <span className="text-sm text-muted">{dict.budget.currency}</span>
+              </label>
+              <button
+                type="submit"
+                className="mt-3 min-h-11 w-full rounded-lg bg-brand px-5 text-sm font-semibold text-white transition hover:bg-brand-deep sm:w-auto sm:px-8"
+              >
+                {dict.budget.submit}
+              </button>
+            </div>
           </form>
 
           {answer && (
@@ -535,7 +562,7 @@ export default async function ProjetPage({
 
           <form action={`/${locale}/projet`} className="mt-4">
             <input type="hidden" name="e" value="3" />
-            {carry(['type', 's', 'l', 'ch', 'sa', 'cu', 'sdb', 'del', 'tr', 'b', 'sys', 'k', 'u', 'h', 'sp'])}
+            {carry(['type', 's', 'l', 'ch', 'sa', 'cu', 'sdb', 'del', 'tr', 'b', 'sys', 'k', 'u', 'h', 'sp', 'sc', 'sc'])}
             <label className="flex items-center gap-2 text-sm">
               <input
                 type="checkbox"
@@ -624,6 +651,10 @@ export default async function ProjetPage({
                   </dd>
                 </div>
               )}
+              <div>
+                <dt className="text-xs text-faint">{t.scopeTitle}</dt>
+                <dd className="mt-0.5 font-medium">{t.scopes[scope]}</dd>
+              </div>
               {sp.tr && t.terrainOpts[sp.tr] && (
                 <div>
                   <dt className="text-xs text-faint">{t.terrain}</dt>
@@ -693,6 +724,7 @@ export default async function ProjetPage({
                   tr: sp.tr ?? '',
                   sys: sp.sys ?? '',
                   k: kind,
+                  sc: scope,
                   u: sp.u ?? '',
                   h: sp.h ?? '',
                   sp: sp.sp ?? '',
