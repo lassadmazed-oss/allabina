@@ -756,6 +756,15 @@ const ar = {
       back: 'رجوع',
       q1: 'شنوّة تحبّ تبني؟',
       who: { particulier: 'لروحي', pro: 'مشروع مهني' } as Record<string, string>,
+      unitsFlats: 'عدد الشقق',
+      unitsShops: 'عدد المحلّات',
+      height: 'الارتفاع (م)',
+      span: 'أكبر بحر (م)',
+      kinds: { particulier: 'فرد', pro: 'محترف' } as Record<string, string>,
+      kindHint: {
+        particulier: 'تبني دارك، تكبّرها، ولّا تعمل محلّ.',
+        pro: 'مطوّر عقاري، مصنع ولّا مستودع، ولّا مجموعة محلّات.',
+      } as Record<string, string>,
       types: {
         maison: 'دار',
         immobilier: 'مشروع عقاري',
@@ -782,6 +791,7 @@ const ar = {
       bathrooms: 'الحمّام',
       method: 'كيفاش تحبّ تبني؟',
       methodHint: 'الطريقة تبدّل في الكلفة وفي الوقت. تنجّم تبدّلها مع الفريق وقت الدراسة.',
+      recalc: 'حدّث المعطيات',
       redraw: 'شوف التوزيع',
       gateTitle: 'اعمل حسابك باش تشوف رسمك وتقديرك',
       gateBody:
@@ -1949,6 +1959,15 @@ const fr: Dictionary = {
       back: 'Retour',
       q1: 'Que souhaitez-vous construire ?',
       who: { particulier: 'Particulier', pro: 'Professionnel' } as Record<string, string>,
+      unitsFlats: 'Nombre de logements',
+      unitsShops: 'Nombre de locaux',
+      height: 'Hauteur (m)',
+      span: 'Portée max (m)',
+      kinds: { particulier: 'Particulier', pro: 'Professionnel' } as Record<string, string>,
+      kindHint: {
+        particulier: 'Vous construisez votre maison, l’agrandissez, ou ouvrez un local.',
+        pro: 'Promoteur, usine ou dépôt, ou un ensemble de locaux.',
+      } as Record<string, string>,
       types: {
         maison: 'Maison',
         immobilier: 'Projet immobilier',
@@ -1975,6 +1994,7 @@ const fr: Dictionary = {
       bathrooms: 'Salle de bain',
       method: 'Comment voulez-vous construire ?',
       methodHint: 'Le mode de construction change le coût et les délais. Il reste modifiable avec l’équipe lors de l’étude.',
+      recalc: 'Mettre à jour',
       redraw: 'Voir la répartition',
       gateTitle: 'Créez votre compte pour votre esquisse et votre estimation',
       gateBody:

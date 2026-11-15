@@ -180,6 +180,10 @@ export function configFromParams(sp: Record<string, string | undefined>): Projec
    * وهو عددٌ صحيحٌ موجب فكان يمرّ — فيخرج المكوّن بمساحة صفر وغرف
    * صفر، ويقول الرسم «ما تدخلش» قبل أن يكتب الحريف شيئاً.
    */
+  /*
+   * السقف يطابق ما تقبله القاعدة (20 000 م² بعد 0075): سقفٌ أضيق يقصّ
+   * الرقم بصمت — من يكتب خمسة آلاف يأخذ ألفين ولا يُقال له.
+   */
   const n = (v: string | undefined, def: number, max: number) => {
     const raw = String(v ?? '').trim()
     if (!raw) return def
@@ -188,7 +192,7 @@ export function configFromParams(sp: Record<string, string | undefined>): Projec
     return Math.min(x, max)
   }
   return {
-    surface: n(sp.s, 100, 2000),
+    surface: n(sp.s, 100, 20000),
     levels: Math.max(1, Math.round(n(sp.l, 1, 6))),
     bedrooms: Math.round(n(sp.ch, 2, 20)),
     livingRooms: Math.round(n(sp.sa, 1, 6)),

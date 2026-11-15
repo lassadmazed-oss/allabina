@@ -78,12 +78,19 @@ function specsOf(f: FormData) {
     cu: get('cu'),
     sdb: get('sdb'),
   })
+  // الغرف تُكتب لمن سُئل عنها: مشروعٌ بلا غرف لا يُسجَّل بغرفتين افتراضيتين
+  const hasRooms = get('ch') !== undefined
   const budgetRaw = String(f.get('b') ?? '').replace(/[^\d]/g, '')
   return {
     config,
+    hasRooms,
     type: String(f.get('type') ?? ''),
     delegationId: Number(String(f.get('del') ?? '')) || null,
     systemCode: String(f.get('sys') ?? '').trim() || null,
+    kind: String(f.get('k') ?? '').trim() || null,
+    units: Number(String(f.get('u') ?? '').replace(/[^\d]/g, '')) || null,
+    heightM: Number(String(f.get('h') ?? '').replace(',', '.')) || null,
+    spanM: Number(String(f.get('sp') ?? '').replace(',', '.')) || null,
     terrain: String(f.get('tr') ?? '').trim() || null,
     budget: budgetRaw ? Number(budgetRaw) : null,
   }
@@ -251,7 +258,7 @@ async function createFromComposer(
       delegation_id: s.delegationId,
       request_type: TO_REQUEST[s.type] ?? 'other',
       desired_area_m2: s.config.surface || null,
-      bedrooms: s.config.bedrooms || null,
+      bedrooms: s.hasRooms ? s.config.bedrooms || null : null,
       owns_land: s.terrain !== null && s.terrain !== 'none',
       lang: locale,
       consent_at: new Date().toISOString(),
@@ -289,14 +296,28 @@ async function createFromComposer(
       request_id: requestId,
       surface_m2: s.config.surface || null,
       levels: s.config.levels || 1,
-      bedrooms: s.config.bedrooms || null,
-      living_rooms: s.config.livingRooms || null,
-      kitchens: s.config.kitchens || null,
-      bathrooms: s.config.bathrooms || null,
+      bedrooms: s.hasRooms ? s.config.bedrooms || null : null,
+      living_rooms: s.hasRooms ? s.config.livingRooms || null : null,
+      kitchens: s.hasRooms ? s.config.kitchens || null : null,
+      bathrooms: s.hasRooms ? s.config.bathrooms || null : null,
       system_code: systemCode,
       // الميزانية التي صرّح بها في المكوّن — تُحفظ نصّاً في الملاحظات
       // لأنّ القاعدة لا تحمل خانة «ميزانية مصرَّح بها» بعد
-      notes: s.budget ? `ميزانية مصرَّح بها من المكوّن: ${s.budget} د.ت` : null,
+      /*
+       * ما لا خانة له في القاعدة يُكتب نصّاً في الملاحظات بدل أن يُرمى:
+       * الصنف والوحدات والارتفاع والبحر سُئل عنها الحريف وأجاب، ورميُ
+       * جوابٍ أسوأ من عدم السؤال.
+       */
+      notes:
+        [
+          s.kind ? `الصنف: ${s.kind === 'pro' ? 'محترف' : 'فرد'}` : '',
+          s.budget ? `ميزانية مصرَّح بها من المكوّن: ${s.budget} د.ت` : '',
+          s.units ? `عدد الوحدات: ${s.units}` : '',
+          s.heightM ? `الارتفاع: ${s.heightM} م` : '',
+          s.spanM ? `أكبر بحر: ${s.spanM} م` : '',
+        ]
+          .filter(Boolean)
+          .join(' · ') || null,
     },
     { onConflict: 'request_id' }
   )

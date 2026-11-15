@@ -147,8 +147,9 @@ describe('قراءة المواصفات من العنوان', () => {
     expect(configFromParams({ s: '0' }).surface).toBe(100)
   })
 
-  it('والقيمة الصحيحة تُقرأ، والكبيرة تُسقَف', () => {
+  it('والقيمة الصحيحة تُقرأ، والكبيرة تُسقَف عند ما تقبله القاعدة', () => {
+    expect(configFromParams({ s: '1200' }).surface).toBe(1200)
     expect(configFromParams({ s: '140' }).surface).toBe(140)
-    expect(configFromParams({ s: '99999' }).surface).toBe(2000)
+    expect(configFromParams({ s: '99999' }).surface).toBe(20000)
   })
 })

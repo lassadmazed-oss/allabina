@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import Icon, { type IconName } from '@/components/Icon'
+import { PROJECT_TYPES, type ProjectType as ProjectTypeKey } from '@/lib/project-kind'
 
 /**
  * كروت أنواع المشروع — الماكيتة F01 (الواجهة) وF02 (الخطوة الأولى).
@@ -8,16 +9,7 @@ import Icon, { type IconName } from '@/components/Icon'
  * ولا يبدّله في الآخر يصنع قائمتين مختلفتين لنفس السؤال — والحريف يقرأ
  * الاختلاف ارتباكاً لا تنوّعاً.
  */
-export const PROJECT_TYPES = [
-  'maison',
-  'immobilier',
-  'usine',
-  'commerce',
-  'renovation',
-  'autre',
-] as const
-
-export type ProjectTypeKey = (typeof PROJECT_TYPES)[number]
+export { PROJECT_TYPES, type ProjectType as ProjectTypeKey } from '@/lib/project-kind'
 
 export const PROJECT_TYPE_ICON: Record<ProjectTypeKey, IconName> = {
   maison: 'home',
@@ -38,6 +30,7 @@ export default function ProjectTypeCards({
   hrefOf,
   selected,
   compact = false,
+  types = PROJECT_TYPES,
 }: {
   names: Record<string, string>
   hints?: Record<string, string>
@@ -45,10 +38,12 @@ export default function ProjectTypeCards({
   selected?: string | null
   /** في الواجهة: بلا شرح تحت الاسم — الصفحة طويلة والسؤال واحد */
   compact?: boolean
+  /** ما يُعرض — يتبدّل بتبدّل «فرد/محترف» */
+  types?: readonly ProjectTypeKey[]
 }) {
   return (
     <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-      {PROJECT_TYPES.map((k) => {
+      {types.map((k) => {
         const on = selected === k
         return (
           <li key={k}>

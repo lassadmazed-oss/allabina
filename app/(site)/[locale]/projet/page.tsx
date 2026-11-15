@@ -11,6 +11,15 @@ import { getDictionary, isLocale, type Locale } from '@/lib/i18n'
 import { THIN_NBSP, formatMoney, isolateNumbers } from '@/lib/format'
 import Icon from '@/components/Icon'
 import ProjectTypeCards, { Check, projectTypeIcon } from '@/components/ProjectTypeCards'
+import {
+  asksRooms,
+  asksSpan,
+  asksUnits,
+  drawsSketch,
+  kindOfType,
+  parseKind,
+  typesFor,
+} from '@/lib/project-kind'
 
 export const dynamic = 'force-dynamic'
 
@@ -60,6 +69,10 @@ export default async function ProjetPage({
 
   const step = Math.min(4, Math.max(1, Math.round(Number(sp.e ?? 1)) || 1))
   const type = TYPES.includes(sp.type as never) ? (sp.type as string) : ''
+  // فرد أم محترف (الماكيتة F02). الرابط الذي يحمل النوع وحده يُنسب لصنفه
+  const kind = sp.k ? parseKind(sp.k) : type ? kindOfType(type) : parseKind(undefined)
+  const kindTypes = typesFor(kind)
+  const rooms = asksRooms(type)
   const config = configFromParams(sp)
   const budget = Number(String(sp.b ?? '').replace(/[\s,]/g, ''))
   const hasBudget = Number.isFinite(budget) && budget > 0
@@ -79,7 +92,7 @@ export default async function ProjetPage({
    */
 
   const [delegations, systems] = await Promise.all([getDelegations('SFX'), getConstructionSystems()])
-  const sketch = step >= 2 ? sketchOf(config) : null
+  const sketch = step >= 2 && drawsSketch(type) ? sketchOf(config) : null
   const answer = step >= 3 && hasBudget ? await budgetReach(config, budget) : null
 
   /** العنوان مع ما جُمع حتّى الآن */
@@ -96,6 +109,10 @@ export default async function ProjetPage({
       del: sp.del,
       tr: sp.tr,
       bank: sp.bank,
+      k: kind,
+      u: sp.u,
+      h: sp.h,
+      sp: sp.sp,
       b: hasBudget ? budget : undefined,
       ...over,
     }
@@ -179,11 +196,31 @@ export default async function ProjetPage({
       {step === 1 && (
         <section className="mt-7">
           <h1 className="display text-2xl font-semibold sm:text-3xl">{t.q1}</h1>
-          <div className="mt-6">
+
+          {/* ── فرد | محترف (الماكيتة F02): من يبني داراً لا يُسأل كمن يبني عمارة ── */}
+          <div className="mt-5 inline-flex rounded-xl border border-line bg-surface p-1">
+            {(['particulier', 'pro'] as const).map((k) => (
+              <Link
+                key={k}
+                href={href({ k, type: '', e: 1 })}
+                aria-current={kind === k ? 'true' : undefined}
+                className={`inline-flex min-h-10 items-center gap-2 rounded-lg px-4 text-sm font-medium transition ${
+                  kind === k ? 'bg-brand text-white' : 'text-muted hover:text-brand'
+                }`}
+              >
+                <Icon name={k === 'pro' ? 'briefcase' : 'user'} className="h-4 w-4" />
+                {t.kinds[k]}
+              </Link>
+            ))}
+          </div>
+          <p className="mt-2 text-xs leading-6 text-faint">{t.kindHint[kind]}</p>
+
+          <div className="mt-5">
             <ProjectTypeCards
               names={t.types}
               hints={t.typeHint}
               selected={type}
+              types={kindTypes}
               hrefOf={(k) => href({ type: k, e: 2 })}
             />
           </div>
@@ -197,7 +234,7 @@ export default async function ProjetPage({
 
           <form action={`/${locale}/projet`} className="mt-6 grid gap-4">
             <input type="hidden" name="e" value="2" />
-            {carry(['type', 'bank', 'sys'])}
+            {carry(['type', 'bank', 'sys', 'k'])}
 
             <div className="grid gap-3 sm:grid-cols-2">
               <label className="block">
@@ -232,23 +269,55 @@ export default async function ProjetPage({
               </label>
             </div>
 
+            {/*
+              السؤال يتبع المشروع لا الصنف: من يبني داراً يُسأل عن غرفه،
+              ومن يبني عمارةً يُسأل عن شققها، ومن يبني مستودعاً عن ارتفاعه.
+              ورسمُ صالونٍ لمستودعٍ ليس تقريباً بل جواب عن سؤالٍ لم يُطرح.
+            */}
             <div className="grid gap-3 sm:grid-cols-4">
               <label className="block">
                 <span className="mb-1.5 block text-sm font-medium">{t.levels}</span>
                 <input name="l" inputMode="numeric" defaultValue={config.levels} className={`num ${field}`} />
               </label>
-              <label className="block">
-                <span className="mb-1.5 block text-sm font-medium">{t.bedrooms}</span>
-                <input name="ch" inputMode="numeric" defaultValue={config.bedrooms} className={`num ${field}`} />
-              </label>
-              <label className="block">
-                <span className="mb-1.5 block text-sm font-medium">{t.livingRooms}</span>
-                <input name="sa" inputMode="numeric" defaultValue={config.livingRooms} className={`num ${field}`} />
-              </label>
-              <label className="block">
-                <span className="mb-1.5 block text-sm font-medium">{t.bathrooms}</span>
-                <input name="sdb" inputMode="numeric" defaultValue={config.bathrooms} className={`num ${field}`} />
-              </label>
+
+              {rooms && (
+                <>
+                  <label className="block">
+                    <span className="mb-1.5 block text-sm font-medium">{t.bedrooms}</span>
+                    <input name="ch" inputMode="numeric" defaultValue={config.bedrooms} className={`num ${field}`} />
+                  </label>
+                  <label className="block">
+                    <span className="mb-1.5 block text-sm font-medium">{t.livingRooms}</span>
+                    <input name="sa" inputMode="numeric" defaultValue={config.livingRooms} className={`num ${field}`} />
+                  </label>
+                  <label className="block">
+                    <span className="mb-1.5 block text-sm font-medium">{t.bathrooms}</span>
+                    <input name="sdb" inputMode="numeric" defaultValue={config.bathrooms} className={`num ${field}`} />
+                  </label>
+                </>
+              )}
+
+              {asksUnits(type) && (
+                <label className="block">
+                  <span className="mb-1.5 block text-sm font-medium">
+                    {type === 'immobilier' ? t.unitsFlats : t.unitsShops}
+                  </span>
+                  <input name="u" inputMode="numeric" defaultValue={sp.u ?? ''} placeholder="—" className={`num ${field}`} />
+                </label>
+              )}
+
+              {asksSpan(type) && (
+                <>
+                  <label className="block">
+                    <span className="mb-1.5 block text-sm font-medium">{t.height}</span>
+                    <input name="h" inputMode="decimal" defaultValue={sp.h ?? ''} placeholder="—" className={`num ${field}`} />
+                  </label>
+                  <label className="block">
+                    <span className="mb-1.5 block text-sm font-medium">{t.span}</span>
+                    <input name="sp" inputMode="decimal" defaultValue={sp.sp ?? ''} placeholder="—" className={`num ${field}`} />
+                  </label>
+                </>
+              )}
             </div>
 
             {/* ── كيفاش تبني: طرق البناء من القاعدة لا من قائمة في الشفرة ── */}
@@ -295,11 +364,12 @@ export default async function ProjetPage({
             )}
 
             <button type="submit" className="min-h-11 justify-self-start rounded border border-line px-5 text-sm font-semibold">
-              {t.redraw}
+              {rooms ? t.redraw : t.recalc}
             </button>
           </form>
 
-          {/* الرسم: توزيع مساحات لا مخطّط */}
+          {/* الرسم: توزيع مساحات لا مخطّط — ولمن له غرفٌ وحده */}
+          {rooms && (
           <div className="mt-6">
             {sketch?.fits ? (
               <>
@@ -323,12 +393,14 @@ export default async function ProjetPage({
               </p>
             )}
           </div>
+          )}
 
           <div className="mt-6 flex flex-wrap items-center gap-3">
             <Link href={href({ e: 1 })} className="text-sm text-muted underline underline-offset-4">
               {t.back}
             </Link>
-            {sketch?.fits && (
+            {/* بلا غرفٍ لا رسم، والمرور لا يُحجب على رسمٍ لا يُنتظر */}
+            {(!rooms || sketch?.fits) && (
               <Link
                 href={href({ e: 3 })}
                 className="ms-auto rounded bg-brand px-5 py-3 font-semibold text-white"
@@ -347,7 +419,7 @@ export default async function ProjetPage({
 
           <form action={`/${locale}/projet`} className="mt-6 flex flex-wrap items-end gap-3">
             <input type="hidden" name="e" value="3" />
-            {carry(['type', 's', 'l', 'ch', 'sa', 'cu', 'sdb', 'del', 'tr', 'sys'])}
+            {carry(['type', 's', 'l', 'ch', 'sa', 'cu', 'sdb', 'del', 'tr', 'sys', 'k', 'u', 'h', 'sp'])}
             <label className="block flex-1 basis-56">
               <span className="mb-1.5 block text-sm font-medium">{dict.budget.amount}</span>
               <input
@@ -463,7 +535,7 @@ export default async function ProjetPage({
 
           <form action={`/${locale}/projet`} className="mt-4">
             <input type="hidden" name="e" value="3" />
-            {carry(['type', 's', 'l', 'ch', 'sa', 'cu', 'sdb', 'del', 'tr', 'b', 'sys'])}
+            {carry(['type', 's', 'l', 'ch', 'sa', 'cu', 'sdb', 'del', 'tr', 'b', 'sys', 'k', 'u', 'h', 'sp'])}
             <label className="flex items-center gap-2 text-sm">
               <input
                 type="checkbox"
@@ -501,7 +573,7 @@ export default async function ProjetPage({
           <h1 className="display text-2xl font-semibold sm:text-3xl">{t.q4}</h1>
 
           <div className="mt-6 grid gap-5 sm:grid-cols-2">
-            {sketch?.fits && (
+            {rooms && sketch?.fits && (
               <SketchPlan sketch={sketch} surface={config.surface} caption={t.sketchCaption} />
             )}
             <dl className="grid content-start gap-3">
@@ -523,6 +595,7 @@ export default async function ProjetPage({
                   {isolateNumbers(String(config.surface))} م²
                 </dd>
               </div>
+              {rooms && (
               <div>
                 <dt className="text-xs text-faint">{t.summaryRooms}</dt>
                 <dd className="mt-0.5 font-medium">
@@ -532,6 +605,25 @@ export default async function ProjetPage({
                   {t.bathsShort}
                 </dd>
               </div>
+              )}
+              {asksUnits(type) && sp.u && (
+                <div>
+                  <dt className="text-xs text-faint">
+                    {type === 'immobilier' ? t.unitsFlats : t.unitsShops}
+                  </dt>
+                  <dd className="num mt-0.5 font-medium">{isolateNumbers(String(sp.u))}</dd>
+                </div>
+              )}
+              {asksSpan(type) && (sp.h || sp.sp) && (
+                <div>
+                  <dt className="text-xs text-faint">
+                    {t.height} · {t.span}
+                  </dt>
+                  <dd className="num mt-0.5 font-medium">
+                    {isolateNumbers(String(sp.h ?? '—'))} · {isolateNumbers(String(sp.sp ?? '—'))}
+                  </dd>
+                </div>
+              )}
               {sp.tr && t.terrainOpts[sp.tr] && (
                 <div>
                   <dt className="text-xs text-faint">{t.terrain}</dt>
@@ -580,17 +672,30 @@ export default async function ProjetPage({
                 locale={locale}
                 t={dict.account}
                 account={t}
+                /*
+                  الغرف تُبعث لمن سُئل عنها وحده: مشروعٌ بلا غرف يحمل
+                  قيمها الافتراضية فيصل إلى المكتب «عمارة فيها غرفتان».
+                  الحريف لم يكذب — الخانة كذبت عنه.
+                */
                 specs={{
                   type,
                   s: String(config.surface),
                   l: String(config.levels),
-                  ch: String(config.bedrooms),
-                  sa: String(config.livingRooms),
-                  cu: String(config.kitchens),
-                  sdb: String(config.bathrooms),
+                  ...(rooms
+                    ? {
+                        ch: String(config.bedrooms),
+                        sa: String(config.livingRooms),
+                        cu: String(config.kitchens),
+                        sdb: String(config.bathrooms),
+                      }
+                    : {}),
                   del: sp.del ?? '',
                   tr: sp.tr ?? '',
                   sys: sp.sys ?? '',
+                  k: kind,
+                  u: sp.u ?? '',
+                  h: sp.h ?? '',
+                  sp: sp.sp ?? '',
                   b: hasBudget ? String(budget) : '',
                 }}
               />
