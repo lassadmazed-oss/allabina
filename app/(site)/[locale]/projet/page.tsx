@@ -1,13 +1,12 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import PhoneGate from '@/components/PhoneGate'
+import ProjectSend from '@/components/ProjectSend'
 import SketchPlan from '@/components/SketchPlan'
 import { recordEvent } from '@/lib/analytics-server'
 import { budgetReach, configFromParams } from '@/lib/budget-server'
 import { neededFor, type Coverage } from '@/lib/budget-reach'
 import { sketchOf } from '@/lib/sketch'
-import { getDelegations } from '@/lib/supabase/server'
-import { getCurrentUser } from '@/lib/user-session'
+import { getConstructionSystems, getDelegations } from '@/lib/supabase/server'
 import { getDictionary, isLocale, type Locale } from '@/lib/i18n'
 import { THIN_NBSP, formatMoney, isolateNumbers } from '@/lib/format'
 import Icon from '@/components/Icon'
@@ -25,19 +24,6 @@ export async function generateMetadata({
   return { title: t.pageTitle }
 }
 
-/**
- * أنواع المسار ليست أنواع المطلب: المسار يسأل بلغة الحريف («دار»)،
- * والقاعدة تخزّن بلغتها («build_on_land»). وبلا هذا الربط كان يصل
- * «maison» إلى الاستمارة فلا تعرفه، وتقع على مسوّدة قديمة.
- */
-const TO_REQUEST: Record<string, string> = {
-  maison: 'build_on_land',
-  renovation: 'renovation',
-  immobilier: 'other',
-  usine: 'other',
-  commerce: 'other',
-  autre: 'other',
-}
 
 const LOT_AR: Record<number, string> = {
   10: 'الفرش والتغطية',
@@ -86,10 +72,13 @@ export default async function ProjetPage({
    * الخطوة الأولى مفتوحة: الاختيار يسبق الحساب، فمن لا يعرف ما يريد
    * لا يُطلب منه رقمه.
    */
-  const user = step >= 2 ? await getCurrentUser() : null
-  const needsAccount = step >= 2 && !user
+  /*
+   * لا حاجز. قرار 15/11/2026: «يدخل، يعمّر، يشوف، يختار — وفي آخر
+   * مرحلة يعطي اسمه ورقمه ويبعث». الحاجز في النصّ يخسر من لم يرَ بعدُ
+   * قيمةً، والرسالة لا تُدفع إلّا عند مطلبٍ حقيقي.
+   */
 
-  const delegations = await getDelegations('SFX')
+  const [delegations, systems] = await Promise.all([getDelegations('SFX'), getConstructionSystems()])
   const sketch = step >= 2 ? sketchOf(config) : null
   const answer = step >= 3 && hasBudget ? await budgetReach(config, budget) : null
 
@@ -201,55 +190,14 @@ export default async function ProjetPage({
         </section>
       )}
 
-      {/* ── الحساب قبل الرسم والتقدير ── */}
-      {needsAccount && (
-        <section className="mt-7">
-          {/* لوح F02: الحاجز لوحٌ مؤطَّر لا فقرةً في الصفحة — هو الشرط لا ملاحظة */}
-          <div className="rounded-xl border-2 border-line bg-surface p-5 sm:p-6">
-            <span className="flex items-center gap-2.5">
-              <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-brand-soft text-brand">
-                <Icon name="user" className="h-5 w-5" />
-              </span>
-              <h1 className="display text-xl font-semibold sm:text-2xl">{t.gateTitle}</h1>
-            </span>
-            <p className="mt-3 leading-8 text-muted">{t.gateBody}</p>
-            {type && (
-              <p className="mt-3 flex flex-wrap items-center gap-2 text-sm text-muted">
-                <span className="grid size-7 shrink-0 place-items-center rounded-lg bg-gold-soft text-gold">
-                  <Icon name={projectTypeIcon(type)} className="h-4 w-4" />
-                </span>
-                {t.summaryType}: <b className="text-ink">{t.types[type]}</b> · {t.gateKeep}
-              </p>
-            )}
-            <div className="mt-6 max-w-sm">
-            <PhoneGate
-              locale={locale}
-              t={dict.account}
-              next={href({}).replace(/^https?:\/\/[^/]+/, '')}
-            />
-            </div>
-            <p className="mt-5 flex items-start gap-2 border-t border-line pt-4 text-xs leading-6 text-faint">
-              <Icon name="info" className="mt-0.5 h-4 w-4 shrink-0" />
-              {t.gateNote}
-            </p>
-          </div>
-          <Link
-            href={href({ e: 1 })}
-            className="mt-6 inline-block text-sm text-muted underline underline-offset-4"
-          >
-            {t.back}
-          </Link>
-        </section>
-      )}
-
       {/* ── 2 · الحاجة ── */}
-      {!needsAccount && step === 2 && (
+      {step === 2 && (
         <section className="mt-7">
           <h1 className="display text-2xl font-semibold sm:text-3xl">{t.q2}</h1>
 
           <form action={`/${locale}/projet`} className="mt-6 grid gap-4">
             <input type="hidden" name="e" value="2" />
-            {carry(['type', 'bank'])}
+            {carry(['type', 'bank', 'sys'])}
 
             <div className="grid gap-3 sm:grid-cols-2">
               <label className="block">
@@ -303,6 +251,49 @@ export default async function ProjetPage({
               </label>
             </div>
 
+            {/* ── كيفاش تبني: طرق البناء من القاعدة لا من قائمة في الشفرة ── */}
+            {systems.length > 0 && (
+              <fieldset className="mt-1">
+                <legend className="mb-2 flex items-center gap-1.5 text-sm font-medium">
+                  <Icon name="bricks" className="h-4 w-4 text-gold" />
+                  {t.method}
+                </legend>
+                <ul className="grid gap-2.5 sm:grid-cols-2">
+                  {systems.map((sys) => {
+                    const on = (sp.sys ?? systems[0].code) === sys.code
+                    return (
+                      <li key={sys.code}>
+                        <label
+                          className={`flex h-full cursor-pointer gap-2.5 rounded-xl border-2 p-3 transition ${
+                            on ? 'border-brand bg-brand-soft' : 'border-line bg-surface hover:border-line-strong'
+                          }`}
+                        >
+                          <input
+                            type="radio"
+                            name="sys"
+                            value={sys.code}
+                            defaultChecked={on}
+                            className="mt-1 size-4 shrink-0 accent-[#0e3a5b]"
+                          />
+                          <span className="min-w-0">
+                            <span className="block text-sm font-semibold">
+                              {locale === 'fr' ? sys.name_fr || sys.name_ar : sys.name_ar}
+                            </span>
+                            <span className="mt-0.5 block text-xs leading-6 text-muted">
+                              {(locale === 'fr'
+                                ? sys.citizen_summary_fr || sys.citizen_summary_ar
+                                : sys.citizen_summary_ar) ?? ''}
+                            </span>
+                          </span>
+                        </label>
+                      </li>
+                    )
+                  })}
+                </ul>
+                <p className="mt-2 text-xs leading-6 text-faint">{t.methodHint}</p>
+              </fieldset>
+            )}
+
             <button type="submit" className="min-h-11 justify-self-start rounded border border-line px-5 text-sm font-semibold">
               {t.redraw}
             </button>
@@ -350,13 +341,13 @@ export default async function ProjetPage({
       )}
 
       {/* ── 3 · الميزانية ── */}
-      {!needsAccount && step === 3 && (
+      {step === 3 && (
         <section className="mt-7">
           <h1 className="display text-2xl font-semibold sm:text-3xl">{t.q3}</h1>
 
           <form action={`/${locale}/projet`} className="mt-6 flex flex-wrap items-end gap-3">
             <input type="hidden" name="e" value="3" />
-            {carry(['type', 's', 'l', 'ch', 'sa', 'cu', 'sdb', 'del'])}
+            {carry(['type', 's', 'l', 'ch', 'sa', 'cu', 'sdb', 'del', 'tr', 'sys'])}
             <label className="block flex-1 basis-56">
               <span className="mb-1.5 block text-sm font-medium">{dict.budget.amount}</span>
               <input
@@ -472,7 +463,7 @@ export default async function ProjetPage({
 
           <form action={`/${locale}/projet`} className="mt-4">
             <input type="hidden" name="e" value="3" />
-            {carry(['type', 's', 'l', 'ch', 'sa', 'cu', 'sdb', 'del', 'tr', 'b'])}
+            {carry(['type', 's', 'l', 'ch', 'sa', 'cu', 'sdb', 'del', 'tr', 'b', 'sys'])}
             <label className="flex items-center gap-2 text-sm">
               <input
                 type="checkbox"
@@ -505,7 +496,7 @@ export default async function ProjetPage({
       )}
 
       {/* ── 4 · الملخّص ── */}
-      {!needsAccount && step === 4 && (
+      {step === 4 && (
         <section className="mt-7">
           <h1 className="display text-2xl font-semibold sm:text-3xl">{t.q4}</h1>
 
@@ -576,14 +567,21 @@ export default async function ProjetPage({
             </p>
           )}
 
-          <div className="mt-7 flex flex-wrap items-center gap-3">
-            <Link href={href({ e: 3 })} className="text-sm text-muted underline underline-offset-4">
-              {t.back}
-            </Link>
-            <Link
-              href={`/${locale}/demande?${new URLSearchParams(
-                Object.entries({
-                  type: TO_REQUEST[type] ?? '',
+          {/* ── ابعث: اسم ورقم، وخلاص (الماكيتة F03) ── */}
+          <div className="mt-7 rounded-xl border-2 border-line bg-surface p-5 sm:p-6">
+            <span className="flex items-center gap-2.5">
+              <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-brand-soft text-brand">
+                <Icon name="send" className="h-5 w-5" />
+              </span>
+              <h2 className="display text-xl font-semibold">{t.sendTitle}</h2>
+            </span>
+            <div className="mt-5 max-w-sm">
+              <ProjectSend
+                locale={locale}
+                t={dict.account}
+                account={t}
+                specs={{
+                  type,
                   s: String(config.surface),
                   l: String(config.levels),
                   ch: String(config.bedrooms),
@@ -591,14 +589,19 @@ export default async function ProjetPage({
                   cu: String(config.kitchens),
                   sdb: String(config.bathrooms),
                   del: sp.del ?? '',
-                }).filter(([, v]) => v) as [string, string][]
-              ).toString()}`}
-              className="ms-auto rounded bg-brand px-6 py-3 font-semibold text-white"
-            >
-              {t.send}
+                  tr: sp.tr ?? '',
+                  sys: sp.sys ?? '',
+                  b: hasBudget ? String(budget) : '',
+                }}
+              />
+            </div>
+          </div>
+
+          <div className="mt-6 flex flex-wrap items-center gap-3">
+            <Link href={href({ e: 3 })} className="text-sm text-muted underline underline-offset-4">
+              {t.back}
             </Link>
           </div>
-          <p className="mt-3 text-xs leading-7 text-faint">{t.sendHint}</p>
 
           <Link
             href={`/${locale}/projet`}

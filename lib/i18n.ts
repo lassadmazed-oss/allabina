@@ -52,7 +52,7 @@ const ar = {
     home: {
         badge: 'مبادرة خاصّة لطلبات السكن — المرحلة التجريبية: ولاية صفاقس',
         title: 'اللَّبنة… نبنيو على قدّك',
-        lede: 'سجّل مطلب سكنك مرّة وحدة، ونحنا نلقاو لك الحلّ اللي يناسب ميزانيتك والمنطقة اللي تحبّها: بناء فوق أرضك، أرض ودار، ولا شقة — مع دراسة واضحة لقدرتك على التمويل.',
+        lede: 'كوّن مشروعك مرّة وحدة: تختار شنوّة تبني وكيفاش وقدّاش، تشوف توزيع المساحات وتقدير الكلفة، وتعرف بميزانيتك توصل لوين — ونحنا ندرسوه ونبنيوه.',
         cta1: 'سجّل مطلبك — بدون معاليم',
         cta2: 'احسب ميزانيتك',
         heroNote: 'من طلب السكن إلى مفتاح الدار — بدون معاليم على الحريف.',
@@ -120,7 +120,7 @@ const ar = {
         ctaBody: 'التسجيل مجّاني. تعمّر الاستمارة، تثبّت رقمك برمز يوصلك، ونحنا نتّصلو بيك.'
     },
     form: {
-        pageTitle: 'سجّل مطلب سكنك',
+        pageTitle: 'ابعث مشروعك',
         pageLede: 'أقلّ من 3 دقايق، وبدون معاليم. رقمك يتثبّت برمز، وملفّك يبقى عندك.',
         stepOf: 'الخطوة {i} من {n}',
         stepNames: [
@@ -250,8 +250,8 @@ const ar = {
         ownershipLabels: { owner: 'ملكي', heirs: 'ورثة (ملكية مشتركة)', tenant: 'كاري' } as Record<string, string>,
         buildingAge: 'عمر البناء (سنوات)',
         homePermit: 'عندي رخصة للتوسعة',
-        renterStop: 'الكاري ما ينجّمش يرمّم دار موش ملكو — المالك هو اللي يقرّر. إذا مشكلك في الدار اللي إنت فيها، اختار «مشكل سكني آخر» ونسمعوك.',
-        renterStopCta: 'بدّل إلى «مشكل سكني آخر»',
+        renterStop: 'الكاري ما ينجّمش يرمّم دار موش ملكو — المالك هو اللي يقرّر. إذا تحبّ تحكيلنا على حاجة أخرى، اختار «مشروع آخر» ونسمعوك.',
+        renterStopCta: 'بدّل إلى «مشروع آخر»',
         inUrbanPlan: 'الأرض داخل مثال التهيئة؟',
         urbanLabels: { yes: 'نعم', no: 'لا', unknown: 'ما نعرفش' } as Record<string, string>,
         urbanHint: 'أرض خارج المثال تحتاج مساراً إدارياً قبل أيّ رخصة.',
@@ -262,7 +262,7 @@ const ar = {
         financeOptionalTitle: 'تحبّ تزيد معطيات على فلوسك؟',
         financeOptionalLede: 'اختياري. يعاون الفريق يفهم وضعك أكثر — وتنجّم تتعدّاها.',
         financeOptionalOpen: 'نزيد',
-        s2TitleOther: 'احكيلنا',
+        s2TitleOther: 'قلّنا شنوّة في بالك',
         s2LedeOther: 'كلامك أهمّ من أيّ خانة. اكتب ولا سجّل صوتك، وقلّنا قدّاش الأمر مستعجل.',
         stepHome: 'الدار الحالية',
         titleWarning: 'الأرض بشهادة ملكية عادية وضعيتها القانونية أضعف من الرسم العقاري: تستوجب تثبّتاً قبل أيّ شراء، والفريق ينبّهك قبل أيّ عرض.',
@@ -365,8 +365,8 @@ const ar = {
         urgencyNotePlaceholder: 'مثال: عندي إشعار بالخروج من الكراء في مارس',
         flexTitle: 'على شنوّة تنجّم تتنازل؟',
         flexLede: 'إذا ما لقيناش اللي طلبت بالضبط. كلّ خيار يفتح حلولاً زيادة — وما يلزمكش تختار حتّى حاجة.',
-        problemTitle: 'حكيلنا على مشكلتك بكلامك',
-        problemLede: 'اللي ما لقيتوش في الأسئلة فوق. كل ما وضّحت أكثر، كل ما فهمنا أحسن.',
+        problemTitle: 'قلّنا شنوّة تحبّ تعمل بكلامك',
+        problemLede: 'اللي ما لقيتوش في الاختيارات فوق. كل ما وضّحت أكثر، كل ما فهمنا أحسن.',
         problemPlaceholder: 'مثال: عندي أرض ورثتها مع خوتي وما نعرفش كيفاش نبني عليها…',
         socialTitle: 'برامج السكن الاجتماعي',
         socialLede: 'أسئلة قصيرة تخصّ البرامج المدعّمة (فوبرولوس وغيرها). الأهلية ما تتقرّرش من عندنا — تتدرس مع الجهة المعنية.',
@@ -1211,6 +1211,8 @@ const ar = {
       livingRooms: 'الصالون',
       kitchens: 'المطبخ',
       bathrooms: 'الحمّام',
+      method: 'كيفاش تحبّ تبني؟',
+      methodHint: 'الطريقة تبدّل في الكلفة وفي الوقت. تنجّم تبدّلها مع الفريق وقت الدراسة.',
       redraw: 'شوف التوزيع',
       gateTitle: 'اعمل حسابك باش تشوف رسمك وتقديرك',
       gateBody:
@@ -1240,6 +1242,10 @@ const ar = {
       bathsShort: 'حمّام',
       summaryBudget: 'الميزانية',
       send: 'ابعثو للدراسة',
+      sendStudy: 'ابعث للدراسة',
+      sendConfirm: 'ثبّت وابعث',
+      sendWhy: 'نحتاجو اسمك ورقمك باش نعيّطولك ونبعثولك دراستك — ما ثمّ إشهار ولا بيع معطيات.',
+      sendTitle: 'ابعث مشروعك للدراسة',
       sendHint:
         'تكمّل بقيّة التفاصيل في الاستمارة، ويلزمك رقم متثبّت منّو. التقدير اللي شفتو استرشادي وما يلزمك بحتّى شي.',
       startOver: 'ابدا من جديد',
@@ -1550,7 +1556,7 @@ const ar = {
             economic: 'سكن اقتصادي',
             rent_to_own: 'كراء مملّك',
             renovation: 'ترميم ولا توسعة',
-            other: 'مشكل سكني آخر'
+            other: 'مشروع آخر'
         } as Record<string, string>,
         urgency: {
             planning: 'نخطّط، ما فمّاش أجل',
@@ -1736,7 +1742,7 @@ const fr: Dictionary = {
         ctaBody: 'Le dépôt est gratuit. Remplissez le formulaire, confirmez votre numéro par un code, nous vous rappelons.'
     },
     form: {
-        pageTitle: 'Déposer votre demande de logement',
+        pageTitle: 'Envoyer votre projet',
         pageLede: 'Moins de trois minutes, sans frais. Votre numéro est confirmé par un code, votre dossier vous suit.',
         stepOf: 'Étape {i} sur {n}',
         stepNames: [
@@ -1867,8 +1873,8 @@ const fr: Dictionary = {
         ownershipLabels: { owner: 'M’appartient', heirs: 'Héritage (indivision)', tenant: 'Locataire' } as Record<string, string>,
         buildingAge: 'Âge du bâtiment (années)',
         homePermit: 'J’ai un permis pour l’extension',
-        renterStop: 'Un locataire ne peut pas rénover un logement qui ne lui appartient pas — c’est le propriétaire qui décide. Si votre problème concerne votre logement actuel, choisissez « Autre problème de logement » et nous vous écoutons.',
-        renterStopCta: 'Passer à « Autre problème de logement »',
+        renterStop: 'Un locataire ne peut pas rénover un logement qui ne lui appartient pas — c’est le propriétaire qui décide. Si vous souhaitez nous parler d’autre chose, choisissez « Autre projet » et nous vous écoutons.',
+        renterStopCta: 'Passer à « Autre projet »',
         inUrbanPlan: 'Le terrain est-il dans le plan d’aménagement ?',
         urbanLabels: { yes: 'Oui', no: 'Non', unknown: 'Je ne sais pas' } as Record<string, string>,
         urbanHint: 'Hors plan, une démarche administrative précède tout permis.',
@@ -2828,6 +2834,8 @@ const fr: Dictionary = {
       livingRooms: 'Salon',
       kitchens: 'Cuisine',
       bathrooms: 'Salle de bain',
+      method: 'Comment voulez-vous construire ?',
+      methodHint: 'Le mode de construction change le coût et les délais. Il reste modifiable avec l’équipe lors de l’étude.',
       redraw: 'Voir la répartition',
       gateTitle: 'Créez votre compte pour votre esquisse et votre estimation',
       gateBody:
@@ -2858,6 +2866,10 @@ const fr: Dictionary = {
       bathsShort: 'salle(s) de bain',
       summaryBudget: 'Budget',
       send: 'Envoyer pour étude',
+      sendStudy: 'Envoyer pour étude',
+      sendConfirm: 'Confirmer et envoyer',
+      sendWhy: 'Votre nom et votre numéro servent à vous rappeler et à vous transmettre l’étude — aucune publicité, aucune revente de données.',
+      sendTitle: 'Envoyez votre projet pour étude',
       sendHint:
         'Vous compléterez les détails dans le formulaire, avec un numéro vérifié. L’estimation affichée est indicative et ne vous engage à rien.',
       startOver: 'Recommencer',
@@ -3170,7 +3182,7 @@ const fr: Dictionary = {
             economic: 'Logement économique',
             rent_to_own: 'Location-vente',
             renovation: 'Rénovation ou extension',
-            other: 'Autre problème de logement'
+            other: 'Autre projet'
         } as Record<string, string>,
         urgency: {
             planning: "Je planifie, sans échéance",

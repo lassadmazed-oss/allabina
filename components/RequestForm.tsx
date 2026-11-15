@@ -1621,8 +1621,13 @@ export default function RequestForm({
         </fieldset>
       )}
 
-      {/* 4 — عائلتك ووضعك: كان المستشار يسألها في مكالمة ويكتبها في
-          «المسار الاجتماعي». صاحبها يعرفها أحسن، ويكتبها مرّة واحدة. */}
+      {/*
+        4 — عائلتك ووضعك.
+        خطوةٌ ليست في المسار لا تُولَّد أصلاً، لا تُخبَّأ بالـCSS: نصٌّ
+        مخفيٌّ بـ`hidden` يبقى في المصدر وفي ما يقرأه محرّك البحث —
+        و«مخبّأ» يعني غير موجود، لا غير مرئيّ.
+      */}
+      {order.includes(4) && (
       <fieldset className={step === 4 ? 'block' : 'hidden'}>
         <legend className="display mb-1 text-xl font-semibold">{t.s6Title}</legend>
         <p className="mb-4 text-sm text-muted">{t.s6Lede}</p>
@@ -1705,7 +1710,9 @@ export default function RequestForm({
 
       </fieldset>
 
+      )}
       {/* 5 — القدرة المالية */}
+      {order.includes(5) && (
       <fieldset className={step === 5 ? 'block' : 'hidden'}>
         <legend className="display mb-1 text-xl font-semibold">{t.s4Title}</legend>
         <p className="mb-4 text-sm text-muted">{t.s4Lede}</p>
@@ -2036,6 +2043,7 @@ export default function RequestForm({
           </>
         )}
       </fieldset>
+      )}
 
       {/* 6 — الاتصال والوثائق */}
       <fieldset className={step === 6 ? 'block' : 'hidden'}>
