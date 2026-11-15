@@ -12,13 +12,7 @@
  * مخفيٌّ عمّن لا يعرف.
  */
 
-export type TrackSegment =
-  | 'proprietaire'
-  | 'reseau'
-  | 'standing'
-  | 'soutien'
-  | 'simulateur'
-  | 'systemes'
+export type TrackSegment = 'standing' | 'systemes'
 
 export type Track = {
   segment: TrackSegment
@@ -34,62 +28,30 @@ export type Track = {
  */
 export const TRACKS: Track[] = [
   {
-    segment: 'proprietaire',
-    labelAr: 'صاحب عقار',
-    labelFr: 'Propriétaire',
-    noteAr: 'عرض عقار على اللَّبنة. مسار عقاري، موش مقاولات.',
-  },
-  {
-    segment: 'reseau',
-    labelAr: 'شبكة المتدخّلين',
-    labelFr: 'Réseau',
-    noteAr: 'تسجيل الحرفاء والمقاولين. في نموذج المقاولة هاذوما مناولون — شأن داخلي.',
-  },
-  {
     segment: 'standing',
     labelAr: 'مستويات التشطيب',
     labelFr: 'Niveaux de finition',
     noteAr: 'الصفحة اللي تصنّف الحريف «اقتصادي/راقٍ». شلناها من الكاتالوج، وهاذي آخر بلاصة فيها.',
   },
   {
-    segment: 'soutien',
-    labelAr: 'المساندة',
-    labelFr: 'Soutien',
-    noteAr: 'مساندة العائلات. موش مقاولات، آمّا موجّهة للمواطن.',
-  },
-  {
-    segment: 'simulateur',
-    labelAr: 'محاكي الكلفة',
-    labelFr: 'Simulateur',
-    noteAr: 'يحسب بسعر المتر حسب المستوى. يتعوّض بالتقدير المبنيّ على الاختيارات.',
-  },
-  {
     segment: 'systemes',
     labelAr: 'طرق البناء',
     labelFr: 'Systèmes',
-    noteAr: 'مقارنة طرق البناء. تخصّ المقاولات مباشرة.',
+    noteAr: 'مقارنة طرق البناء. تخصّ المقاولات مباشرة، والحريف يختار بها في المكوّن.',
   },
 ]
 
 export const TRACK_SEGMENTS = TRACKS.map((t) => t.segment)
 
 /**
- * المخبّأ افتراضياً: ما لا يخصّ مرحلة المقاولات الأولى.
+ * المخبّأ افتراضياً.
  *
- * 15/11/2026: انضمّت المساندة والمحاكي. المساندة مسارٌ للمواطن لا
- * للمقاولة، والمحاكي يحسب بسعر المتر حسب المستوى — وقد عوّضه التقدير
- * المبنيّ على اختيارات الحريف في المكوّن.
- *
- * و«طرق البناء» (systemes) ليست هنا: الحريف يختار بها كيفاش يبني،
- * وهي من صميم المقاولات.
+ * 15/11/2026: مسارات المساندة والعقارات والشبكة والمحاكي لم تَعُد
+ * تُخبّى — حُذفت من الشفرة. وما بقي قابلاً للتخبئة اثنان: مستويات
+ * التشطيب (تصنيف الحريف، لا يخصّ المقاولات) وطرق البناء (تخصّها،
+ * فتبقى ظاهرة).
  */
-export const DEFAULT_HIDDEN: TrackSegment[] = [
-  'proprietaire',
-  'reseau',
-  'standing',
-  'soutien',
-  'simulateur',
-]
+export const DEFAULT_HIDDEN: TrackSegment[] = ['standing']
 
 const isTrack = (v: unknown): v is TrackSegment =>
   typeof v === 'string' && (TRACK_SEGMENTS as string[]).includes(v)

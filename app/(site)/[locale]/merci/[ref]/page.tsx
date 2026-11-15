@@ -130,10 +130,10 @@ export default async function MerciPage({
           {t.merci.home}
         </Link>
         <Link
-          href={path(locale, '/simulateur')}
+          href={path(locale, '/catalogue')}
           className="flex min-h-12 items-center justify-center rounded bg-brand px-6 text-sm font-medium text-white transition hover:bg-brand-deep active:scale-[0.99]"
         >
-          {t.merci.trySim}
+          {t.merci.seeCatalog}
         </Link>
       </div>
     </div>

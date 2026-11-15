@@ -146,7 +146,6 @@ export default async function SiteLayout({
         { href: p('/demande'), label: t.footer.request },
         // الكاتالوج كان منشوراً بلا رابط: ما يُوصَل إليه إلّا بالعنوان
         { href: p('/catalogue'), label: t.catalogue.title },
-        { href: p('/simulateur'), label: t.nav.simulator },
         { href: p('/suivi'), label: t.nav.track },
       ],
     },
@@ -163,10 +162,6 @@ export default async function SiteLayout({
     {
       title: t.nav.groupJoin,
       links: [
-        { href: p('/proprietaire'), label: t.proprietaire.navCta },
-        { href: p('/reseau'), label: t.reseau.navCta },
-        { href: p('/soutien'), label: t.soutien.navLink },
-        { href: p('/soutien/demande'), label: t.soutien.askHelp.navCta },
       ],
     },
   ].map((g) => ({ ...g, links: visibleLinks(g.links, hiddenPaths) }))
@@ -180,7 +175,6 @@ export default async function SiteLayout({
   const learnLinks = visibleLinks(
     [
       { href: p('/catalogue'), label: t.catalogue.title },
-      { href: p('/simulateur'), label: t.nav.simulator },
       { href: p('/realisations'), label: t.cases.navLink, hideFrom: 'xl' as const },
       { href: p('/systemes'), label: t.systemsPage.navLink },
       { href: p('/standing'), label: t.standingPage.navLink },

@@ -20,12 +20,10 @@ import {
   LEVELS,
   PROBLEM_KINDS,
   FINANCING_STATES,
-} from '@/lib/schema'
-import {
   HOUSING_CONDITIONS,
   HOUSING_TENURE_OFFERED,
   INCOME_STABILITY,
-} from '@/lib/support-schema'
+} from '@/lib/schema'
 import {
   applicableDocuments,
   groupDocuments,

@@ -7,8 +7,6 @@ import { requirePermission } from '@/lib/auth'
 import { db, getBuildTiers, getFinanceContext, getFinancingProducts } from '@/lib/supabase/server'
 import { formatNumber, formatPercent, formatRange } from '@/lib/format'
 import ImadaImport from '@/components/ImadaImport'
-import AssessmentConfigForm from '@/components/AssessmentConfigForm'
-import { loadAssessmentConfig } from '@/lib/actions/assessment'
 import { saveContactSettingsAction, saveLegalSettingsAction } from '@/lib/actions/settings'
 import { getLegalIdentity } from '@/lib/legal'
 import BankTermsSection from '@/components/BankTermsSection'
@@ -18,7 +16,6 @@ export const dynamic = 'force-dynamic'
 
 export default async function ReferencePage() {
   await requirePermission('reference.manage')
-  const assessmentConfig = await loadAssessmentConfig()
   const legal = await getLegalIdentity()
   const { data: contactRows } = await db
     .from('app_settings')
@@ -246,17 +243,6 @@ export default async function ReferencePage() {
           <ImadaImport />
         </div>
       </Section>
-
-      {/* دراسة طلب المساندة — الأوزان والحدود */}
-      <section className="mt-10 rounded border border-line bg-surface p-4">
-        <h2 className="text-sm font-semibold">دراسة طلب المساندة: الأوزان وحدود الفئات</h2>
-        <p className="mt-1 max-w-3xl text-xs leading-6 text-muted">
-          ستّة معايير يقيّمها المستشار 0→3 بوصف مكتوب. الوزن يقول قدّاش يحسب كلّ معيار في
-          المجموع من 100. الحدود تقسم المجموع إلى أولوية · مؤهّل · للمراجعة · غير مؤهّل. حاجز
-          الصحّة (لا أولوية بلا تثبّت) ثابت في المحرّك ولا يُعدَّل من هنا — هو قاعدة لا إعداد.
-        </p>
-        <AssessmentConfigForm weights={assessmentConfig.weights} thresholds={assessmentConfig.thresholds} />
-      </section>
 
       {/* البنوك: الشروط التقديرية التي يُحسب بها تقدير الحريف */}
       <BankTermsSection />

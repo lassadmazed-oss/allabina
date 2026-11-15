@@ -37,11 +37,9 @@ import {
 import { siteUrl } from '@/lib/site'
 import { labelEmployment, seniorityYearsLabel } from '@/lib/scoring'
 import { publicStateOf } from '@/lib/public-state'
-import { rankProperties, type MatchProperty } from '@/lib/matching'
 import { formatNumber, formatPercent } from '@/lib/format'
 import { generateDevisAction, updateProjectConfigAction } from '@/lib/actions/devis'
 import { daysLeft, isDevisExpired } from '@/lib/devis'
-import { saveMatchAction, updateMatchAction } from '@/lib/actions/property-admin'
 import {
   addContributionAction,
   addTaskAction,
@@ -208,9 +206,6 @@ const FLEX_LABELS: Record<string, string> = {
 }
 
 import RequestFiles from '@/components/RequestFiles'
-import SupportAssessmentForm from '@/components/SupportAssessmentForm'
-import { loadAssessmentConfig } from '@/lib/actions/assessment'
-import { BAND_AR, DECISION_AR, type Band, type Decision } from '@/lib/support-assessment'
 import type { RequestFile } from '@/lib/documents'
 
 /** أقسام الملفّ بترتيبها في الصفحة — روابط الشريط الثابت */
@@ -222,11 +217,8 @@ const SECTIONS = [
   { id: 'sec-devis', label: 'المواصفات والعرض' },
   { id: 'sec-photos', label: 'صور التقدّم' },
   { id: 'sec-study', label: 'تصنيف الدراسة' },
-  { id: 'sec-social', label: 'المسار الاجتماعي' },
-  { id: 'sec-support', label: 'المساندة' },
   { id: 'sec-solution', label: 'عناصر الحلّ' },
   { id: 'sec-tasks', label: 'المهامّ' },
-  { id: 'sec-offers', label: 'العروض' },
   { id: 'sec-public', label: 'صفحة المتابعة' },
   { id: 'sec-classify', label: 'تصنيف الملفّ' },
   { id: 'sec-followup', label: 'المتابعة' },
@@ -272,8 +264,6 @@ const LEDGER_EVENT_LABELS: Record<string, string> = {
 
 /** نصوص الخريطة حسب المسار — نفس ما يقرأه الحريف، بالعربية */
 const F = getDictionary('ar').form
-/** تصريح طلب المساندة — نفس تسميات الاستمارة */
-const H = getDictionary('ar').soutien.askHelp
 
 export default async function RequestDetail({ params }: { params: Promise<{ id: string }> }) {
   const me = await requireStaff()
@@ -287,28 +277,21 @@ export default async function RequestDetail({ params }: { params: Promise<{ id: 
     { data: fin },
     { data: land },
     { data: home },
-    { data: intake },
     { data: score },
     { data: events },
     { data: interactions },
     { data: docs },
     { data: requestFiles },
     { data: smsRows },
-    { data: assessment },
-    assessmentConfig,
     docCatalog,
     { data: social },
     { data: config },
     { data: latestDevis },
     { data: contributions },
     standingLevels,
-    { data: supportCase },
-    { data: supportLedger },
     { data: tasks },
     { data: partners },
     { data: team },
-    { data: approvedProperties },
-    { data: savedMatches },
     products,
     { data: geo },
     constructionSystems,
@@ -317,7 +300,6 @@ export default async function RequestDetail({ params }: { params: Promise<{ id: 
     db.from('financial_profiles').select('*').eq('request_id', id).maybeSingle(),
     db.from('request_land').select('*').eq('request_id', id).maybeSingle(),
     db.from('request_home').select('*').eq('request_id', id).maybeSingle(),
-    db.from('support_intake').select('*').eq('request_id', id).maybeSingle(),
     db
       .from('scores')
       .select('*')
@@ -338,9 +320,9 @@ export default async function RequestDetail({ params }: { params: Promise<{ id: 
     db.from('request_documents').select('*').eq('request_id', id),
     db.from('request_files').select('*').eq('request_id', id).order('created_at'),
     db.from('sms_log').select('template, status, to_number, error, sent_at, created_at').eq('request_id', id).order('created_at', { ascending: false }),
-    db.from('support_assessments').select('*').eq('request_id', id).maybeSingle(),
-    loadAssessmentConfig(),
     getDocCatalog(),
+    // القسم اتنحّى من الشاشة، والمعطى يبقى: محرّك الوثائق يرشّح به
+    // الأوراق (كراء · إعاقة · حالة السكن).
     db.from('social_assessments').select('*').eq('request_id', id).maybeSingle(),
     db.from('project_configs').select('*').eq('request_id', id).maybeSingle(),
     db
@@ -352,27 +334,9 @@ export default async function RequestDetail({ params }: { params: Promise<{ id: 
       .maybeSingle(),
     db.from('contributions').select('*').eq('request_id', id).order('created_at'),
     getStandingLevels(),
-    db.from('support_cases').select('id, published, consent_given').eq('request_id', id).maybeSingle(),
-    db
-      .from('support_ledger')
-      .select('id, event, label, occurred_at, partner_public')
-      .eq('request_id', id)
-      .order('occurred_at', { ascending: false })
-      .order('id', { ascending: false })
-      .limit(6),
     db.from('tasks').select('*').eq('request_id', id).order('created_at'),
     db.from('partners').select('id, name, kind').eq('is_active', true).order('name'),
     db.from('staff').select('user_id, full_name, email').eq('active', true).order('full_name'),
-    db
-      .from('properties')
-      .select('id, ref_code, kind, gov_code, delegation_id, imada_id, area_m2, built_area_m2, price_tnd, status, address')
-      .eq('status', 'approved')
-      .limit(300),
-    db
-      .from('matches')
-      .select('id, property_id, score, status, note, reasons')
-      .eq('request_id', id)
-      .order('score', { ascending: false }),
     getFinancingProducts(),
     db
       .from('housing_requests')
@@ -417,44 +381,6 @@ export default async function RequestDetail({ params }: { params: Promise<{ id: 
   const floorUsages = [...new Map(spanLimits.map((l) => [l.usage_code, l])).values()]
   const assemblyCodes = [...new Set(spanLimits.map((l) => l.assembly_code))].sort()
 
-  // ---------- اقتراحات المطابقة ----------
-  const propertyPool: MatchProperty[] = ((approvedProperties ?? []) as Record<string, unknown>[]).map(
-    (x) => ({
-      id: String(x.id),
-      kind: String(x.kind),
-      govCode: String(x.gov_code),
-      delegationId: x.delegation_id === null ? null : Number(x.delegation_id),
-      imadaId: x.imada_id === null ? null : Number(x.imada_id),
-      areaM2: x.area_m2 === null ? null : Number(x.area_m2),
-      builtAreaM2: x.built_area_m2 === null ? null : Number(x.built_area_m2),
-      priceTnd: x.price_tnd === null ? null : Number(x.price_tnd),
-      status: String(x.status),
-    })
-  )
-
-  const suggestions = rankProperties(
-    {
-      requestType: r.request_type,
-      govCode: r.gov_code,
-      delegationId: r.delegation_id,
-      imadaId: r.imada_id,
-      desiredAreaM2: r.desired_area_m2,
-      maxBudget: score ? Number(score.max_budget_tnd ?? 0) : null,
-      ownsLand: Boolean(r.owns_land),
-      scoreBand: score?.band ?? null,
-    },
-    propertyPool,
-    { limit: 6 }
-  )
-
-  const propertyById = new Map(propertyPool.map((x) => [x.id, x]))
-  const propertyRefById = new Map(
-    ((approvedProperties ?? []) as Record<string, unknown>[]).map((x) => [
-      String(x.id),
-      { ref: String(x.ref_code), address: (x.address as string | null) ?? '' },
-    ])
-  )
-  const savedIds = new Set(((savedMatches ?? []) as { property_id: string }[]).map((m) => m.property_id))
 
   const { data: devisLines } = latestDevis
     ? await db
@@ -596,7 +522,7 @@ export default async function RequestDetail({ params }: { params: Promise<{ id: 
         : null,
     docsMissing: docMissing.map((d) => d.nameAr),
     openInquiries: (interactions ?? []).filter((x) => !x.resolved).length,
-    matchesCount: suggestions.length,
+    matchesCount: 0,
     ageDays: Math.floor((Date.now() - new Date(r.created_at).getTime()) / 86_400_000),
   }
   const brief = buildBrief(briefInput)
@@ -1028,55 +954,6 @@ export default async function RequestDetail({ params }: { params: Promise<{ id: 
           </Card>
         )}
 
-        {/* تصريح طلب المساندة — مرتّب على معايير الدراسة الستّة */}
-        {intake && (
-          <Card title="تفاصيل طلب المساندة">
-            {(() => {
-              const i = intake as Record<string, unknown>
-              const arr = (k: string) => (Array.isArray(i[k]) ? (i[k] as string[]) : [])
-              const lab = (m: Record<string, string>, k: unknown) => (k ? (m[String(k)] ?? String(k)) : '—')
-              const join = (m: Record<string, string>, k: string) => arr(k).map((x) => m[x] ?? x).join(' · ') || '—'
-              const yn = (k: string) => (i[k] ? 'نعم' : 'لا')
-              const Sub = ({ t }: { t: string }) => <div className="mt-3 mb-1 text-xs font-semibold text-brand">{t}</div>
-              return (
-                <>
-                  <Row k={H.forWhom} v={lab(H.forWhomLabels, i.for_whom)} />
-                  {i.beneficiary_name ? <Row k={H.beneficiaryName} v={String(i.beneficiary_name)} /> : null}
-                  <Sub t="الحاجة والاستعجال" />
-                  <Row k={H.needKinds} v={join(H.needKindLabels, 'need_kinds')} />
-                  <Row k={H.triggers} v={join(H.triggerLabels, 'triggers')} />
-                  <Sub t="فجوة السكن" />
-                  <Row k={H.roomsCount} v={i.rooms_count != null ? String(i.rooms_count) : '—'} />
-                  <Row k={H.yearsThere} v={i.years_there != null ? String(i.years_there) : '—'} />
-                  <Row k={H.utilities} v={join(H.utilityLabels, 'utilities')} />
-                  <Row k={H.buildingState} v={lab(H.buildingStateLabels, i.building_state)} />
-                  <Sub t="الهشاشة" />
-                  <Row k={H.childrenCount} v={i.children_count != null ? String(i.children_count) : '—'} />
-                  <Row k={H.elderlyCount} v={i.elderly_count != null ? String(i.elderly_count) : '—'} />
-                  <Row k={H.headStatus} v={lab(H.headStatusLabels, i.head_status)} />
-                  {i.disability_note ? <Row k={H.disabilityNote} v={String(i.disability_note)} /> : null}
-                  <Row k={H.incomeRange} v={lab(H.incomeRangeLabels, i.income_range)} />
-                  {i.main_earner_job ? <Row k={H.mainEarnerJob} v={String(i.main_earner_job)} /> : null}
-                  <Row k={H.socialCoverage} v={join(H.socialCoverageLabels, 'social_coverage')} />
-                  <Row k={H.existingAid} v={lab(H.yesNoLabels, i.existing_aid)} />
-                  <Sub t="الجهد الذاتي" />
-                  <Row k={H.landStatus} v={lab(H.landStatusLabels, i.land_status)} />
-                  <Row k={H.hasMaterials} v={yn('has_materials')} />
-                  <Row k={H.savingsRange} v={lab(H.savingsLabels, i.savings_range)} />
-                  <Row k={H.familyHelp} v={yn('family_help')} />
-                  <Row k={H.canWork} v={yn('can_work')} />
-                  <Row k={H.stepsTaken} v={join(H.stepsLabels, 'steps_taken')} />
-                  <Sub t="التثبّت" />
-                  <Row k={H.canVisit} v={yn('can_visit')} />
-                  <Row k={H.bestTime} v={lab(H.bestTimeLabels, i.best_time)} />
-                  {i.reference_note ? <Row k={H.referenceNote} v={String(i.reference_note)} /> : null}
-                  {i.alt_phone ? <Row k={H.altPhone} v={String(i.alt_phone)} /> : null}
-                  {i.address_note ? <Row k={H.addressNote} v={String(i.address_note)} /> : null}
-                </>
-              )
-            })()}
-          </Card>
-        )}
 
         {score && (
           <Card title="تفصيل التنقيط">
@@ -1663,193 +1540,6 @@ export default async function RequestDetail({ params }: { params: Promise<{ id: 
         </form>
       </div>
 
-      {/* المسار الاجتماعي — Module 7 */}
-      <div id="sec-social" className="mt-4 scroll-mt-32 rounded-xl border border-line bg-surface p-4">
-        <div className="flex flex-wrap items-baseline justify-between gap-2">
-          <h2 className={H2}>المسار الاجتماعي</h2>
-          {social?.is_priority && (
-            <span className="rounded bg-gold-soft px-2.5 py-1 text-xs font-medium text-gold">
-              أولوية دراسة
-            </span>
-          )}
-        </div>
-        <p className="mt-1 text-xs leading-6 text-muted">
-          مؤشّرات لترتيب أولوية الدراسة، <b>موش للحكم الآلي على الناس</b>. الأولوية يقرّرها الفريق
-          بعد الدراسة.
-        </p>
-        <form action={updateSocialAssessmentAction} className="mt-4 grid gap-3 sm:grid-cols-3">
-          <input type="hidden" name="id" value={r.id} />
-          <label className="block">
-            <span className="mb-1.5 block text-xs text-muted">عدد أفراد العائلة</span>
-            <input
-              name="household_size"
-              type="number"
-              defaultValue={social?.household_size ?? ''}
-              className="w-full rounded border border-line bg-surface px-3 py-2 text-sm"
-            />
-          </label>
-          <label className="block">
-            <span className="mb-1.5 block text-xs text-muted">عدد المُعالين</span>
-            <input
-              name="dependents"
-              type="number"
-              defaultValue={social?.dependents ?? ''}
-              className="w-full rounded border border-line bg-surface px-3 py-2 text-sm"
-            />
-          </label>
-          <label className="block">
-            <span className="mb-1.5 block text-xs text-muted">وضعية السكن الحالية</span>
-            <select
-              name="housing_condition"
-              defaultValue={social?.housing_condition ?? ''}
-              className="w-full rounded border border-line bg-surface px-3 py-2 text-sm"
-            >
-              <option value="">—</option>
-              {Object.entries(HOUSING_CONDITIONS).map(([k, v]) => (
-                <option key={k} value={k}>
-                  {v}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label className="block">
-            <span className="mb-1.5 block text-xs text-muted">استقرار الدخل</span>
-            <select
-              name="income_stability"
-              defaultValue={social?.income_stability ?? ''}
-              className="w-full rounded border border-line bg-surface px-3 py-2 text-sm"
-            >
-              <option value="">—</option>
-              {Object.entries(INCOME_STABILITY).map(([k, v]) => (
-                <option key={k} value={k}>
-                  {v}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label className="flex items-center gap-2 pt-6 text-sm">
-            <input
-              type="checkbox"
-              name="has_disability"
-              defaultChecked={social?.has_disability ?? false}
-              className="size-4 accent-[#1d3a5f]"
-            />
-            إعاقة في العائلة
-          </label>
-          <label className="flex items-center gap-2 pt-6 text-sm">
-            <input
-              type="checkbox"
-              name="is_priority"
-              defaultChecked={social?.is_priority ?? false}
-              className="size-4 accent-[#1d3a5f]"
-            />
-            أولوية دراسة
-          </label>
-          <label className="block sm:col-span-3">
-            <span className="mb-1.5 block text-xs text-muted">ملاحظات</span>
-            <input
-              name="notes"
-              defaultValue={social?.notes ?? ''}
-              className="w-full rounded border border-line bg-surface px-3 py-2 text-sm"
-            />
-          </label>
-          <button className="justify-self-start rounded bg-brand px-5 py-2 text-sm font-medium text-white hover:bg-brand-deep">
-            حفظ
-          </button>
-        </form>
-      </div>
-
-      {/* دراسة طلب المساندة — الأهلية ومدى الصحّة والقرار */}
-      {(r.study_track === 'social' || assessment) && (
-        <div id="sec-assess" className="mt-4 scroll-mt-32 rounded-xl border border-brand/40 bg-surface p-4">
-          <div className="flex flex-wrap items-baseline justify-between gap-3">
-            <h2 className={H2}>دراسة طلب المساندة</h2>
-            {assessment && (
-              <span className="text-xs text-muted">
-                آخر دراسة: <b className="num">{assessment.total}</b>/100 ·{' '}
-                {BAND_AR[assessment.band as Band]} · {DECISION_AR[assessment.decision as Decision]}
-                {assessment.decided_at && (
-                  <span className="num text-faint"> · {new Date(assessment.decided_at).toLocaleDateString('fr-TN')}</span>
-                )}
-              </span>
-            )}
-          </div>
-          <p className="mt-1 text-xs leading-6 text-muted">
-            ستّة معايير بوصف مكتوب لكلّ درجة حتى يحكم مستشاران بنفس الميزان، وحاجز صحّة: لا «أولوية»
-            بلا وثيقة أو زيارة، ولا فوق «للمراجعة» مع تناقض مرصود. الدرجة تعاون القرار — والقرار لك،
-            وبسبب مكتوب. الأوزان في «المعطيات المرجعية».
-          </p>
-          {canEdit ? (
-            <SupportAssessmentForm
-              requestId={r.id}
-              existing={assessment}
-              weights={assessmentConfig.weights}
-              thresholds={assessmentConfig.thresholds}
-            />
-          ) : (
-            <p className="mt-3 text-xs text-faint">القراءة فقط — الدراسة تستوجب صلاحية التحيين.</p>
-          )}
-        </div>
-      )}
-
-      {/* المساندة ودفتر الشفافية — Module 12-bis */}
-      <div id="sec-support" className="mt-4 scroll-mt-32 rounded-xl border border-line bg-surface p-4">
-        <div className="flex flex-wrap items-baseline justify-between gap-3">
-          <h2 className={H2}>المساندة ودفتر الشفافية</h2>
-          <Link
-            href={`/admin/support?request=${id}`}
-            className="text-xs text-brand hover:underline"
-          >
-            {supportCase ? 'افتح الدفتر ←' : 'افتح حالة مساندة ←'}
-          </Link>
-        </div>
-
-        {supportCase ? (
-          <>
-            <div className="mt-2 flex flex-wrap items-center gap-2 text-xs">
-              <span
-                className={`rounded px-2 py-0.5 ${
-                  supportCase.consent_given ? 'bg-brand-soft text-brand' : 'bg-gold-soft text-gold'
-                }`}
-              >
-                {supportCase.consent_given ? 'موافقة صاحب الحالة موجودة' : 'بلا موافقة'}
-              </span>
-              <span
-                className={`rounded px-2 py-0.5 ${
-                  supportCase.published ? 'bg-brand-soft text-brand' : 'text-faint'
-                }`}
-              >
-                {supportCase.published ? 'منشورة للعموم' : 'غير منشورة'}
-              </span>
-            </div>
-
-            {(supportLedger ?? []).length === 0 ? (
-              <p className="mt-3 text-xs text-faint">ما فمّا حتّى قيد في الدفتر توّا.</p>
-            ) : (
-              <ol className="mt-3 flex flex-col gap-1.5 text-sm">
-                {(supportLedger ?? []).map((l) => (
-                  <li key={l.id} className="flex flex-wrap items-baseline gap-x-3">
-                    <span className="rounded border border-line bg-surface-2 px-2 py-0.5 text-xs text-muted">
-                      {LEDGER_EVENT_LABELS[l.event] ?? l.event}
-                    </span>
-                    <span className="num text-xs text-faint">{l.occurred_at}</span>
-                    <span>{l.label}</span>
-                    {l.partner_public && (
-                      <span className="text-xs text-muted">— {l.partner_public}</span>
-                    )}
-                  </li>
-                ))}
-              </ol>
-            )}
-          </>
-        ) : (
-          <p className="mt-2 text-xs leading-6 text-muted">
-            كي المسار التجاري وحده ما يكفيش، افتح حالة مساندة: نسجّلو الحاجيات وما يوصل في سجلّ
-            ما يتعدّلش. <b>المنصة ما تجمعش أموالاً</b> — المساندة عينية.
-          </p>
-        )}
-      </div>
-
       {/* عناصر الحلّ — Module 7/8 */}
       <div id="sec-solution" className="mt-4 scroll-mt-32 rounded-xl border border-line bg-surface p-4">
         <h2 className={H2}>عناصر الحلّ</h2>
@@ -2023,120 +1713,6 @@ export default async function RequestDetail({ params }: { params: Promise<{ id: 
             </li>
           ))}
         </ul>
-      </div>
-
-      {/* العروض المقترحة — Matching Engine */}
-      <div id="sec-offers" className="mt-4 scroll-mt-32 rounded-xl border border-line bg-surface p-4">
-        <div className="flex flex-wrap items-baseline justify-between gap-2">
-          <h2 className={H2}>عروض عقارية مقترحة</h2>
-          <span className="text-xs text-muted">
-            {suggestions.length} اقتراح من {propertyPool.length} عرض مراجَع
-          </span>
-        </div>
-        <p className="mt-2 text-xs leading-6 text-muted">
-          المحرّك يقترح ويفسّر، والقرار للفريق. العروض غير المراجَعة والخارجة عن الولاية أو الميزانية
-          مستبعَدة آلياً.
-        </p>
-
-        {suggestions.length === 0 && (
-          <p className="mt-4 text-sm text-faint">
-            ما فمّاش عرض يناسب هالملفّ توّا. كي يسجّل مالك عقاراً في نفس المنطقة يظهر هنا.
-          </p>
-        )}
-
-        <ul className="mt-4 space-y-3">
-          {suggestions.map((m) => {
-            const prop = propertyById.get(m.propertyId)
-            const meta = propertyRefById.get(m.propertyId)
-            const saved = savedIds.has(m.propertyId)
-            return (
-              <li key={m.propertyId} className="rounded border border-line p-4">
-                <div className="flex flex-wrap items-baseline justify-between gap-3">
-                  <div>
-                    <span className="num text-sm text-brand" dir="ltr">
-                      {meta?.ref}
-                    </span>
-                    <div className="mt-0.5 text-sm text-muted">
-                      {prop?.kind === 'land' ? 'أرض' : prop?.kind === 'house' ? 'دار' : 'شقة'}
-                      {prop?.areaM2 ? ` · ${formatNumber(prop.areaM2)} م²` : ''}
-                      {prop?.priceTnd ? ` · ${formatTND(prop.priceTnd)}` : ''}
-                      {meta?.address ? ` · ${meta.address}` : ''}
-                    </div>
-                  </div>
-                  <span className="num rounded bg-brand-soft px-3 py-1 text-sm font-semibold text-brand">
-                    {formatPercent(Number(m.score))}
-                  </span>
-                </div>
-
-                <ul className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted">
-                  {m.reasons
-                    .filter((reason) => reason.points > 0)
-                    .map((reason) => (
-                      <li key={reason.key}>
-                        — {reason.ar} <span className="num">({reason.points}/{reason.weight})</span>
-                      </li>
-                    ))}
-                </ul>
-
-                {saved ? (
-                  <span className="mt-3 inline-block rounded bg-surface-2 px-3 py-1 text-xs text-muted">
-                    محفوظ للمتابعة
-                  </span>
-                ) : (
-                  <form action={saveMatchAction} className="mt-3">
-                    <input type="hidden" name="request_id" value={r.id} />
-                    <input type="hidden" name="property_id" value={m.propertyId} />
-                    <input type="hidden" name="score" value={m.score} />
-                    <input type="hidden" name="reasons" value={JSON.stringify(m.reasons)} />
-                    <button className="rounded border border-line px-4 py-1.5 text-xs hover:border-brand hover:text-brand">
-                      احفظ للمتابعة
-                    </button>
-                  </form>
-                )}
-              </li>
-            )
-          })}
-        </ul>
-
-        {(savedMatches ?? []).length > 0 && (
-          <div className="mt-6 border-t border-line pt-4">
-            <h3 className="text-xs font-semibold text-muted">عروض محفوظة</h3>
-            <ul className="mt-3 space-y-2">
-              {((savedMatches ?? []) as {
-                id: string
-                property_id: string
-                score: number
-                status: string
-                note: string | null
-              }[]).map((m) => (
-                <li key={m.id} className="flex flex-wrap items-center gap-3 text-sm">
-                  <span className="num text-brand" dir="ltr">
-                    {propertyRefById.get(m.property_id)?.ref ?? m.property_id.slice(0, 8)}
-                  </span>
-                  <span className="num text-xs text-muted">{formatPercent(Number(m.score))}</span>
-                  <form action={updateMatchAction} className="flex items-center gap-2">
-                    <input type="hidden" name="match_id" value={m.id} />
-                    <input type="hidden" name="request_id" value={r.id} />
-                    <select
-                      name="status"
-                      defaultValue={m.status}
-                      className="rounded border border-line bg-surface px-2 py-1 text-xs"
-                    >
-                      <option value="suggested">مقترح</option>
-                      <option value="shortlisted">محفوظ للمتابعة</option>
-                      <option value="proposed">عُرض على الحريف</option>
-                      <option value="accepted">قبله الحريف</option>
-                      <option value="rejected">رفضه الحريف</option>
-                    </select>
-                    <button className="rounded border border-line px-2 py-1 text-xs hover:border-brand hover:text-brand">
-                      حفظ
-                    </button>
-                  </form>
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
       </div>
 
       {/* ما يراه الحريف في صفحة المتابعة */}

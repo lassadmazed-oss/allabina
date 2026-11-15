@@ -1,6 +1,36 @@
 import { z } from 'zod'
+
+/**
+ * حالة السكن الحالي واستقرار الدخل.
+ *
+ * كانتا في lib/support-schema.ts مع مئتَي سطر من ثوابت مسار المساندة.
+ * حُذف المسار في 15/11/2026، وبقيت هاتان: المخطّط لا يزال يقبلهما لأنّ
+ * ملفّات قديمة تحملهما، وحذفهما من التحقّق يمحوهما بصمت من كلّ ملفّ
+ * يفتحه صاحبه للتعديل.
+ *
+ * و«بلا مسكن» يبقى مقبولاً ولا يُعرض: مطالبة إنسان بأن يؤشّر عليه في
+ * استمارة عمومية قسوةٌ بلا مقابل.
+ */
+export const HOUSING_CONDITIONS = [
+  'owner',
+  'renting',
+  'with_family',
+  'employer',
+  'temporary',
+  'homeless',
+  'other',
+] as const
+
+export const HOUSING_TENURE_OFFERED = HOUSING_CONDITIONS.filter((c) => c !== 'homeless')
+
+export const INCOME_STABILITY = [
+  'monthly_fixed',
+  'monthly_variable',
+  'seasonal',
+  'irregular',
+  'none',
+] as const
 import { normalizePhone, toAsciiDigits } from '@/lib/digits'
-import { HOUSING_CONDITIONS, INCOME_STABILITY } from '@/lib/support-schema'
 import {
   APARTMENT_STATES,
   EXISTING_BUILDING,

@@ -12,22 +12,23 @@ import {
 /**
  * مسارات الموقع العمومي.
  *
- * «المرحلة الأولى بناء ومقاولات، والباقي يتخبّى ما يتحذفش.»
+ * 15/11/2026: مسارات المساندة والعقارات والشبكة والمحاكي حُذفت من
+ * الشفرة — لم تَعُد تُخبّى. وبقي ما يُخبّى اثنان.
  * والتخبئة إمّا تامّة أو ليست تخبئة: رابطٌ يُحذف من القائمة ويبقى
  * يفتح بالعنوان مخفيٌّ عمّن لا يعرف، لا مخبّأ.
  */
 describe('قراءة الإعداد', () => {
   it('المصفوفة تُقرأ، والتكرار يُطوى', () => {
-    expect(parseHidden(['reseau', 'reseau', 'standing'])).toEqual(['reseau', 'standing'])
+    expect(parseHidden(['standing', 'standing', 'systemes'])).toEqual(['standing', 'systemes'])
   })
 
   it('قيمة غريبة تُهمَل وحدها ولا تُسقط البقيّة', () => {
-    expect(parseHidden(['reseau', 'admin', 'كل شي'])).toEqual(['reseau'])
+    expect(parseHidden(['standing', 'admin', 'كل شي'])).toEqual(['standing'])
   })
 
   it('وما ليس مصفوفةً يرجع للافتراضي — لا نفتح كلّ شيء لأنّ قيمةً تلفت', () => {
     expect(parseHidden(null)).toEqual(DEFAULT_HIDDEN)
-    expect(parseHidden('reseau')).toEqual(DEFAULT_HIDDEN)
+    expect(parseHidden('standing')).toEqual(DEFAULT_HIDDEN)
     expect(parseHidden(undefined)).toEqual(DEFAULT_HIDDEN)
     expect(parseHidden({})).toEqual(DEFAULT_HIDDEN)
   })
@@ -38,17 +39,17 @@ describe('قراءة الإعداد', () => {
 })
 
 describe('من يُخبّأ', () => {
-  const hidden = parseHidden(['reseau', 'soutien'])
+  const hidden = parseHidden(['standing', 'systemes'])
 
   it('المقطع والمسار الكامل سواء', () => {
-    expect(isHidden('reseau', hidden)).toBe(true)
-    expect(isHidden('/reseau', hidden)).toBe(true)
-    expect(isHidden('/ar/reseau', hidden)).toBe(true)
+    expect(isHidden('standing', hidden)).toBe(true)
+    expect(isHidden('/standing', hidden)).toBe(true)
+    expect(isHidden('/ar/standing', hidden)).toBe(true)
   })
 
   it('والصفحة الفرعية تتبع أصلها', () => {
-    expect(isHidden('/ar/soutien/demande', hidden)).toBe(true)
-    expect(isHidden('/fr/soutien/12', hidden)).toBe(true)
+    expect(isHidden('/ar/systemes/TRAD', hidden)).toBe(true)
+    expect(isHidden('/fr/systemes/12', hidden)).toBe(true)
   })
 
   it('وما ليس مخبّأً يبقى', () => {
@@ -61,8 +62,8 @@ describe('من يُخبّأ', () => {
   it('ترشيح الروابط يمسّ المخبّأ وحده', () => {
     const links = [
       { href: '/ar/demande' },
-      { href: '/ar/reseau' },
-      { href: '/ar/soutien/demande' },
+      { href: '/ar/standing' },
+      { href: '/ar/systemes' },
       { href: '/ar/catalogue' },
     ]
     expect(visibleLinks(links, hidden).map((l) => l.href)).toEqual([
@@ -91,9 +92,8 @@ describe('ما يجوز تخبئته', () => {
    * تبديل بلا أن يُسأل أحد «واش هذا يخصّ المقاولات؟».
    */
   it('والمخبّأ افتراضياً ما لا يخصّ مرحلة المقاولات', () => {
-    for (const s of ['proprietaire', 'reseau', 'standing', 'soutien', 'simulateur'] as const) {
-      expect(DEFAULT_HIDDEN, `${s} موش مقاولات — المفروض مخبّأ`).toContain(s)
-    }
+    // التصنيف «اقتصادي/راقٍ» يخصّ المواطن لا المقاولة
+    expect(DEFAULT_HIDDEN).toContain('standing')
   })
 
   it('وطرق البناء تبقى ظاهرة: بها يختار الحريف كيفاش يبني', () => {
@@ -107,13 +107,7 @@ describe('ما يجوز تخبئته', () => {
  */
 describe('الحارس على كلّ صفحة', () => {
   const pages: [string, string][] = [
-    ['proprietaire', 'proprietaire'],
-    ['reseau', 'reseau'],
     ['standing', 'standing'],
-    ['soutien', 'soutien'],
-    ['soutien/demande', 'soutien'],
-    ['soutien/[id]', 'soutien'],
-    ['simulateur', 'simulateur'],
     ['systemes', 'systemes'],
   ]
 
