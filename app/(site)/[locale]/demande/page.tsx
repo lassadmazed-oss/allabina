@@ -1,4 +1,5 @@
 import RequestForm from '@/components/RequestForm'
+import { getIntakeProfile } from '@/lib/intake-server'
 import { recordEvent } from '@/lib/analytics-server'
 import {
   getBanks,
@@ -53,7 +54,7 @@ export default async function DemandePage({
   // «بدء تجربة»: فتح مكوّن المشروع
   await recordEvent('trial_start', { userId: user?.id ?? null, projectType: type ?? null })
 
-  const [governorates, delegations, imadas, zones, finance, build, systems, docCatalog, banks] =
+  const [governorates, delegations, imadas, zones, finance, build, systems, docCatalog, banks, profile] =
     await Promise.all([
     getGovernorates(),
     getDelegations('SFX'),
@@ -64,6 +65,7 @@ export default async function DemandePage({
     getConstructionSystems(),
     getDocCatalog(),
     getBanks(),
+    getIntakeProfile(),
   ])
 
   return (
@@ -76,6 +78,7 @@ export default async function DemandePage({
       </div>
 
       <RequestForm
+        profile={profile}
         docCatalog={docCatalog}
         voice={t.voice}
         locale={locale}

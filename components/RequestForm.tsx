@@ -33,6 +33,7 @@ import {
   type CatalogDoc,
 } from '@/lib/request-documents'
 import { computeCapacity, formatTND, type FinanceSettings } from '@/lib/finance'
+import type { IntakeProfile } from '@/lib/request-flow'
 import { LOAN_YEAR_CHOICES, SIM_SEED_KEY, bankName, loanTermsFor, makeSimSeed, settingsFor, type Bank } from '@/lib/banks'
 import { buildCostRange, tierByKey, type TierPrice } from '@/lib/pricing'
 import { fmt, path, type Dictionary, type Locale } from '@/lib/i18n'
@@ -158,6 +159,7 @@ export default function RequestForm({
   docCatalog,
   voice,
   account,
+  profile = 'contracting',
 }: {
   locale: Locale
   t: Dictionary['form']
@@ -184,6 +186,11 @@ export default function RequestForm({
   docCatalog: CatalogDoc[]
   /** نصوص زرّ التسجيل — تُمرَّر صراحةً لا عبر القاموس كاملاً */
   voice: Dictionary['voice']
+  /**
+   * صورة الاستمارة. `contracting` تخبّي «شنوّة مشكلتك» و«أكبر عائق»
+   * وخطوتَي العائلة والمال: شركة تبني لا تحقّق في أحوال الناس.
+   */
+  profile?: IntakeProfile
 }) {
   const isEdit = mode === 'edit'
   const [state, formAction, pending] = useActionState<SubmitState | EditState, FormData>(
@@ -408,6 +415,7 @@ export default function RequestForm({
         levels: Number(values.levels || 1),
         ownership: String(values.ownership ?? ''),
         hasDisability: Boolean(values.hasDisability),
+        profile,
       }),
     [
       values.requestType,
@@ -958,7 +966,7 @@ export default function RequestForm({
         </legend>
         <p className="mb-4 text-sm text-muted">{flow.type === 'other' ? t.s2LedeOther : t.s2Lede}</p>
 
-        {/* «مشكل آخر»: الحكاية أوّلاً — هي سبب اختيار هذا المسار */}
+        {/* «مشروع آخر»: كلامه أوّلاً — هو سبب اختيار هذا المسار */}
         {flow.type === 'other' && (
           <Group title={t.problemTitle} lede={t.problemLede}>
             <textarea
@@ -976,7 +984,8 @@ export default function RequestForm({
         {/* ---------- الاستعجال: أعلى الخطوة لمن يرمّم أو عنده مشكل ---------- */}
         {(flow.type === 'other' || flow.type === 'renovation') && urgencyGroup()}
 
-        {flow.type === 'other' && (
+        {/* «أكبر عائق» تشخيصٌ اجتماعي — الصورة المقاولاتية لا تسأله */}
+        {flow.type === 'other' && flow.profile === 'full' && (
           <Group title={t.grpObstacle}>
             <div>
               <span className="mb-2 block text-sm font-medium">{t.problemType} <span className="text-xs font-normal text-faint">{t.optional}</span></span>

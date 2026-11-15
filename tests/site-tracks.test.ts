@@ -86,8 +86,18 @@ describe('ما يجوز تخبئته', () => {
     }
   })
 
+  /*
+   * الاختبار يحرس **القرار** لا القائمة: قائمةٌ حرفية تُحدَّث مع كلّ
+   * تبديل بلا أن يُسأل أحد «واش هذا يخصّ المقاولات؟».
+   */
   it('والمخبّأ افتراضياً ما لا يخصّ مرحلة المقاولات', () => {
-    expect(DEFAULT_HIDDEN).toEqual(['proprietaire', 'reseau', 'standing'])
+    for (const s of ['proprietaire', 'reseau', 'standing', 'soutien', 'simulateur'] as const) {
+      expect(DEFAULT_HIDDEN, `${s} موش مقاولات — المفروض مخبّأ`).toContain(s)
+    }
+  })
+
+  it('وطرق البناء تبقى ظاهرة: بها يختار الحريف كيفاش يبني', () => {
+    expect(DEFAULT_HIDDEN).not.toContain('systemes')
   })
 })
 

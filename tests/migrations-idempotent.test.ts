@@ -76,4 +76,44 @@ describe('ترحيلات تتحمّل الإعادة', () => {
 
     expect(guilty, 'update على app_settings.value بلا where يدهس كلّ الإعدادات').toEqual([])
   })
+
+  /**
+   * قيدٌ يوسّعه ترحيلٌ لاحق لا يُعاد ضيّقاً.
+   *
+   * الترحيلات تُعاد كلّها بالترتيب. فإن أضاف 0059 قيداً، ووسّعه 0073،
+   * ثمّ كُتب سطرٌ تحت الموسَّع — تسقط الإعادة عند 0059 قبل أن يبلغ
+   * 0073. والسقوط يقع عند **النشر**، لا عند كتابة السطر: فيقف النشر
+   * كلّه على معطىً صحيح.
+   *
+   * فالأقدم يُكتب `not valid`: الجديد يُفحص، والقديم يُعفى، ثمّ يأتي
+   * الأحدث بالقيد الصحيح كاملَ الفحص.
+   */
+  it('القيد الذي يُعاد تعريفه في ترحيل لاحق يكون not valid في الأقدم', () => {
+    const byName = new Map<string, { file: string; stmt: string }[]>()
+
+    for (const f of files) {
+      const sql = stripComments(readFileSync(join(DIR, f), 'utf8'))
+      for (const raw of sql.split(';')) {
+        const stmt = raw.replace(/\s+/g, ' ').trim()
+        const m = stmt.match(/add\s+constraint\s+([a-z0-9_]+)\s+check/i)
+        if (!m) continue
+        const key = m[1].toLowerCase()
+        byName.set(key, [...(byName.get(key) ?? []), { file: f, stmt }])
+      }
+    }
+
+    const guilty: string[] = []
+    for (const [name, defs] of byName) {
+      if (defs.length < 2) continue
+      // كلّ تعريف عدا الأخير يجب أن يكون not valid
+      for (const d of defs.slice(0, -1)) {
+        if (!/not\s+valid\s*$/i.test(d.stmt)) guilty.push(`${d.file} · ${name}`)
+      }
+    }
+
+    expect(
+      guilty,
+      'قيدٌ يُعاد تعريفه لاحقاً ويُكتب الأقدم بفحصٍ كامل = نشرٌ يسقط على معطىً صحيح'
+    ).toEqual([])
+  })
 })

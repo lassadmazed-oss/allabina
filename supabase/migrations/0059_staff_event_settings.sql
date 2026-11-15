@@ -12,6 +12,15 @@
 --
 -- والقسم 08 من الكرّاس يشترط «سجل غير قابل للتعديل العادي: المستخدم
 -- والوقت والحدث والنسخة والقرار». سجلّ لا يسجّل ليس سجلّاً.
+-- ⚠ `not valid` ضرورة لا تهاون.
+--
+-- الترحيلات تُعاد كلّها في كلّ نشر، وهذا الملفّ يسبق 0073 الذي يوسّع
+-- نفس القيد. فبلا `not valid` يُعاد هنا القيدُ الضيّق على سطورٍ كُتبت
+-- تحت الموسَّع — فيسقط الترحيل كلّه عند أوّل نشر بعد التوسيع، لا عند
+-- كتابة السطر. أيّ قيدٍ يوسّعه ترحيلٌ لاحق يُكتب هكذا.
+--
+-- و`not valid` لا يُضعف الحراسة على الجديد: السطور الجديدة تُفحص،
+-- والقديمة وحدها تُعفى — ثمّ يأتي 0073 بالقيد الصحيح كاملَ الفحص.
 alter table staff_events drop constraint if exists staff_events_event_type_check;
 alter table staff_events add constraint staff_events_event_type_check check (
   event_type = any (array[
@@ -21,7 +30,7 @@ alter table staff_events add constraint staff_events_event_type_check check (
     -- تبديل إعداد مرجعي: أوزان، أسعار بنوك، اتّصال، هويّة، كاتالوج، استيراد
     'settings.update'
   ])
-);
+) not valid;
 
 comment on constraint staff_events_event_type_check on staff_events is
   'أيّ نوع حدث جديد يُضاف هنا أوّلاً، وإلّا يُرفض السطر بصمت ويضيع الأثر.';

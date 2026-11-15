@@ -38,8 +38,27 @@ export const URBAN_PLAN_STATES = ['yes', 'no', 'unknown'] as const
 export const EXISTING_BUILDING = ['none', 'demolish', 'keep'] as const
 export const PLAN_STATES = ['none', 'draft', 'approved'] as const
 
+/**
+ * صورة الاستمارة.
+ *
+ * `contracting` — شركة مقاولات: شنوّة تبني، وين، وقدّاش. ولا تُسأل
+ * العائلة ولا الدخل ولا «شنوّة مشكلتك»: شركة تبني لا تحقّق في أحوال
+ * الناس، والسؤال الذي لا يبدّل شيئاً في الشغل يكلّف مواطناً يترك
+ * الاستمارة.
+ *
+ * `full` — الصورة الكاملة بالمسار الاجتماعي والمالي. مبنيّة ومحفوظة،
+ * تُفتح من اللوحة يوم تُستحقّ. ما خُبّي لم يُحذف.
+ */
+export type IntakeProfile = 'contracting' | 'full'
+
+export const INTAKE_PROFILES: IntakeProfile[] = ['contracting', 'full']
+
+export const DEFAULT_PROFILE: IntakeProfile = 'contracting'
+
 export type FlowInput = {
   requestType: string
+  /** الافتراضي مقاولات — وهو قرار 15/11/2026 */
+  profile?: IntakeProfile
   apartmentState?: string
   works?: readonly string[]
   levels?: number
@@ -129,6 +148,8 @@ export type Flow = {
   financeOptional: boolean
   /** ترتيب الخطوات الفعلي لهذا المسار — الشريط العلوي يقرأه */
   steps: readonly number[]
+  /** الصورة المعمول بها — الاستمارة تقرأها لتخبّي أسئلة المسار الاجتماعي */
+  profile: IntakeProfile
   /** المستأجر لا يرمّم ما لا يملكه — يُقال له بلطف ويُوجَّه */
   blocked: 'tenant' | null
   /** الإعاقة في الخطوة 4 تقترح شيئاً في الخطوة 2 */
@@ -229,7 +250,11 @@ export function requestFlow(input: FlowInput): Flow {
           ? 'current'
           : 'wish'
 
-  const steps = [1, 2, ...(fields.has('landStep') || fields.has('homeStep') ? [3] : []), 4, 5, 6]
+  const profile: IntakeProfile = input.profile ?? DEFAULT_PROFILE
+  const middle = fields.has('landStep') || fields.has('homeStep') ? [3] : []
+  // 4 عايلتك · 5 فلوسك — خطوتا المسار الاجتماعي والمالي
+  const social = profile === 'full' ? [4, 5] : []
+  const steps = [1, 2, ...middle, ...social, 6]
 
   const blocked = type === 'renovation' && input.ownership === 'tenant' ? 'tenant' : null
 
@@ -243,6 +268,7 @@ export function requestFlow(input: FlowInput): Flow {
 
   return {
     type,
+    profile,
     fields,
     has: (f) => fields.has(f),
     flexibility,

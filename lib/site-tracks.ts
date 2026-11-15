@@ -73,8 +73,23 @@ export const TRACKS: Track[] = [
 
 export const TRACK_SEGMENTS = TRACKS.map((t) => t.segment)
 
-/** المخبّأ افتراضياً: ما لا يخصّ مرحلة المقاولات الأولى */
-export const DEFAULT_HIDDEN: TrackSegment[] = ['proprietaire', 'reseau', 'standing']
+/**
+ * المخبّأ افتراضياً: ما لا يخصّ مرحلة المقاولات الأولى.
+ *
+ * 15/11/2026: انضمّت المساندة والمحاكي. المساندة مسارٌ للمواطن لا
+ * للمقاولة، والمحاكي يحسب بسعر المتر حسب المستوى — وقد عوّضه التقدير
+ * المبنيّ على اختيارات الحريف في المكوّن.
+ *
+ * و«طرق البناء» (systemes) ليست هنا: الحريف يختار بها كيفاش يبني،
+ * وهي من صميم المقاولات.
+ */
+export const DEFAULT_HIDDEN: TrackSegment[] = [
+  'proprietaire',
+  'reseau',
+  'standing',
+  'soutien',
+  'simulateur',
+]
 
 const isTrack = (v: unknown): v is TrackSegment =>
   typeof v === 'string' && (TRACK_SEGMENTS as string[]).includes(v)

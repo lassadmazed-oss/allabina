@@ -12,7 +12,7 @@ describe('المصفوفة — عمود عمود', () => {
     expect(f.has('extras')).toBe(true)
     expect(f.locationRequired).toBe(true)
     expect(f.location).toBe('own_land')
-    expect(f.steps).toEqual([1, 2, 3, 4, 5, 6])
+    expect(f.steps).toEqual([1, 2, 3, 6])
   })
 
   it('نبني فوق أرضي: لا «منطقة أخرى» ولا «نوع سكن آخر» — أرضه في مكانها', () => {
@@ -31,7 +31,7 @@ describe('المصفوفة — عمود عمود', () => {
       expect.arrayContaining(['zone', 'type', 'title', 'lot', 'levels', 'phased'])
     )
     expect(f.location).toBe('wish')
-    expect(f.steps).toEqual([1, 2, 4, 5, 6])
+    expect(f.steps).toEqual([1, 2, 6])
   })
 
   it('شقّة: لا طريقة بناء ولا طوابق ولا زيادات، والحمّامات وحدها من المواصفات', () => {
@@ -86,7 +86,7 @@ describe('المصفوفة — عمود عمود', () => {
     expect(f.has('constructionSystem')).toBe(false)
     expect(f.has('levels')).toBe(false)
     expect(f.location).toBe('existing_home')
-    expect(f.steps).toEqual([1, 2, 3, 4, 5, 6])
+    expect(f.steps).toEqual([1, 2, 3, 6])
   })
 
   it('ترميم مع توسعة: تُفتح المساحة المضافة والغرف وطريقة البناء', () => {
@@ -125,7 +125,7 @@ describe('المصفوفة — عمود عمود', () => {
     expect(f.flexibility).toEqual([])
     expect(f.financeOptional).toBe(true)
     expect(f.location).toBe('current')
-    expect(f.steps).toEqual([1, 2, 4, 5, 6])
+    expect(f.steps).toEqual([1, 2, 6])
   })
 })
 
@@ -158,5 +158,41 @@ describe('قواعد عابرة', () => {
       expect(f.has('urgency')).toBe(true)
       expect(f.has('horizon')).toBe(true)
     }
+  })
+})
+
+/**
+ * صورة الاستمارة.
+ *
+ * قرار 15/11/2026: الشركة تظهر مقاولاتٍ من أوّل شاشة. «شنوّة مشكلتك»
+ * و«قدّاش عندك فلوس» مسارٌ آخر — يُخبّى ولا يُحذف، ويرجع يوم يُستحقّ.
+ */
+describe('صورة الاستمارة: مقاولات أم كاملة', () => {
+  const steps = (p?: 'contracting' | 'full') =>
+    requestFlow({ requestType: 'build_on_land', profile: p }).steps
+
+  it('الافتراضي مقاولات: لا عايلتك ولا فلوسك', () => {
+    expect(steps()).not.toContain(4)
+    expect(steps()).not.toContain(5)
+  })
+
+  it('والاتّصال يبقى آخر خطوة — بلاه ما يوصل المطلب', () => {
+    expect(steps().at(-1)).toBe(6)
+  })
+
+  it('والترتيب يبقى تصاعدياً', () => {
+    const s = [...steps()]
+    expect(s).toEqual([...s].sort((a, b) => a - b))
+  })
+
+  it('والصورة الكاملة ترجّعهما — ما خُبّي لم يُحذف', () => {
+    expect(steps('full')).toContain(4)
+    expect(steps('full')).toContain(5)
+  })
+
+  it('وخطوة الأرض تتبع النوع لا الصورة', () => {
+    const land = requestFlow({ requestType: 'build_on_land' }).steps.includes(3)
+    const full = requestFlow({ requestType: 'build_on_land', profile: 'full' }).steps.includes(3)
+    expect(land).toBe(full)
   })
 })
