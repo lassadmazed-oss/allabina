@@ -10,7 +10,8 @@ import { getDelegations } from '@/lib/supabase/server'
 import { getCurrentUser } from '@/lib/user-session'
 import { getDictionary, isLocale, type Locale } from '@/lib/i18n'
 import { THIN_NBSP, formatMoney, isolateNumbers } from '@/lib/format'
-import Icon, { type IconName } from '@/components/Icon'
+import Icon from '@/components/Icon'
+import ProjectTypeCards, { Check, projectTypeIcon } from '@/components/ProjectTypeCards'
 
 export const dynamic = 'force-dynamic'
 
@@ -47,20 +48,6 @@ const LOT_AR: Record<number, string> = {
 
 const TYPES = ['maison', 'immobilier', 'usine', 'commerce', 'renovation', 'autre'] as const
 
-/**
- * إيكونة لكلّ نوع — الماكيتة F01/F02.
- *
- * ستّ بطاقات بيضاء بلا علامة تُقرأ قائمةً نصّية: العين تمرّ عليها سطراً
- * سطراً بدل أن تلتقط «دار» من شكلها. والإيكونة هنا تمييزٌ لا تزيين.
- */
-const TYPE_ICON: Record<(typeof TYPES)[number], IconName> = {
-  maison: 'home',
-  immobilier: 'building',
-  usine: 'factory',
-  commerce: 'store',
-  renovation: 'wrench',
-  autre: 'sparkle',
-}
 const field = 'w-full rounded border border-line bg-surface px-3 py-2.5'
 
 /**
@@ -180,18 +167,7 @@ export default async function ProjetPage({
                   }`}
                 >
                   {done ? (
-                    <svg
-                      viewBox="0 0 24 24"
-                      className="h-3.5 w-3.5"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="3"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      aria-hidden="true"
-                    >
-                      <path d="m5 12.5 4.5 4.5L19 7.5" />
-                    </svg>
+                    <Check />
                   ) : (
                     <span className="num">{isolateNumbers(String(n))}</span>
                   )}
@@ -214,66 +190,48 @@ export default async function ProjetPage({
       {step === 1 && (
         <section className="mt-7">
           <h1 className="display text-2xl font-semibold sm:text-3xl">{t.q1}</h1>
-          <ul className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3">
-            {TYPES.map((k) => (
-              <li key={k}>
-                <Link
-                  href={href({ type: k, e: 2 })}
-                  className={`relative flex h-full flex-col items-center rounded-xl border-2 p-4 text-center transition hover:border-line-strong ${
-                    type === k ? 'border-brand bg-brand-soft' : 'border-line bg-surface'
-                  }`}
-                >
-                  {type === k && (
-                    <span
-                      className="absolute top-2.5 grid size-5 place-items-center rounded-full bg-brand text-white"
-                      style={{ insetInlineEnd: '0.625rem' }}
-                    >
-                      <svg
-                        viewBox="0 0 24 24"
-                        className="h-3 w-3"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="3.5"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        aria-hidden="true"
-                      >
-                        <path d="m5 12.5 4.5 4.5L19 7.5" />
-                      </svg>
-                    </span>
-                  )}
-                  <span
-                    className={`grid size-12 place-items-center rounded-xl ${
-                      type === k ? 'bg-brand text-white' : 'bg-gold-soft text-gold'
-                    }`}
-                  >
-                    <Icon name={TYPE_ICON[k]} className="h-6 w-6" />
-                  </span>
-                  <span className="mt-2.5 font-semibold">{t.types[k]}</span>
-                  <span className="mt-0.5 text-sm leading-6 text-muted">{t.typeHint[k]}</span>
-                </Link>
-              </li>
-            ))}
-          </ul>
+          <div className="mt-6">
+            <ProjectTypeCards
+              names={t.types}
+              hints={t.typeHint}
+              selected={type}
+              hrefOf={(k) => href({ type: k, e: 2 })}
+            />
+          </div>
         </section>
       )}
 
       {/* ── الحساب قبل الرسم والتقدير ── */}
       {needsAccount && (
         <section className="mt-7">
-          <h1 className="display text-2xl font-semibold sm:text-3xl">{t.gateTitle}</h1>
-          <p className="mt-2 leading-8 text-muted">{t.gateBody}</p>
-          {type && (
-            <p className="mt-3 text-sm text-muted">
-              {t.summaryType}: <b className="text-ink">{t.types[type]}</b> · {t.gateKeep}
-            </p>
-          )}
-          <div className="mt-7 max-w-sm">
+          {/* لوح F02: الحاجز لوحٌ مؤطَّر لا فقرةً في الصفحة — هو الشرط لا ملاحظة */}
+          <div className="rounded-xl border-2 border-line bg-surface p-5 sm:p-6">
+            <span className="flex items-center gap-2.5">
+              <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-brand-soft text-brand">
+                <Icon name="user" className="h-5 w-5" />
+              </span>
+              <h1 className="display text-xl font-semibold sm:text-2xl">{t.gateTitle}</h1>
+            </span>
+            <p className="mt-3 leading-8 text-muted">{t.gateBody}</p>
+            {type && (
+              <p className="mt-3 flex flex-wrap items-center gap-2 text-sm text-muted">
+                <span className="grid size-7 shrink-0 place-items-center rounded-lg bg-gold-soft text-gold">
+                  <Icon name={projectTypeIcon(type)} className="h-4 w-4" />
+                </span>
+                {t.summaryType}: <b className="text-ink">{t.types[type]}</b> · {t.gateKeep}
+              </p>
+            )}
+            <div className="mt-6 max-w-sm">
             <PhoneGate
               locale={locale}
               t={dict.account}
               next={href({}).replace(/^https?:\/\/[^/]+/, '')}
             />
+            </div>
+            <p className="mt-5 flex items-start gap-2 border-t border-line pt-4 text-xs leading-6 text-faint">
+              <Icon name="info" className="mt-0.5 h-4 w-4 shrink-0" />
+              {t.gateNote}
+            </p>
           </div>
           <Link
             href={href({ e: 1 })}

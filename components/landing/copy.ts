@@ -110,6 +110,11 @@ const AR = {
       { t: 'أرض ودار', l: 'بعقد واحد واضح', href: '/demande?type=land_and_house' },
     ],
   },
+  start: {
+    eyebrow: 'ابدأ من هنا',
+    title: 'شنوّة تحبّ تبني؟',
+    text: 'اختار نوع مشروعك ونكمّلو معاك: رسم تقريبي، وتقدير، وتعرف بميزانيتك توصل لوين.',
+  },
   sticky: { cta: 'سجّل مطلبك — بدون معاليم' },
   footer: {
     tagline: 'Same roots · Brighter tomorrows',
@@ -227,6 +232,11 @@ const FR: LandingCopy = {
       { t: 'Appartements dans des projets légaux', l: 'Grand Sfax', href: '/demande?type=apartment' },
       { t: 'Terrain + maison', l: 'Un seul contrat clair', href: '/demande?type=land_and_house' },
     ],
+  },
+  start: {
+    eyebrow: 'Commencez ici',
+    title: 'Que voulez-vous construire ?',
+    text: 'Choisissez votre type de projet : esquisse indicative, estimation, et jusqu’où va votre budget.',
   },
   sticky: { cta: 'Déposer ma demande — sans frais' },
   footer: {

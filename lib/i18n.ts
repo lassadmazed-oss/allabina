@@ -1216,6 +1216,7 @@ const ar = {
       gateBody:
         'حساب برقم متثبّت منّو يلزم باش نولّدولك التوزيع التصوّري والتقدير. ما ثمّ لا رسم ولا تقدير بلا حساب.',
       gateKeep: 'اللي اخترتو يتحفظ — ترجع لنفس البلاصة.',
+      gateNote: 'بلا حساب متثبَّت ما ثمّ لا رسم ولا تقدير — باش نعرفو شكون يسأل ونرجعولو.',
       terrain: 'حالة الأرض',
       terrainOpts: {
         empty: 'أرض فارغة',
@@ -2832,6 +2833,8 @@ const fr: Dictionary = {
       gateBody:
         'Un compte vérifié est nécessaire pour générer votre esquisse indicative et votre estimation. Aucune esquisse ni estimation sans compte vérifié.',
       gateKeep: 'Vos choix sont conservés — vous reviendrez au même endroit.',
+      gateNote:
+        'Aucune esquisse ni estimation sans compte vérifié — pour savoir qui demande et pouvoir vous répondre.',
       terrain: 'État du terrain',
       terrainOpts: {
         empty: 'Terrain vide',

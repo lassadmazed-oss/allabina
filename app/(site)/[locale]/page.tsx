@@ -2,6 +2,8 @@ import Link from 'next/link'
 import '../../landing.css'
 import { isLocale, type Locale } from '@/lib/i18n'
 import { landingCopy } from '@/components/landing/copy'
+import ProjectTypeCards from '@/components/ProjectTypeCards'
+import { getDictionary } from '@/lib/i18n'
 import { PHOTOS } from '@/components/landing/photos'
 import SfaxMap, { SFAX_MAPS_URL } from '@/components/landing/SfaxMap'
 import StickyCta from '@/components/landing/StickyCta'
@@ -33,6 +35,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
   const { locale: raw } = await params
   const locale: Locale = isLocale(raw) ? raw : 'ar'
   const c = landingCopy[locale]
+  const tp = getDictionary(locale).projet
   const p = (s = '') => `/${locale}${s}`
 
   // أيقونات من الورشة لا من المكتب: رافعة ومخطّط ولبنات وخوذة
@@ -54,7 +57,11 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
             <div className="hero__sub">{c.hero.sub}</div>
             <p className="hero__p">{c.hero.text}</p>
             <div className="hero__cta">
-              <Link href={p('/demande')} className="btn btn--navy">
+              {/*
+                «ابدأ مشروعك» كان يوصّل للاستمارة: الزرّ يَعِد بالمكوّن
+                ويسلّم نموذجاً. والمكوّن يسلّم الاستمارة في آخره معمّرة.
+              */}
+              <Link href={p('/projet')} className="btn btn--navy">
                 {c.hero.cta1}
                 <IcArrow className="arr" />
               </Link>
@@ -80,6 +87,22 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
                 </div>
               ))}
             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── كروت F01: السؤال الأوّل على الواجهة، لا بعد نقرتين ── */}
+      <section className="wrap" id="start">
+        <div className="card">
+          <span className="eyebrow">{c.start.eyebrow}</span>
+          <h2 className="sec-title">{c.start.title}</h2>
+          <p className="lead">{c.start.text}</p>
+          <div className="mt-5">
+            <ProjectTypeCards
+              names={tp.types}
+              hrefOf={(k) => `${p('/projet')}?type=${k}&e=2`}
+              compact
+            />
           </div>
         </div>
       </section>
@@ -239,7 +262,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
         </div>
       </section>
 
-      <StickyCta href={p('/demande')} label={c.sticky.cta} />
+      <StickyCta href={p('/projet')} label={c.sticky.cta} />
     </div>
   )
 }
