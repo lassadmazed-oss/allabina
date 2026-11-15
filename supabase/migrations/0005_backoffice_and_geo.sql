@@ -79,8 +79,12 @@ insert into app_settings (key, value, description) values
   ('scoring.assumed_dti_pct', '40'::jsonb, 'فرضية ترتيب داخلية — سقف الاستدانة'),
   ('scoring.assumed_years', '20'::jsonb, 'فرضية ترتيب داخلية — مدّة التمويل'),
   ('scoring.assumed_fees_pct', '0'::jsonb, 'فرضية ترتيب داخلية — مصاريف إضافية (0 = لا تُحتسب)')
+-- البذر يبذر ولا يدهس — انظر 0052: الترحيلات تُعاد كلّها في كلّ نشر،
+-- و«do update set value» يعني إعادة ضبطٍ دوريّة تمحو ما ضبطه الفريق.
+-- هذه المفاتيح اليوم غير معروضة في الباك أوفيس، لكن يوم تُعرض يصير
+-- السطر عطباً صامتاً. والوصف وحده يُحدَّث: نصٌّ للفريق لا معطى.
 on conflict (key) do update
-  set value = excluded.value, description = excluded.description, updated_at = now();
+  set description = excluded.description, updated_at = now();
 
 -- منتجات التمويل: مرجع قابل للتحيين من الـBack-office
 create table if not exists financing_products (

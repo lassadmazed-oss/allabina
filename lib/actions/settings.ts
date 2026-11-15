@@ -122,7 +122,8 @@ export async function saveLegalSettingsAction(formData: FormData) {
     { key: 'legal.address_fr', value: str('address_fr', 300) },
     { key: 'legal.published_on', value: str('published_on', 10) },
     { key: 'legal.activity_since', value: str('activity_since', 10) },
-    { key: 'legal.manager', value: str('manager', 120) },
+    { key: 'legal.manager_ar', value: str('manager_ar', 120) },
+    { key: 'legal.manager_fr', value: str('manager_fr', 120) },
     { key: 'legal.rne_verify_url', value: str('rne_verify_url', 200) },
   ]
   const { error } = await db.from('app_settings').upsert(rows, { onConflict: 'key' })

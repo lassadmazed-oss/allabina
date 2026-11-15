@@ -294,7 +294,8 @@ export default async function ReferencePage() {
           <Field name="address_fr" label="Siège social" value={legal.addressFr} ltr />
           <Field name="published_on" label="تاريخ الإشهار" value={legal.publishedOn} ltr num />
           <Field name="activity_since" label="بداية النشاط" value={legal.activitySince} ltr num />
-          <Field name="manager" label="الممثّل القانوني (الوكيل)" value={legal.manager} />
+          <Field name="manager_ar" label="الممثّل القانوني (عربي)" value={legal.managerAr} />
+          <Field name="manager_fr" label="Représentant légal" value={legal.managerFr} ltr />
           <Field name="rne_verify_url" label="رابط السجلّ للتثبّت" value={legal.verifyUrl} ltr />
           <div className="sm:col-span-2">
             <button className="rounded bg-brand px-5 py-2 text-sm font-medium text-white hover:bg-brand-deep">

@@ -32,6 +32,8 @@ const LEGAL_KEYS = [
   'legal.published_on',
   'legal.activity_since',
   'legal.manager',
+  'legal.manager_ar',
+  'legal.manager_fr',
   'legal.rne_verify_url',
 ] as const
 
@@ -70,7 +72,9 @@ export const getLegalIdentity = cache(async (): Promise<LegalIdentity> => {
     addressFr: str(m, 'legal.address_fr'),
     publishedOn: str(m, 'legal.published_on'),
     activitySince: str(m, 'legal.activity_since'),
-    manager: str(m, 'legal.manager'),
+    // المفتاح الفرد القديم احتياطٌ للعربية: ما كُتب قبل الترحيل لا يسقط
+    managerAr: str(m, 'legal.manager_ar') || str(m, 'legal.manager'),
+    managerFr: str(m, 'legal.manager_fr'),
     verifyUrl: str(m, 'legal.rne_verify_url'),
   }
 })

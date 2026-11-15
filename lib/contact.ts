@@ -22,7 +22,8 @@ export type LegalIdentity = {
   addressFr: string
   publishedOn: string
   activitySince: string
-  manager: string
+  managerAr: string
+  managerFr: string
   verifyUrl: string
 }
 
@@ -49,11 +50,12 @@ export const EMPTY_IDENTITY: LegalIdentity = {
   addressFr: '',
   publishedOn: '',
   activitySince: '',
-  manager: '',
+  managerAr: '',
+  managerFr: '',
   verifyUrl: '',
 }
 
-/** الاسم والعنوان والنشاط حسب لغة الصفحة — الفرنسية ترجع للعربية إن غابت */
+/** الاسم والعنوان والنشاط والوكيل حسب لغة الصفحة — الفرنسية ترجع للعربية إن غابت */
 export function legalInLocale(l: LegalIdentity, locale: Locale) {
   const pick = (ar: string, fr: string) => (locale === 'fr' ? fr || ar : ar)
   return {
@@ -61,6 +63,7 @@ export function legalInLocale(l: LegalIdentity, locale: Locale) {
     form: pick(l.formAr, l.formFr),
     address: pick(l.addressAr, l.addressFr),
     activity: pick(l.activityAr, l.activityFr),
+    manager: pick(l.managerAr, l.managerFr),
   }
 }
 

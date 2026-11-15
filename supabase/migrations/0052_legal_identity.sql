@@ -42,15 +42,28 @@ insert into app_settings (key, value, description) values
    'الممثّل القانوني (الوكيل) — يُعرض إن عُمِّر، ويُترك فارغاً فلا يظهر سطره'),
   ('legal.rne_verify_url', '"https://registre-entreprises.tn/rne-public"'::jsonb,
    'موقع السجلّ للتثبّت — بلا رمز تثبّت، التثبّت يتمّ بالمعرّف الوحيد')
+-- ⚠ `do nothing` لا `do update`.
+--
+-- الترحيلات تُعاد كلّها في كلّ نشر (لا سجلّ بصمات، بل جملٌ تتحمّل
+-- الإعادة). فـ`do update set value = excluded.value` كان يعني أنّ كلّ
+-- ما يكتبه الفريق في «المعطيات القانونية» يُمحى عند النشر الموالي
+-- ويرجع لما هو مكتوب هنا: اسم الوكيل، العنوان، رأس المال، التواريخ.
+-- وقع فعلاً: اسمٌ كُتب من الباك أوفيس اختفى بعد `npm run migrate`.
+--
+-- فالبذر يبذر الغائب ولا يدهس الموجود. والتصحيح المقصود لقيمةٍ بعينها
+-- يكون في ترحيلٍ جديد بشرطٍ يحدّ ما يُبدَّل — كما أسفله للهاتف.
+-- والوصف يُحدَّث دائماً: نصٌّ للفريق لا معطى.
 on conflict (key) do update set
-  value = excluded.value,
   description = excluded.description,
   updated_at = now();
 
 -- رقم الاتّصال العمومي: كان 98124111 وما كان يظهر إلّا في صفحة شكر
 -- المتدخّلين. يتبدّل ويصير معروضاً في كلّ صفحة.
+-- التصحيح مشروط بالقيمة القديمة: بلا الشرط يرجع الرقم لهذا السطر في
+-- كلّ إعادة ترحيل، فلا يقدر الفريق يبدّل رقمه أبداً.
 update app_settings set value = '"98120630"'::jsonb, updated_at = now()
-where key in ('contact.phone', 'contact.whatsapp');
+where key in ('contact.phone', 'contact.whatsapp')
+  and value #>> '{}' in ('98124111', '');
 
 insert into app_settings (key, value, description) values
   ('contact.phone', '"98120630"'::jsonb, 'هاتف المنصّة — يُعرض في الذيل وصفحات الشكر'),

@@ -57,8 +57,12 @@ insert into app_settings (key, value, description) values
   ('build.sensitivity_max_ht', '2000'::jsonb, 'الحدّ الأقصى لدراسة الحساسية (د.ت/م² HT)'),
   ('build.prices_are_ht',      'true'::jsonb, 'أسعار البناء مصرّح بها دون احتساب الأداءات'),
   ('finance.vat_pct',          null,          'نسبة الأداء على القيمة المضافة % — تُملأ بعد التثبّت، وقتها تُعرض الأسعار TTC أيضاً')
+-- البذر يبذر ولا يدهس — انظر 0052: الترحيلات تُعاد كلّها في كلّ نشر،
+-- و«do update set value» يعني إعادة ضبطٍ دوريّة تمحو ما ضبطه الفريق.
+-- هذه المفاتيح اليوم غير معروضة في الباك أوفيس، لكن يوم تُعرض يصير
+-- السطر عطباً صامتاً. والوصف وحده يُحدَّث: نصٌّ للفريق لا معطى.
 on conflict (key) do update
-  set value = excluded.value, description = excluded.description, updated_at = now();
+  set description = excluded.description, updated_at = now();
 
 -- مستوى التشطيب المطلوب من الحريف
 alter table housing_requests add column if not exists standing standing_tier;

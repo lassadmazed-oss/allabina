@@ -72,7 +72,7 @@ export default async function LegalPage({ params }: { params: Promise<{ locale: 
             v={identity.capitalTnd == null ? '' : formatMoney(identity.capitalTnd, locale)}
             mono
           />
-          <Row k={t.manager} v={identity.manager} />
+          <Row k={t.manager} v={l.manager} />
         </dl>
       </section>
 
