@@ -4,32 +4,14 @@ import { db, getDelegations } from '@/lib/supabase/server'
 import { isolateNumbers } from '@/lib/format'
 import { publicStateOf } from '@/lib/public-state'
 import { getDictionary } from '@/lib/i18n'
-import Icon, { type IconName } from '@/components/admin/Icon'
+import Icon, { type IconName } from '@/components/Icon'
+import { requestTypeIcon, requestTypeName } from '@/lib/request-types'
 import { ColumnChart, Panel, Pill, StatCard, type Tone } from '@/components/admin/Ui'
 
 export const dynamic = 'force-dynamic'
 export const metadata = { title: 'لوحة القيادة — اللَّبنة' }
 
-const TYPE_AR: Record<string, string> = {
-  build_on_land: 'بناء فوق أرض',
-  land_and_house: 'أرض وبناء',
-  apartment: 'شقّة',
-  economic: 'سكن اقتصادي',
-  rent_to_own: 'إيجار منتهٍ بالتمليك',
-  renovation: 'ترميم أو توسعة',
-  other: 'أخرى',
-}
 
-/** إيكونة لكلّ نوع مشروع — الماكيتة B01 تضع واحدة على كلّ سطر */
-const TYPE_ICON: Record<string, IconName> = {
-  build_on_land: 'home',
-  land_and_house: 'home',
-  apartment: 'building',
-  economic: 'home',
-  rent_to_own: 'building',
-  renovation: 'wrench',
-  other: 'folder',
-}
 
 /** لون الشارة حسب الحالة — الذهبي لما ينتظرنا، والأخضر لما انتهى */
 const STATE_TONE: Record<string, Tone> = {
@@ -174,12 +156,12 @@ export default async function TableauPage() {
                           >
                             <span className="grid h-7 w-7 shrink-0 place-items-center rounded-lg bg-gold-soft text-gold">
                               <Icon
-                                name={TYPE_ICON[String(r.request_type)] ?? 'folder'}
+                                name={requestTypeIcon(String(r.request_type))}
                                 className="h-4 w-4"
                               />
                             </span>
                             <span className="truncate">
-                              {TYPE_AR[String(r.request_type)] ?? String(r.request_type)}
+                              {requestTypeName(String(r.request_type))}
                             </span>
                           </Link>
                         </td>
@@ -213,7 +195,7 @@ export default async function TableauPage() {
             <p className="mt-3 text-sm text-muted">ما ثمّ معطيات بعد.</p>
           ) : (
             <ColumnChart
-              data={bars.map(([k, v]) => ({ label: TYPE_AR[k] ?? k, value: v }))}
+              data={bars.map(([k, v]) => ({ label: requestTypeName(k), value: v }))}
             />
           )}
         </Panel>

@@ -1437,6 +1437,9 @@ const ar = {
         stageDone: 'كمّل',
         stageCurrent: 'قاعد يتعمل',
         stageUpcoming: 'جاي',
+        refLabel: 'المشروع',
+        statusLabel: 'الحالة',
+        stageLabel: 'الشوط',
         publishTitle: 'نشر مشروعك',
         publishBody:
           'مشروعك خاصّ. إذا تحبّ نعرضوه في «ورشاتنا»، أعطينا موافقتك — ونجّم تسحبها وقتلّي تحبّ، ويتنحّى فوراً.',
@@ -3050,6 +3053,9 @@ const fr: Dictionary = {
         stageDone: 'terminée',
         stageCurrent: 'en cours',
         stageUpcoming: 'à venir',
+        refLabel: 'Projet',
+        statusLabel: 'Statut',
+        stageLabel: 'Étape',
         publishTitle: 'Publication de votre projet',
         publishBody:
           'Votre projet est privé. Pour qu’il figure dans « Nos chantiers », donnez votre accord — retirable à tout moment, avec effet immédiat.',

@@ -10,6 +10,7 @@ import { getDelegations } from '@/lib/supabase/server'
 import { getCurrentUser } from '@/lib/user-session'
 import { getDictionary, isLocale, type Locale } from '@/lib/i18n'
 import { THIN_NBSP, formatMoney, isolateNumbers } from '@/lib/format'
+import Icon, { type IconName } from '@/components/Icon'
 
 export const dynamic = 'force-dynamic'
 
@@ -45,6 +46,21 @@ const LOT_AR: Record<number, string> = {
 }
 
 const TYPES = ['maison', 'immobilier', 'usine', 'commerce', 'renovation', 'autre'] as const
+
+/**
+ * إيكونة لكلّ نوع — الماكيتة F01/F02.
+ *
+ * ستّ بطاقات بيضاء بلا علامة تُقرأ قائمةً نصّية: العين تمرّ عليها سطراً
+ * سطراً بدل أن تلتقط «دار» من شكلها. والإيكونة هنا تمييزٌ لا تزيين.
+ */
+const TYPE_ICON: Record<(typeof TYPES)[number], IconName> = {
+  maison: 'home',
+  immobilier: 'building',
+  usine: 'factory',
+  commerce: 'store',
+  renovation: 'wrench',
+  autre: 'sparkle',
+}
 const field = 'w-full rounded border border-line bg-surface px-3 py-2.5'
 
 /**
@@ -146,27 +162,49 @@ export default async function ProjetPage({
 
   return (
     <div className="mx-auto max-w-2xl px-4 py-10 sm:py-14">
-      {/* ── المؤشّر ── */}
-      <ol className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs">
+      {/* ── المؤشّر: ✓ للمنجز، رقمٌ للجاي، وخطٌّ يربط (الماكيتة F03) ── */}
+      <ol className="flex items-start">
         {t.steps.map((label, i) => {
           const n = i + 1
           const done = n < step
           const now = n === step
           return (
-            <li key={label} className="flex items-center gap-2">
-              <span
-                className={`grid size-6 place-items-center rounded-full border text-[11px] ${
-                  now
-                    ? 'border-brand bg-brand text-white'
-                    : done
-                      ? 'border-brand text-brand'
-                      : 'border-line text-faint'
-                }`}
-              >
-                <span className="num">{isolateNumbers(String(n))}</span>
+            <li key={label} className="flex min-w-0 flex-1 flex-col items-center">
+              <span className="flex w-full items-center">
+                <span
+                  className={`h-0.5 flex-1 ${i === 0 ? 'opacity-0' : done || now ? 'bg-brand' : 'bg-line'}`}
+                />
+                <span
+                  className={`grid size-7 shrink-0 place-items-center rounded-full border-2 text-[11px] transition ${
+                    done || now ? 'border-brand bg-brand text-white' : 'border-line bg-surface text-faint'
+                  }`}
+                >
+                  {done ? (
+                    <svg
+                      viewBox="0 0 24 24"
+                      className="h-3.5 w-3.5"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="3"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      aria-hidden="true"
+                    >
+                      <path d="m5 12.5 4.5 4.5L19 7.5" />
+                    </svg>
+                  ) : (
+                    <span className="num">{isolateNumbers(String(n))}</span>
+                  )}
+                </span>
+                <span
+                  className={`h-0.5 flex-1 ${i === t.steps.length - 1 ? 'opacity-0' : done ? 'bg-brand' : 'bg-line'}`}
+                />
               </span>
-              <span className={now ? 'font-semibold' : 'text-muted'}>{label}</span>
-              {n < t.steps.length && <span className="text-faint">·</span>}
+              <span
+                className={`mt-1.5 truncate px-1 text-[11px] sm:text-xs ${now ? 'font-semibold text-ink' : 'text-muted'}`}
+              >
+                {label}
+              </span>
             </li>
           )
         })}
@@ -176,17 +214,43 @@ export default async function ProjetPage({
       {step === 1 && (
         <section className="mt-7">
           <h1 className="display text-2xl font-semibold sm:text-3xl">{t.q1}</h1>
-          <ul className="mt-6 grid gap-3 sm:grid-cols-2">
+          <ul className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3">
             {TYPES.map((k) => (
               <li key={k}>
                 <Link
                   href={href({ type: k, e: 2 })}
-                  className={`flex h-full flex-col rounded border p-4 transition hover:border-line-strong ${
+                  className={`relative flex h-full flex-col items-center rounded-xl border-2 p-4 text-center transition hover:border-line-strong ${
                     type === k ? 'border-brand bg-brand-soft' : 'border-line bg-surface'
                   }`}
                 >
-                  <span className="font-semibold">{t.types[k]}</span>
-                  <span className="mt-1 text-sm leading-7 text-muted">{t.typeHint[k]}</span>
+                  {type === k && (
+                    <span
+                      className="absolute top-2.5 grid size-5 place-items-center rounded-full bg-brand text-white"
+                      style={{ insetInlineEnd: '0.625rem' }}
+                    >
+                      <svg
+                        viewBox="0 0 24 24"
+                        className="h-3 w-3"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="3.5"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        aria-hidden="true"
+                      >
+                        <path d="m5 12.5 4.5 4.5L19 7.5" />
+                      </svg>
+                    </span>
+                  )}
+                  <span
+                    className={`grid size-12 place-items-center rounded-xl ${
+                      type === k ? 'bg-brand text-white' : 'bg-gold-soft text-gold'
+                    }`}
+                  >
+                    <Icon name={TYPE_ICON[k]} className="h-6 w-6" />
+                  </span>
+                  <span className="mt-2.5 font-semibold">{t.types[k]}</span>
+                  <span className="mt-0.5 text-sm leading-6 text-muted">{t.typeHint[k]}</span>
                 </Link>
               </li>
             ))}

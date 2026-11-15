@@ -8,6 +8,9 @@ import { lateDays } from '@/lib/site-reports'
 import { setClientConsentAction } from '@/lib/actions/publication'
 import { getDictionary, isLocale, type Locale } from '@/lib/i18n'
 import { isolateNumbers } from '@/lib/format'
+import Icon from '@/components/Icon'
+import Pill, { type Tone } from '@/components/Pill'
+import { requestTypeIcon, requestTypeName } from '@/lib/request-types'
 
 export const dynamic = 'force-dynamic'
 
@@ -20,6 +23,15 @@ export async function generateMetadata({
   const t = getDictionary(isLocale(locale) ? locale : 'ar').account
   // صفحة ورشة حريفٍ بعينه: لا تُفهرس ولا تُتبع
   return { title: t.site.pageTitle, robots: { index: false, follow: false } }
+}
+
+/** لون الحالة — الذهبي لما يجري، والأخضر للمسلَّم، والرمادي للموقوف */
+const STATUS_TONE: Record<string, Tone> = {
+  preparing: 'gray',
+  running: 'gold',
+  paused: 'red',
+  delivered: 'green',
+  stopped: 'gray',
 }
 
 /**
@@ -45,7 +57,7 @@ export default async function ClientChantierPage({
   const refCode = decodeURIComponent(ref)
   const { data: request } = await db
     .from('housing_requests')
-    .select('id, ref_code')
+    .select('id, ref_code, request_type')
     .eq('ref_code', refCode)
     .eq('user_id', user.id)
     .maybeSingle()
@@ -55,6 +67,11 @@ export default async function ClientChantierPage({
   if (!site) notFound()
 
   const late = lateDays(site.expectedEnd)
+  // الشوط الجاري — أو آخر ما تمّ إن لم يبدأ شيء بعد
+  const currentStage =
+    site.timeline.find((x) => x.state === 'current') ??
+    [...site.timeline].reverse().find((x) => x.state === 'done') ??
+    null
 
   return (
     <div className="mx-auto max-w-2xl px-4 py-10 sm:py-14">
@@ -64,6 +81,47 @@ export default async function ClientChantierPage({
 
       <p className="num mt-6 text-xs text-faint">{isolateNumbers(refCode)}</p>
       <h1 className="display mt-1 text-2xl font-semibold sm:text-3xl">{t.site.title}</h1>
+
+      {/* ── الشريط: المرجع · الحالة · الشوط (الماكيتة F04) ── */}
+      <dl className="mt-5 grid grid-cols-2 gap-px overflow-hidden rounded-xl border border-line bg-line sm:grid-cols-3">
+        <div className="flex items-center gap-2.5 bg-surface p-3">
+          <span className="grid size-9 shrink-0 place-items-center rounded-lg bg-gold-soft text-gold">
+            <Icon name={requestTypeIcon(String(request.request_type))} className="h-[18px] w-[18px]" />
+          </span>
+          <span className="min-w-0">
+            <dt className="text-[11px] text-faint">{t.site.refLabel}</dt>
+            <dd className="truncate text-sm font-medium">
+              {requestTypeName(String(request.request_type), locale)}
+            </dd>
+          </span>
+        </div>
+        <div className="flex items-center gap-2.5 bg-surface p-3">
+          <span className="grid size-9 shrink-0 place-items-center rounded-lg bg-gold-soft text-gold">
+            <Icon name="file" className="h-[18px] w-[18px]" />
+          </span>
+          <span className="min-w-0">
+            <dt className="text-[11px] text-faint">{t.site.statusLabel}</dt>
+            <dd className="mt-0.5">
+              <Pill tone={STATUS_TONE[site.status] ?? 'gray'}>{t.site.status[site.status]}</Pill>
+            </dd>
+          </span>
+        </div>
+        <div className="flex items-center gap-2.5 bg-surface p-3 max-sm:col-span-2">
+          <span className="grid size-9 shrink-0 place-items-center rounded-lg bg-gold-soft text-gold">
+            <Icon name="bricks" className="h-[18px] w-[18px]" />
+          </span>
+          <span className="min-w-0">
+            <dt className="text-[11px] text-faint">{t.site.stageLabel}</dt>
+            <dd className="truncate text-sm font-medium">
+              {currentStage
+                ? locale === 'fr'
+                  ? currentStage.nameFr
+                  : currentStage.nameAr
+                : '—'}
+            </dd>
+          </span>
+        </div>
+      </dl>
 
       {/* ── التقدّم ── */}
       <section className="mt-6 rounded border border-line bg-surface p-4">
@@ -78,15 +136,12 @@ export default async function ClientChantierPage({
               <span className="text-sm text-muted">{t.site.progress}</span>
             </>
           )}
-          <span className="ms-auto rounded bg-surface-2 px-2 py-0.5 text-xs text-muted">
-            {t.site.status[site.status]}
-          </span>
         </div>
 
         {site.progress.pct !== null && (
-          <div className="mt-3 h-2.5 rounded bg-surface-2">
+          <div className="mt-3 h-2.5 overflow-hidden rounded-full bg-surface-2">
             <div
-              className="h-2.5 rounded bg-brand"
+              className="h-2.5 rounded-full bg-gold-light transition-[width]"
               style={{ width: `${Math.min(100, site.progress.pct)}%` }}
             />
           </div>
@@ -131,37 +186,67 @@ export default async function ClientChantierPage({
       {site.timeline.length > 0 && (
         <section className="mt-5 rounded border border-line bg-surface p-4">
           <h2 className="text-sm font-semibold">{t.site.timeline}</h2>
-          <ol className="mt-3 grid gap-3">
-            {site.timeline.map((st) => (
-              <li key={st.key} className="flex items-start gap-3">
-                <span
-                  className={`mt-1 grid size-5 shrink-0 place-items-center rounded-full border text-[10px] ${
-                    st.state === 'done'
-                      ? 'border-[#1d6b45] bg-[#1d6b45] text-white'
-                      : st.state === 'current'
-                        ? 'border-brand bg-brand text-white'
-                        : 'border-line text-faint'
-                  }`}
-                >
-                  {st.state === 'done' ? '✓' : st.state === 'current' ? '•' : ''}
-                </span>
-                <span className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
-                  <span className={st.state === 'upcoming' ? 'text-muted' : 'font-medium'}>
-                    {locale === 'fr' ? st.nameFr : st.nameAr}
+          <ol className="mt-3">
+            {site.timeline.map((st, i) => {
+              const last = i === site.timeline.length - 1
+              return (
+                <li key={st.key} className="relative flex gap-3 pb-4 last:pb-0">
+                  {/* الخيط الواصل: المراحل سلسلة لا قائمة نقاط */}
+                  {!last && (
+                    <span
+                      aria-hidden="true"
+                      className={`absolute top-6 bottom-0 w-px ${
+                        st.state === 'done' ? 'bg-[#1d6b45]/35' : 'bg-line'
+                      }`}
+                      style={{ insetInlineStart: '0.625rem' }}
+                    />
+                  )}
+                  <span
+                    className={`mt-0.5 grid size-5 shrink-0 place-items-center rounded-full border-2 ${
+                      st.state === 'done'
+                        ? 'border-[#1d6b45] bg-[#1d6b45] text-white'
+                        : st.state === 'current'
+                          ? 'border-brand bg-surface'
+                          : 'border-line bg-surface'
+                    }`}
+                  >
+                    {st.state === 'done' ? (
+                      <svg
+                        viewBox="0 0 24 24"
+                        className="h-3 w-3"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="3.5"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        aria-hidden="true"
+                      >
+                        <path d="m5 12.5 4.5 4.5L19 7.5" />
+                      </svg>
+                    ) : st.state === 'current' ? (
+                      <span className="size-2 rounded-full bg-brand" />
+                    ) : null}
                   </span>
-                  <span className="text-xs text-muted">
-                    {st.state === 'done'
-                      ? t.site.stageDone
-                      : st.state === 'current'
-                        ? `${t.site.stageCurrent} · `
-                        : t.site.stageUpcoming}
-                    {st.state === 'current' && (
-                      <span className="num">{isolateNumbers(String(st.pct))}%</span>
-                    )}
+                  <span className="min-w-0 leading-6">
+                    <span
+                      className={`block ${st.state === 'upcoming' ? 'text-muted' : 'font-medium'}`}
+                    >
+                      {locale === 'fr' ? st.nameFr : st.nameAr}
+                    </span>
+                    <span className="block text-xs text-muted">
+                      {st.state === 'done'
+                        ? t.site.stageDone
+                        : st.state === 'current'
+                          ? `${t.site.stageCurrent} · `
+                          : t.site.stageUpcoming}
+                      {st.state === 'current' && (
+                        <span className="num">{isolateNumbers(String(st.pct))}%</span>
+                      )}
+                    </span>
                   </span>
-                </span>
-              </li>
-            ))}
+                </li>
+              )
+            })}
           </ol>
         </section>
       )}

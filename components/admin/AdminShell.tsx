@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useEffect, useState } from 'react'
-import Icon, { type IconName } from '@/components/admin/Icon'
+import Icon, { type IconName } from '@/components/Icon'
 
 /**
  * قشرة اللوحة — شريط جانبي كحلي كما في الماكيتة B01–B04.

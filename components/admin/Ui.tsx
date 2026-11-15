@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import Icon, { type IconName } from '@/components/admin/Icon'
+import Icon, { type IconName } from '@/components/Icon'
 import { isolateNumbers } from '@/lib/format'
 
 /**
@@ -9,36 +9,8 @@ import { isolateNumbers } from '@/lib/format'
  * يقرّر أحد ذلك. فالبطاقة والشارة والرسم هنا مرّةً واحدة.
  */
 
-// ───────────────────────────────────────────── الشارة
-
-export type Tone = 'gold' | 'blue' | 'green' | 'gray' | 'red'
-
-const TONE: Record<Tone, string> = {
-  gold: 'bg-gold-soft text-gold',
-  blue: 'bg-brand-soft text-brand',
-  green: 'bg-[#e4f1ea] text-[#1d6b45]',
-  gray: 'bg-surface-2 text-muted',
-  red: 'bg-[#fdeaea] text-[#8a2020]',
-}
-
-export function Pill({
-  children,
-  tone = 'gray',
-  icon,
-}: {
-  children: React.ReactNode
-  tone?: Tone
-  icon?: IconName
-}) {
-  return (
-    <span
-      className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-medium whitespace-nowrap ${TONE[tone]}`}
-    >
-      {icon && <Icon name={icon} className="h-3.5 w-3.5" strokeWidth={1.8} />}
-      {children}
-    </span>
-  )
-}
+// الشارة والإيكونات مشتركتان مع الواجهة — محلّهما components/
+export { default as Pill, type Tone } from '@/components/Pill'
 
 // ───────────────────────────────────────────── بطاقة عدد
 
