@@ -4,6 +4,7 @@ import SitePhotoUpload from '@/components/SitePhotoUpload'
 import { requirePermission } from '@/lib/auth'
 import { getChantier, getReportEntries } from '@/lib/chantiers-server'
 import { setDirectionPublishAction } from '@/lib/actions/publication'
+import { looksPrivate } from '@/lib/publication'
 import {
   reviewReportAction,
   saveReportAction,
@@ -66,6 +67,11 @@ export default async function ChantierPage({
     directionAt: chantier.publishApprovedAt,
     isPublic: chantier.isPublic,
   }
+
+  // مسوّدة محفوظة فيها رقم أو بريد: هي سبب الرفض، تُقال بدل أن تُترك صامتة
+  const draftIsPrivate =
+    !pub.directionAt &&
+    (looksPrivate(chantier.publicTitle ?? '') || looksPrivate(chantier.publicSummary ?? ''))
 
   const refusals = editing
     ? submitRefusals({
@@ -460,6 +466,11 @@ export default async function ChantierPage({
                   بلا عنوان دقيق ولا مبالغ ولا صور ناس. نصّ فيه رقم تليفون ولّا بريد ما يتقبلش.
                 </span>
               </label>
+              {draftIsPrivate && (
+                <p className="rounded bg-[#fdeaea] px-3 py-2 text-sm text-[#8a2020]">
+                  ما تعتمدش: في النصّ رقم تليفون ولّا بريد. نحّيه وأعاود.
+                </p>
+              )}
             </>
           )}
           <button

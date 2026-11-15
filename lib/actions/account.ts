@@ -36,10 +36,17 @@ const localeOf = (f: FormData): Locale => {
   return isLocale(raw) ? raw : DEFAULT_LOCALE
 }
 
-/** الوجهة بعد الدخول — مسار داخلي فقط: قيمة من النموذج لا تُفتح على الخارج */
+/**
+ * الوجهة بعد الدخول — مسار داخلي فقط: قيمة من النموذج لا تُفتح على
+ * الخارج. ويقبل الاستعلام: مكوّن المشروع يحمل اختيارات الحريف فيه،
+ * ورفضُه كان يعد بـ«ترجع لنفس البلاصة» ثمّ يرميه إلى حسابه.
+ */
 function safeNext(raw: unknown, locale: Locale): string {
   const s = String(raw ?? '')
-  return /^\/[a-z0-9/_-]*$/i.test(s) && !s.startsWith('//') ? s : `/${locale}/compte`
+  const home = `/${locale}/compte`
+  // الشرطة المقلوبة والبروتوكول يرفضهما التعبير أسفله: ليسا في المسموح
+  if (!s.startsWith('/') || s.startsWith('//')) return home
+  return /^\/[a-z0-9/_-]*(\?[a-z0-9=&_%.,+-]*)?$/i.test(s) ? s : home
 }
 
 // ───────────────────────────────────────────────── طلب الرمز

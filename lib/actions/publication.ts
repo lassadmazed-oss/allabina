@@ -77,8 +77,20 @@ export async function setDirectionPublishAction(formData: FormData) {
   const summary = String(formData.get('public_summary') ?? '').trim().slice(0, 600) || null
   if (!code) return
 
-  // نصّ فيه رقم هاتف أو بريد لا يُعتمد: من يكتب الملخّص قد يضعهما سهواً
+  /*
+   * نصّ فيه رقم هاتف أو بريد لا يُعتمد: من يكتب الملخّص قد يضعهما سهواً.
+   *
+   * والرفض كان صامتاً ويأكل ما كُتب: المسؤول يضغط، الصفحة ترجع كما هي
+   * بخانتين فارغتين، فلا يعرف السبب ولا يستردّ نصّه. فالآن يُحفظ النصّ
+   * مسوّدةً — ولا يبلغ أحداً، لأنّ is_public يبقى خطأً والصفحة العمومية
+   * تقرأه وحده — وتقول الصفحة السبب بفحص المسوّدة نفسها.
+   */
   if (approve && ((title && looksPrivate(title)) || (summary && looksPrivate(summary)))) {
+    const { error } = await db
+      .from('chantiers')
+      .update({ public_title: title, public_summary: summary })
+      .eq('code', code)
+    if (error) console.error('publish draft', error.message)
     return refresh(code)
   }
 

@@ -5,6 +5,7 @@ import {
   missingStages,
   neededFor,
   phaseOfLot,
+  configFromParams,
   reachOf,
   type LotCost,
 } from '@/lib/budget-reach'
@@ -125,5 +126,29 @@ describe('ما لا يُحسب', () => {
   it('ولوط بكلفة صفر لا يظهر شطراً فارغاً', () => {
     const r = reachOf([{ code: 1, nameAr: 'الدراسات', totalHt: 0 }], 1000)
     expect(r.stages).toHaveLength(0)
+  })
+})
+
+/**
+ * القيم الافتراضية.
+ *
+ * Number('') يساوي صفراً، وهو عددٌ صحيحٌ موجب — فكانت الخانة الفارغة
+ * تمرّ صفراً بدل أن ترجع للافتراضي، فيخرج المكوّن بمساحة صفر وغرف
+ * صفر، ويقول الرسم «ما تدخلش» قبل أن يكتب الحريف شيئاً.
+ */
+describe('قراءة المواصفات من العنوان', () => {
+  it('الخانة الغائبة والفارغة ترجعان للافتراضي', () => {
+    expect(configFromParams({}).surface).toBe(100)
+    expect(configFromParams({ s: '' }).surface).toBe(100)
+    expect(configFromParams({ s: '   ' }).bedrooms).toBe(2)
+  })
+
+  it('والصفر الصريح كذلك: مساحة صفر ليست مشروعاً', () => {
+    expect(configFromParams({ s: '0' }).surface).toBe(100)
+  })
+
+  it('والقيمة الصحيحة تُقرأ، والكبيرة تُسقَف', () => {
+    expect(configFromParams({ s: '140' }).surface).toBe(140)
+    expect(configFromParams({ s: '99999' }).surface).toBe(2000)
   })
 })

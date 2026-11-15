@@ -1,3 +1,4 @@
+import type { ProjectConfig } from '@/lib/devis'
 /**
  * «بميزانيتك توصل لوين» — المنطق الخالص.
  *
@@ -170,4 +171,38 @@ export function neededFor(r: Reach, key: PhaseKey): number | null {
   const upTo = r.stages[idx].cumulative
   const gap = round2(upTo - r.budget)
   return gap > 0 ? gap : null
+}
+
+/** قراءة المواصفات من عنوان الصفحة، بحدود تمنع أرقاماً لا تُبنى */
+export function configFromParams(sp: Record<string, string | undefined>): ProjectConfig {
+  /*
+   * الخانة الفارغة ترجع للافتراضي لا للصفر: Number('') يساوي صفراً،
+   * وهو عددٌ صحيحٌ موجب فكان يمرّ — فيخرج المكوّن بمساحة صفر وغرف
+   * صفر، ويقول الرسم «ما تدخلش» قبل أن يكتب الحريف شيئاً.
+   */
+  const n = (v: string | undefined, def: number, max: number) => {
+    const raw = String(v ?? '').trim()
+    if (!raw) return def
+    const x = Number(raw.replace(',', '.'))
+    if (!Number.isFinite(x) || x <= 0) return def
+    return Math.min(x, max)
+  }
+  return {
+    surface: n(sp.s, 100, 2000),
+    levels: Math.max(1, Math.round(n(sp.l, 1, 6))),
+    bedrooms: Math.round(n(sp.ch, 2, 20)),
+    livingRooms: Math.round(n(sp.sa, 1, 6)),
+    kitchens: Math.round(n(sp.cu, 1, 4)),
+    bathrooms: Math.round(n(sp.sdb, 1, 10)),
+    garage: sp.g === '1',
+    terrasse: false,
+    jardin: false,
+    cloture: sp.cl === '1',
+    majel: false,
+    piscine: false,
+    annexe: false,
+    solar: false,
+    ascenseur: false,
+    landArea: 0,
+  }
 }

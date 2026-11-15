@@ -1440,6 +1440,10 @@ const ar = {
         publishTitle: 'نشر مشروعك',
         publishBody:
           'مشروعك خاصّ. إذا تحبّ نعرضوه في «ورشاتنا»، أعطينا موافقتك — ونجّم تسحبها وقتلّي تحبّ، ويتنحّى فوراً.',
+        publishBodyWaiting:
+          'موافقتك مسجّلة. الإدارة باش تراجع الصور والكلام قبل ما يتعرض — وإذا بدّلت رايك اسحب موافقتك وقتلّي تحبّ.',
+        publishBodyLive:
+          'مشروعك معروض في «ورشاتنا» بموافقتك. إذا سحبتها يتنحّى فوراً، بلا ما تسأل حتّى حدّ.',
         publishGive: 'نوافق على النشر',
         publishWithdraw: 'اسحب موافقتي',
         publishWaiting: 'موافقتك وصلت — ينتظر مراجعة الإدارة.',
@@ -3049,6 +3053,10 @@ const fr: Dictionary = {
         publishTitle: 'Publication de votre projet',
         publishBody:
           'Votre projet est privé. Pour qu’il figure dans « Nos chantiers », donnez votre accord — retirable à tout moment, avec effet immédiat.',
+        publishBodyWaiting:
+          'Votre accord est enregistré. La direction vérifie les photos et le texte avant la mise en ligne — vous pouvez le retirer à tout moment.',
+        publishBodyLive:
+          'Votre projet figure dans « Nos chantiers » avec votre accord. Si vous le retirez, il disparaît immédiatement.',
         publishGive: 'Je donne mon accord',
         publishWithdraw: 'Retirer mon accord',
         publishWaiting: 'Accord reçu — en attente de la validation de la direction.',

@@ -312,3 +312,32 @@ describe('الاسم مع الرقم', () => {
     expect(nameCheck('لسعد المازد', 'ل')).toEqual({ ok: true, name: 'لسعد المازد' })
   })
 })
+
+/**
+ * الوجهة بعد الدخول.
+ *
+ * مكوّن المشروع يحمل اختيارات الحريف في العنوان، ويَعِد بأن يرجعه
+ * إلى نفس الخطوة. وفحصٌ يرفض كلّ استعلام كان يرميه إلى حسابه —
+ * وعدٌ مكتوب على الشاشة لا تفي به الشفرة.
+ *
+ * ويبقى الفحص فحصاً: لا مضيف خارجي ولا بروتوكول ولا شرطة مقلوبة.
+ */
+describe('الرجوع بعد الدخول', () => {
+  const ok = (s: string) =>
+    /^\/[a-z0-9/_-]*(\?[a-z0-9=&_%.,+-]*)?$/i.test(s) &&
+    s.startsWith('/') &&
+    !s.startsWith('//') &&
+    !s.includes(String.fromCharCode(92))
+
+  it('المسار الداخلي باستعلامه يُقبل', () => {
+    expect(ok('/ar/projet?type=maison&s=100&e=2')).toBe(true)
+    expect(ok('/ar/compte')).toBe(true)
+  })
+
+  it('والخارجي يُرفض بكلّ أشكاله', () => {
+    expect(ok('//evil.test/x')).toBe(false)
+    expect(ok('https://evil.test')).toBe(false)
+    expect(ok('/' + String.fromCharCode(92) + 'evil.test')).toBe(false)
+    expect(ok('javascript:alert(1)')).toBe(false)
+  })
+})

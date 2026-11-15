@@ -4,6 +4,10 @@ import { db } from '@/lib/supabase/server'
 import { generateDevis, type ArticleInput, type ProjectConfig } from '@/lib/devis'
 import { reachOf, type Reach } from '@/lib/budget-reach'
 
+// configFromParams خالصة، فمحلّها lib/budget-reach.ts — تُعاد هنا
+// لمن يستوردها من الخادم بلا تبديل مواضع الاستيراد.
+export { configFromParams } from '@/lib/budget-reach'
+
 /**
  * حساب «بميزانيتك توصل لوين» من البوردرو نفسه.
  *
@@ -59,32 +63,5 @@ export async function budgetReach(config: ProjectConfig, budget: number): Promis
     reach: reachOf(devis.lots, budget),
     config,
     skipped: devis.errors.length,
-  }
-}
-
-/** قراءة المواصفات من عنوان الصفحة، بحدود تمنع أرقاماً لا تُبنى */
-export function configFromParams(sp: Record<string, string | undefined>): ProjectConfig {
-  const n = (v: string | undefined, def: number, max: number) => {
-    const x = Number(String(v ?? '').replace(',', '.'))
-    if (!Number.isFinite(x) || x < 0) return def
-    return Math.min(x, max)
-  }
-  return {
-    surface: n(sp.s, 100, 2000),
-    levels: Math.max(1, Math.round(n(sp.l, 1, 6))),
-    bedrooms: Math.round(n(sp.ch, 2, 20)),
-    livingRooms: Math.round(n(sp.sa, 1, 6)),
-    kitchens: Math.round(n(sp.cu, 1, 4)),
-    bathrooms: Math.round(n(sp.sdb, 1, 10)),
-    garage: sp.g === '1',
-    terrasse: false,
-    jardin: false,
-    cloture: sp.cl === '1',
-    majel: false,
-    piscine: false,
-    annexe: false,
-    solar: false,
-    ascenseur: false,
-    landArea: 0,
   }
 }

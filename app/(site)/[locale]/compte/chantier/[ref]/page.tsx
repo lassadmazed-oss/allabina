@@ -246,7 +246,18 @@ export default async function ClientChantierPage({
       {/* ── موافقة النشر: ملكُه قصّتَه ── */}
       <section className="mt-8 rounded border border-line bg-surface p-4">
         <h2 className="text-sm font-semibold">{t.site.publishTitle}</h2>
-        <p className="mt-1 text-sm leading-7 text-muted">{t.site.publishBody}</p>
+        {/*
+          السطر التفسيري يتبدّل مع الحالة: كان يقول «مشروعك خاصّ» دائماً،
+          فيقرأ الحريف تناقضاً — «خاصّ» فوق «موافقتك وصلت»، وأسوأ: «خاصّ»
+          وهو معروض فعلاً في «ورشاتنا».
+        */}
+        <p className="mt-1 text-sm leading-7 text-muted">
+          {site.consent.isPublic
+            ? t.site.publishBodyLive
+            : site.consent.clientAt
+              ? t.site.publishBodyWaiting
+              : t.site.publishBody}
+        </p>
 
         <p className="mt-3 text-sm leading-7">
           {site.consent.isPublic
