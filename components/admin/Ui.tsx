@@ -179,3 +179,54 @@ export function ColumnChart({
     </div>
   )
 }
+
+// ───────────────────────────────────────────── تابات
+
+/**
+ * تابات بروابط لا بحالة في المتصفّح — الماكيتة B02/B04.
+ *
+ * التاب المفتوح في العنوان: يُشارَك، ويُحفظ، ويرجع إليه زرّ الرجوع. وحالةٌ
+ * في الذاكرة تضيع عند أوّل حفظ، فيجد المسؤول نفسه في تابٍ غير الذي كان
+ * فيه بعد كلّ فعل.
+ *
+ * والعدد على التاب يُقرأ قبل الفتح: تابٌ فارغ لا يُفتح عبثاً.
+ */
+export function Tabs({
+  tabs,
+  active,
+}: {
+  tabs: { key: string; label: string; href: string; count?: number; icon?: IconName }[]
+  active: string
+}) {
+  return (
+    <nav className="-mx-1 flex gap-1 overflow-x-auto px-1 pb-0.5">
+      {tabs.map((t) => {
+        const on = t.key === active
+        return (
+          <Link
+            key={t.key}
+            href={t.href}
+            aria-current={on ? 'page' : undefined}
+            className={`flex min-h-9 shrink-0 items-center gap-2 rounded-lg px-3 text-sm whitespace-nowrap transition ${
+              on
+                ? 'bg-brand font-semibold text-white'
+                : 'border border-line bg-surface text-muted hover:border-line-strong'
+            }`}
+          >
+            {t.icon && <Icon name={t.icon} className="h-4 w-4" />}
+            {t.label}
+            {t.count !== undefined && (
+              <span
+                className={`num rounded-full px-1.5 text-[11px] ${
+                  on ? 'bg-white/20' : t.count > 0 ? 'bg-gold-soft text-gold' : 'bg-surface-2'
+                }`}
+              >
+                {isolateNumbers(String(t.count))}
+              </span>
+            )}
+          </Link>
+        )
+      })}
+    </nav>
+  )
+}

@@ -284,3 +284,48 @@ export async function updatePublicUpdateAction(formData: FormData) {
   revalidatePath('/ar/suivi')
   revalidatePath('/fr/suivi')
 }
+
+/**
+ * المساحة المتثبَّت فيها — الماكيتة B02: «Surface (technique vérifiée)».
+ *
+ * المساحة التي يعطيها الحريف تقدير، والتي يقيسها الفريق قياس. وخلطهما
+ * يجعل عرضاً يُبنى على رقمٍ قاله صاحبُه من ذاكرته. فالعمود موجود في
+ * القاعدة منذ 0070 ولم يكن يُكتب ولا يُقرأ من أيّ شاشة — صفةٌ ميّتة.
+ *
+ * والفراغ يمحو التثبّت ولا يُعامَل صفراً: من أخطأ في الرقم يرجع إلى
+ * «ما تثبّتناش» لا إلى «صفر متر».
+ */
+export async function setVerifiedAreaAction(formData: FormData) {
+  const actor = await staffWithPermission('requests.update')
+  if (!actor) return
+  const id = String(formData.get('id'))
+  const raw = String(formData.get('verified_area_m2') ?? '').trim().replace(',', '.')
+
+  let value: number | null = null
+  if (raw) {
+    const n = Number(raw)
+    // حدٌّ أعلى يمنع غلطة لوحة مفاتيح: لا دار بعشرة آلاف متر مغطّى
+    if (!Number.isFinite(n) || n <= 0 || n > 10000) return
+    value = Math.round(n * 100) / 100
+  }
+
+  const { error } = await db
+    .from('housing_requests')
+    .update({ verified_area_m2: value })
+    .eq('id', id)
+  if (error) {
+    console.error('verified area', error)
+    return
+  }
+
+  await db
+    .from('staff_events')
+    .insert({
+      actor: actor.userId,
+      event_type: 'requests.update',
+      detail: { key: 'verified_area_m2', id, value },
+    })
+    .then(({ error: e }) => e && console.warn('staff_events', e.message))
+
+  revalidatePath(`/admin/${id}`)
+}

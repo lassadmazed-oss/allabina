@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import SitePhotoUpload from '@/components/SitePhotoUpload'
 import { requirePermission } from '@/lib/auth'
+import { db } from '@/lib/supabase/server'
 import { getChantier, getReportEntries } from '@/lib/chantiers-server'
 import { setDirectionPublishAction } from '@/lib/actions/publication'
 import { looksPrivate } from '@/lib/publication'
@@ -21,6 +22,8 @@ import {
   type SubmitRefusal,
 } from '@/lib/site-reports'
 import { formatMoney, isolateNumbers } from '@/lib/format'
+import Icon, { type IconName } from '@/components/Icon'
+import Pill from '@/components/Pill'
 
 export const dynamic = 'force-dynamic'
 
@@ -72,6 +75,11 @@ export default async function ChantierPage({
   const draftIsPrivate =
     !pub.directionAt &&
     (looksPrivate(chantier.publicTitle ?? '') || looksPrivate(chantier.publicSummary ?? ''))
+
+  // «Chef de projet» في الماكيتة B03 — موجود في القاعدة، فيُقال
+  const { data: chef } = chantier.chefUserId
+    ? await db.from('staff').select('full_name').eq('user_id', chantier.chefUserId).maybeSingle()
+    : { data: null }
 
   const refusals = editing
     ? submitRefusals({
@@ -182,15 +190,45 @@ export default async function ChantierPage({
 
       {/* ── تقرير اليوم ── */}
       <section className="mt-5 rounded border border-line bg-surface p-4">
-        <div className="flex flex-wrap items-baseline gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="text-gold">
+            <Icon name="clipboard" className="h-[18px] w-[18px]" />
+          </span>
           <h2 className="text-sm font-semibold">تقرير يوم</h2>
-          <span className="num text-sm">{isolateNumbers(editDate)}</span>
           {editing && (
-            <span className="rounded bg-surface-2 px-2 py-0.5 text-xs text-muted">
+            <Pill tone={editing.status === 'approved' ? 'green' : editing.status === 'submitted' ? 'gold' : 'gray'}>
               {REPORT_AR[editing.status]}
-            </span>
+            </Pill>
           )}
         </div>
+
+        {/* ── الشريط: الورشة · النهار · شافّ المشروع (الماكيتة B03) ── */}
+        <dl className="mt-3 grid gap-px overflow-hidden rounded-xl border border-line bg-line sm:grid-cols-3">
+          {(
+            [
+              { icon: 'helmet' as IconName, k: 'الورشة', v: chantier.code, num: true },
+              { icon: 'calendar' as IconName, k: 'النهار', v: editDate, num: true },
+              {
+                icon: 'user' as IconName,
+                k: 'شافّ المشروع',
+                v: chef?.full_name ? String(chef.full_name) : 'ما تعيّنش',
+                num: false,
+              },
+            ] as const
+          ).map((c) => (
+            <div key={c.k} className="flex items-center gap-2.5 bg-surface p-3">
+              <span className="grid size-9 shrink-0 place-items-center rounded-lg bg-gold-soft text-gold">
+                <Icon name={c.icon} className="h-[18px] w-[18px]" />
+              </span>
+              <span className="min-w-0">
+                <dt className="text-[11px] text-faint">{c.k}</dt>
+                <dd className={`truncate text-sm font-medium ${c.num ? 'num' : ''}`}>
+                  {c.num ? isolateNumbers(String(c.v)) : c.v}
+                </dd>
+              </span>
+            </div>
+          ))}
+        </dl>
 
         {locked ? (
           <p className="mt-2 rounded border border-line bg-gold-soft px-3 py-2 text-sm leading-7">
@@ -206,38 +244,38 @@ export default async function ChantierPage({
 
             <div className="grid gap-3 sm:grid-cols-2">
               <label className="block">
-                <span className={label}>الطقس</span>
+                <span className={`${label} flex items-center gap-1.5`}><Icon name="sparkle" className="h-4 w-4 text-gold" />الطقس</span>
                 <input name="weather" defaultValue={editing?.weather ?? ''} placeholder="صحو · مطر من الصباح" className={input} />
               </label>
               <label className="block">
-                <span className={label}>اللي كان مبرمج</span>
+                <span className={`${label} flex items-center gap-1.5`}><Icon name="calendar" className="h-4 w-4 text-gold" />اللي كان مبرمج</span>
                 <input name="planned" defaultValue={editing?.planned ?? ''} className={input} />
               </label>
             </div>
 
             <label className="block">
-              <span className={label}>اللي تعمل</span>
+              <span className={`${label} flex items-center gap-1.5`}><Icon name="check-circle" className="h-4 w-4 text-gold" />اللي تعمل</span>
               <textarea name="done" rows={2} defaultValue={editing?.done ?? ''} className={input} />
             </label>
 
             <div className="grid gap-3 sm:grid-cols-2">
               <label className="block">
-                <span className={label}>اللي ما تعملش</span>
+                <span className={`${label} flex items-center gap-1.5`}><Icon name="info" className="h-4 w-4 text-gold" />اللي ما تعملش</span>
                 <input name="blocked" defaultValue={editing?.blocked ?? ''} className={input} />
               </label>
               <label className="block">
-                <span className={label}>علاش</span>
+                <span className={`${label} flex items-center gap-1.5`}><Icon name="info" className="h-4 w-4 text-gold" />علاش</span>
                 <input name="blocked_reason" defaultValue={editing?.blockedReason ?? ''} className={input} />
               </label>
             </div>
 
             <label className="block">
-              <span className={label}>قرار مطلوب من الإدارة</span>
+              <span className={`${label} flex items-center gap-1.5`}><Icon name="send" className="h-4 w-4 text-gold" />قرار مطلوب من الإدارة</span>
               <input name="decision_needed" defaultValue={editing?.decisionNeeded ?? ''} className={input} />
             </label>
 
             <label className="block">
-              <span className={label}>برنامج الغد</span>
+              <span className={`${label} flex items-center gap-1.5`}><Icon name="calendar" className="h-4 w-4 text-gold" />برنامج الغد</span>
               <textarea name="next_plan" rows={2} defaultValue={editing?.nextPlan ?? ''} className={input} />
             </label>
 
@@ -292,9 +330,12 @@ export default async function ChantierPage({
 
             {/* ملاحظات داخلية: لا تخرج للحريف — وبلا خانة لها تُكتب في
                 «ما تعملش» فتصل إليه */}
-            <label className="block rounded border border-line-strong bg-bg p-3">
-              <span className={label}>ملاحظات داخلية</span>
-              <span className="mb-1.5 block text-xs leading-6 text-muted">
+            <label className="block rounded-xl border border-[#ecdcb8] bg-gold-soft p-3">
+              <span className="mb-0.5 flex items-center gap-1.5 text-sm font-medium text-gold">
+                <Icon name="lock" className="h-4 w-4" />
+                ملاحظات داخلية سرّية
+              </span>
+              <span className="mb-1.5 block text-xs leading-6 text-ink-soft">
                 يشوفها فريق اللَّبنة برك — <b>ما تدخلش في نسخة الحريف</b>.
               </span>
               <textarea
@@ -315,7 +356,8 @@ export default async function ChantierPage({
         {/* نسخة الحريف: ما يوصلو بالضبط، قبل ما يتبعث */}
         {editing && (
           <div className="mt-4 rounded border border-dashed border-line-strong bg-bg p-3">
-            <p className="text-xs font-semibold text-muted">
+            <p className="flex items-center gap-1.5 text-xs font-semibold text-muted">
+              <Icon name="eye" className="h-4 w-4 text-gold" />
               نسخة الحريف — هاذا اللي يشوفو بعد الاعتماد
             </p>
             <div className="mt-2 rounded border border-line bg-surface p-3 text-sm leading-7">
@@ -341,6 +383,10 @@ export default async function ChantierPage({
         {/* ── الصور والتقديم ── */}
         {editing && (
           <div className="mt-4 border-t border-line pt-4">
+            <p className="mb-2 flex items-center gap-1.5 text-xs font-semibold text-muted">
+              <Icon name="camera" className="h-4 w-4 text-gold" />
+              صور الورشة
+            </p>
             {editing.status !== 'approved' && (
               <SitePhotoUpload code={chantier.code} reportId={editing.id} />
             )}

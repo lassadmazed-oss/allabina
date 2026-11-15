@@ -59,7 +59,12 @@ import {
   resolveInteractionAction,
   toggleDocumentAction,
   resendConfirmationAction,
+  setVerifiedAreaAction,
 } from '@/lib/actions/admin'
+import Icon from '@/components/Icon'
+import { isolateNumbers } from '@/lib/format'
+import { STATUS_LABEL as DEVIS_STATUS_AR } from '@/lib/approvals'
+import Pill from '@/components/Pill'
 
 export const dynamic = 'force-dynamic'
 const STATUSES = ['new', 'contacted', 'qualified', 'matched', 'appointment', 'contract', 'on_hold', 'rejected']
@@ -689,6 +694,108 @@ export default async function RequestDetail({ params }: { params: Promise<{ id: 
           ))}
         </nav>
       </div>
+
+      {/* ── شريط B02: مين، وقدّاش يقدر، وقدّاش المساحة — والمتثبَّت فيه مميَّز ── */}
+      <dl className="mt-5 grid gap-px overflow-hidden rounded-xl border border-line bg-line sm:grid-cols-2 lg:grid-cols-4">
+        <div className="flex items-start gap-2.5 bg-surface p-3">
+          <span className="grid size-9 shrink-0 place-items-center rounded-lg bg-gold-soft text-gold">
+            <Icon name="user" className="h-[18px] w-[18px]" />
+          </span>
+          <span className="min-w-0">
+            <dt className="text-[11px] text-faint">الحريف</dt>
+            <dd className="truncate text-sm font-medium">{r.full_name}</dd>
+            <dd className="truncate text-[11px] text-muted">
+              {LABELS.requestType[r.request_type] ?? r.request_type}
+            </dd>
+          </span>
+        </div>
+
+        <div className="flex items-start gap-2.5 bg-surface p-3">
+          <span className="grid size-9 shrink-0 place-items-center rounded-lg bg-gold-soft text-gold">
+            <Icon name="coins" className="h-[18px] w-[18px]" />
+          </span>
+          <span className="min-w-0">
+            <dt className="text-[11px] text-faint">الميزانية التقديرية</dt>
+            <dd className="num truncate text-sm font-medium">
+              {brief.budget > 0 ? formatTND(brief.budget) : '—'}
+            </dd>
+            {/* ليست «ميزانية صرّح بها الحريف»: محسوبة من دخله وادّخاره */}
+            <dd className="truncate text-[11px] text-muted">محسوبة من دخلو — موش مصرَّح بها</dd>
+          </span>
+        </div>
+
+        <div className="flex items-start gap-2.5 bg-surface p-3">
+          <span className="grid size-9 shrink-0 place-items-center rounded-lg bg-gold-soft text-gold">
+            <Icon name="ruler" className="h-[18px] w-[18px]" />
+          </span>
+          <span className="min-w-0 flex-1">
+            <dt className="text-[11px] text-faint">المساحة</dt>
+            <dd className="num text-sm font-medium">
+              {r.verified_area_m2 != null
+                ? `${isolateNumbers(String(r.verified_area_m2))} م²`
+                : r.desired_area_m2 != null
+                  ? `${isolateNumbers(String(r.desired_area_m2))} م²`
+                  : '—'}
+            </dd>
+            <dd className="mt-0.5">
+              {r.verified_area_m2 != null ? (
+                <Pill tone="green" icon="check-circle">
+                  تثبّتنا فيها
+                </Pill>
+              ) : (
+                <Pill tone="gold" icon="info">
+                  قالها الحريف — ما تثبّتناش
+                </Pill>
+              )}
+            </dd>
+            <form action={setVerifiedAreaAction} className="mt-1.5 flex gap-1">
+              <input type="hidden" name="id" value={id} />
+              <input
+                name="verified_area_m2"
+                defaultValue={r.verified_area_m2 ?? ''}
+                inputMode="decimal"
+                placeholder="القياس"
+                aria-label="المساحة المتثبَّت فيها بالمتر المربّع"
+                className="num w-20 rounded border border-line bg-surface px-2 py-1 text-xs"
+              />
+              <button className="rounded border border-line px-2 py-1 text-xs text-muted transition hover:border-line-strong">
+                ثبّت
+              </button>
+            </form>
+          </span>
+        </div>
+
+        <div className="flex items-start gap-2.5 bg-surface p-3">
+          <span className="grid size-9 shrink-0 place-items-center rounded-lg bg-gold-soft text-gold">
+            <Icon name="file" className="h-[18px] w-[18px]" />
+          </span>
+          <span className="min-w-0">
+            <dt className="text-[11px] text-faint">العرض</dt>
+            <dd className="mt-0.5">
+              {latestDevis ? (
+                <Pill
+                  tone={
+                    latestDevis.status === 'sent'
+                      ? 'green'
+                      : latestDevis.status === 'approved'
+                        ? 'blue'
+                        : latestDevis.status === 'in_review'
+                          ? 'gold'
+                          : 'gray'
+                  }
+                >
+                  {DEVIS_STATUS_AR[String(latestDevis.status)] ?? String(latestDevis.status)}
+                </Pill>
+              ) : (
+                <Pill tone="gray">ما ثمّ عرض</Pill>
+              )}
+            </dd>
+            <dd className="truncate text-[11px] text-muted">
+              ما يتبعثش للحريف بلا اعتماد الإدارة
+            </dd>
+          </span>
+        </div>
+      </dl>
 
       {/* الحوصلة: ما يهمّ القرار في فقرة، وحلول مولَّدة من الأرقام نفسها — القرار للفريق */}
       <section id="sec-brief" className="mt-6 scroll-mt-32 rounded-2xl border border-line bg-surface p-5 shadow-sm">

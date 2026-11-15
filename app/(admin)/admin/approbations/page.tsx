@@ -19,6 +19,8 @@ import {
   type QueueItem,
 } from '@/lib/approvals'
 import { formatMoney, isolateNumbers } from '@/lib/format'
+import Icon from '@/components/Icon'
+import { Panel, Tabs } from '@/components/admin/Ui'
 
 export const metadata = { title: 'صندوق الموافقات — اللَّبنة' }
 export const dynamic = 'force-dynamic'
@@ -34,8 +36,18 @@ const PRIORITY_LABEL: Record<Priority, string> = {
   fresh: 'في المهلة',
 }
 
-export default async function ApprobationsPage() {
+/** التابات الأربعة — الماكيتة B04 */
+const TABS = ['devis', 'rapports', 'publication', 'regions'] as const
+type Tab = (typeof TABS)[number]
+
+export default async function ApprobationsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ t?: string }>
+}) {
   await requirePermission('docs.approve')
+  const sp = await searchParams
+  const tab: Tab = (TABS as readonly string[]).includes(String(sp.t)) ? (sp.t as Tab) : 'devis'
 
   const { data: slaSetting } = await db
     .from('app_settings')
@@ -88,6 +100,13 @@ export default async function ApprobationsPage() {
       .limit(30),
   ])
 
+  const { data: pendingRules } = await db
+    .from('region_rules')
+    .select('id, gov_code, reason_ar, created_at')
+    .eq('is_approved', false)
+    .order('created_at', { ascending: true })
+    .limit(30)
+
   const nameOfRow = (row: Record<string, unknown>): string => {
     const raw = row.housing_requests as Record<string, unknown> | Record<string, unknown>[] | null
     const r = Array.isArray(raw) ? raw[0] : raw
@@ -125,31 +144,63 @@ export default async function ApprobationsPage() {
   const queue = sortQueue(items)
   const notes = new Map(list.map((r) => [String(r.id), (r.review_note as string) ?? '']))
 
+  const counts = {
+    devis: queue.length,
+    rapports: (pendingReports ?? []).length,
+    publication: (pendingPublish ?? []).length,
+    regions: (pendingRules ?? []).length,
+  }
+
+  const hrefOf = (k: Tab) => `/admin/approbations${k === 'devis' ? '' : `?t=${k}`}`
+
   return (
     <div className="mx-auto max-w-5xl px-4 py-6 sm:px-6">
-      <p className="text-xs font-semibold tracking-wide text-gold">الإدارة</p>
-      <h1 className="display mt-1 text-lg font-semibold">صندوق الموافقات</h1>
-      <p className="mt-1 max-w-3xl text-sm leading-7 text-muted">
+      <p className="max-w-3xl text-sm leading-7 text-muted">
         ما ينتظر قراراً قبل أن يخرج إلى الحريف. <b>لا اعتماد بالصمت ولا بانقضاء الوقت</b>: مرور
         المهلة يرفع السطر ويبدّل لون شارته، ولا يقرّر شيئاً. والإرسال بلا اعتماد مطابق لمحتوى
         الوثيقة ممنوع في قاعدة البيانات نفسها، لا في هذه الشاشة.
       </p>
 
-      {queue.length === 0 && (
-        <p className="mt-8 rounded border border-line bg-surface px-4 py-6 text-sm text-muted">
-          ما ثمّ وثيقة تنتظر قراراً.
-        </p>
-      )}
+      <div className="mt-5">
+        <Tabs
+          active={tab}
+          tabs={[
+            {
+              key: 'devis',
+              label: 'الوثائق',
+              href: hrefOf('devis'),
+              count: counts.devis,
+              icon: 'file',
+            },
+            {
+              key: 'rapports',
+              label: 'تقارير الورشة',
+              href: hrefOf('rapports'),
+              count: counts.rapports,
+              icon: 'clipboard',
+            },
+            {
+              key: 'publication',
+              label: 'النشر',
+              href: hrefOf('publication'),
+              count: counts.publication,
+              icon: 'eye',
+            },
+            {
+              key: 'regions',
+              label: 'قواعد المناطق',
+              href: hrefOf('regions'),
+              count: counts.regions,
+              icon: 'map',
+            },
+          ]}
+        />
+      </div>
 
-      {/* ── التقارير والنشر: نفس الشاشة ── */}
-      <div className="mt-6 grid gap-4 sm:grid-cols-2">
-        <section className="rounded border border-line bg-surface p-4">
-          <h2 className="text-sm font-semibold">
-            تقارير الورشة{' '}
-            <span className="num text-xs text-muted">
-              {isolateNumbers(String((pendingReports ?? []).length))}
-            </span>
-          </h2>
+      {tab === 'rapports' && (
+        <Panel title="تقارير الورشة تنتظر قراراً" icon="clipboard" className="mt-4">
+
+
           {(pendingReports ?? []).length === 0 ? (
             <p className="mt-2 text-sm text-muted">ما ثمّ تقرير ينتظر.</p>
           ) : (
@@ -175,15 +226,13 @@ export default async function ApprobationsPage() {
               })}
             </ul>
           )}
-        </section>
+                </Panel>
+      )}
 
-        <section className="rounded border border-line bg-surface p-4">
-          <h2 className="text-sm font-semibold">
-            نشر ينتظر اعتمادك{' '}
-            <span className="num text-xs text-muted">
-              {isolateNumbers(String((pendingPublish ?? []).length))}
-            </span>
-          </h2>
+      {tab === 'publication' && (
+        <Panel title="نشر ينتظر اعتمادك" icon="eye" className="mt-4">
+
+
           <p className="mt-0.5 text-xs leading-6 text-faint">
             الحريف وافق. <b>ما ينشرش حتّى تعتمد إنت</b> — الموافقتان شرطان في القاعدة.
           </p>
@@ -206,12 +255,38 @@ export default async function ApprobationsPage() {
               ))}
             </ul>
           )}
-        </section>
-      </div>
+                </Panel>
+      )}
 
-      <h2 className="mt-8 text-sm font-semibold">الوثائق</h2>
+      {tab === 'regions' && (
+        <Panel
+          title="قواعد المناطق تنتظر اعتماداً"
+          icon="map"
+          note="ما تنطبقش قاعدة قبل ما تُعتمد وقبل تاريخ نفاذها"
+          className="mt-4"
+        >
+          {(pendingRules ?? []).length === 0 ? (
+            <p className="mt-3 text-sm text-muted">ما ثمّ قاعدة تنتظر.</p>
+          ) : (
+            <ul className="mt-3 grid gap-1.5">
+              {(pendingRules ?? []).map((r) => (
+                <li key={String(r.id)}>
+                  <Link
+                    href="/admin/regions"
+                    className="flex flex-wrap items-baseline gap-x-2 text-sm underline underline-offset-4"
+                  >
+                    <span className="num text-xs text-faint">{String(r.gov_code)}</span>
+                    <span>{String(r.reason_ar ?? '—')}</span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          )}
+        </Panel>
+      )}
 
-      <div className="mt-3 grid gap-3">
+      {tab === 'devis' && (
+        <div className="mt-4 grid gap-3">
         {queue.map((it) => {
           const hours = ageHours(it.submittedAt)
           const prio = priorityOf(hours, sla)
@@ -348,8 +423,15 @@ export default async function ApprobationsPage() {
               </footer>
             </article>
           )
-        })}
-      </div>
+          })}
+        </div>
+      )}
+
+      {tab === 'devis' && queue.length === 0 && (
+        <p className="mt-4 rounded-xl border border-line bg-surface px-4 py-6 text-sm text-muted">
+          ما ثمّ وثيقة تنتظر قراراً.
+        </p>
+      )}
 
       <p className="mt-8 text-xs leading-7 text-faint">
         المهلة المعتمدة <span className="num">{isolateNumbers(String(sla))}</span> ساعة، تُبدَّل من

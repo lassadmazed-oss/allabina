@@ -83,7 +83,7 @@ export default async function ClientChantierPage({
       <h1 className="display mt-1 text-2xl font-semibold sm:text-3xl">{t.site.title}</h1>
 
       {/* ── الشريط: المرجع · الحالة · الشوط (الماكيتة F04) ── */}
-      <dl className="mt-5 grid grid-cols-2 gap-px overflow-hidden rounded-xl border border-line bg-line sm:grid-cols-3">
+      <dl className="mt-5 grid gap-px overflow-hidden rounded-xl border border-line bg-line sm:grid-cols-3">
         <div className="flex items-center gap-2.5 bg-surface p-3">
           <span className="grid size-9 shrink-0 place-items-center rounded-lg bg-gold-soft text-gold">
             <Icon name={requestTypeIcon(String(request.request_type))} className="h-[18px] w-[18px]" />
@@ -106,7 +106,7 @@ export default async function ClientChantierPage({
             </dd>
           </span>
         </div>
-        <div className="flex items-center gap-2.5 bg-surface p-3 max-sm:col-span-2">
+        <div className="flex items-center gap-2.5 bg-surface p-3">
           <span className="grid size-9 shrink-0 place-items-center rounded-lg bg-gold-soft text-gold">
             <Icon name="bricks" className="h-[18px] w-[18px]" />
           </span>

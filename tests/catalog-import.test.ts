@@ -208,12 +208,39 @@ describe('سجلّ الفريق يقبل ما تكتبه الشفرة', () => {
         const src = readFileSync(p, 'utf8')
         // الأنواع المكتوبة في سطر insert على staff_events وحده
         if (!src.includes("from('staff_events')")) continue
-        for (const m of src.matchAll(/event_type: '([a-z._]+)'/g)) used.add(m[1])
+        /*
+         * النافذة بعد كلّ `from('staff_events')` وحدها.
+         *
+         * كان الفحص يقرأ الملفّ كاملاً، فملفّ يكتب في staff_events وفي
+         * request_events معاً تُحسب أحداث الجدولين عليه — فيرسب الفحص
+         * على أنواعٍ صحيحة في جدولها. الفحص الذي ينبّه على ما ليس عطباً
+         * يُطفأ، ثمّ لا ينبّه على العطب.
+         */
+        for (const part of src.split("from('staff_events')").slice(1)) {
+          const m = part.slice(0, 400).match(/event_type: '([a-z._]+)'/)
+          if (m) used.add(m[1])
+        }
       }
     }
     walk('lib')
 
-    const sql = readFileSync('supabase/migrations/0059_staff_event_settings.sql', 'utf8')
+    /*
+     * القيد كما هو **آخر مرّة** كُتب، لا كما كُتب في ملفٍّ بعينه.
+     *
+     * كان الفحص مربوطاً باسم 0059، فأيّ ترحيل لاحق يوسّع القيد يُفشله
+     * على نوعٍ صار مسموحاً — والقيد يتحرّك بطبعه. فنقرأ آخر ترحيل
+     * يكتبه، بترتيب الأسماء وهو ترتيب التطبيق.
+     */
+    const dir = 'supabase/migrations'
+    const latest = readdirSync(dir)
+      .filter((f) => f.endsWith('.sql'))
+      .sort()
+      .map((f) => ({ f, src: readFileSync(join(dir, f), 'utf8') }))
+      .filter(({ src }) => src.includes('staff_events_event_type_check'))
+      .pop()
+    expect(latest, 'ما ثمّ ترحيل يضبط قيد staff_events.event_type').toBeTruthy()
+
+    const sql = latest!.src
     const missing = [...used].filter((t) => !sql.includes(`'${t}'`))
     expect(missing, 'نوع حدث تكتبه الشفرة ولا يقبله القيد = سطر يضيع بصمت').toEqual([])
   })

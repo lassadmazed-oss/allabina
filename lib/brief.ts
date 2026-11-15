@@ -80,6 +80,12 @@ export type Solution = {
 
 export type Brief = {
   headline: string
+  /**
+   * الميزانية التي بُنيت عليها الحوصلة — تُخرَج لأنّ الشاشات كانت
+   * تحسبها مرّة أخرى من score وحده، فتعرض «—» حيث تقول الحوصلة رقماً:
+   * الحساب هنا يرجع لقدرة التمويل إن غاب التنقيط.
+   */
+  budget: number
   summary: string[]
   strengths: string[]
   gaps: string[]
@@ -441,5 +447,5 @@ export function buildBrief(i: BriefInput): Brief {
     solutions.find((s) => blocking.includes(s.key)) ?? solutions.find((s) => s.tone === 'fix') ?? solutions[0]
   const nextStep = first ? `${first.title}: ${first.steps[0]}` : 'الاتّصال بالحريف وتثبيت موعد'
 
-  return { headline, summary, strengths, gaps, solutions, nextStep }
+  return { headline, budget, summary, strengths, gaps, solutions, nextStep }
 }
