@@ -4,6 +4,8 @@ import { db, getDelegations } from '@/lib/supabase/server'
 import { isolateNumbers } from '@/lib/format'
 import { publicStateOf } from '@/lib/public-state'
 import { getDictionary } from '@/lib/i18n'
+import Icon, { type IconName } from '@/components/admin/Icon'
+import { ColumnChart, Panel, Pill, StatCard, type Tone } from '@/components/admin/Ui'
 
 export const dynamic = 'force-dynamic'
 export const metadata = { title: 'لوحة القيادة — اللَّبنة' }
@@ -16,6 +18,25 @@ const TYPE_AR: Record<string, string> = {
   rent_to_own: 'إيجار منتهٍ بالتمليك',
   renovation: 'ترميم أو توسعة',
   other: 'أخرى',
+}
+
+/** إيكونة لكلّ نوع مشروع — الماكيتة B01 تضع واحدة على كلّ سطر */
+const TYPE_ICON: Record<string, IconName> = {
+  build_on_land: 'home',
+  land_and_house: 'home',
+  apartment: 'building',
+  economic: 'home',
+  rent_to_own: 'building',
+  renovation: 'wrench',
+  other: 'folder',
+}
+
+/** لون الشارة حسب الحالة — الذهبي لما ينتظرنا، والأخضر لما انتهى */
+const STATE_TONE: Record<string, Tone> = {
+  waiting: 'gold',
+  in_progress: 'blue',
+  resolved: 'green',
+  closed: 'gray',
 }
 
 /**
@@ -59,121 +80,143 @@ export default async function TableauPage() {
 
   const delegName = new Map(delegations.map((d) => [String(d.id), d.name_ar]))
 
-  const cards: { label: string; value: number; href: string; note?: string }[] = [
+  const cards: { label: string; value: number; href: string; icon: IconName; note?: string }[] = [
     {
       label: 'مطالب وصلت',
       value: requests.count ?? 0,
       href: '/admin',
+      icon: 'clipboard',
       note: (demo.count ?? 0) > 0 ? `و${demo.count} تجربة ما تتعدّش` : undefined,
     },
-    { label: 'عروض تستنّى الاعتماد', value: devisReview.count ?? 0, href: '/admin/approbations' },
-    { label: 'ورشات في التنفيذ', value: chantiers.count ?? 0, href: '/admin/chantiers' },
-    { label: 'تقارير تستنّى الاعتماد', value: reports.count ?? 0, href: '/admin/chantiers' },
+    {
+      label: 'عروض تستنّى الاعتماد',
+      value: devisReview.count ?? 0,
+      href: '/admin/approbations',
+      icon: 'file',
+    },
+    {
+      label: 'ورشات في التنفيذ',
+      value: chantiers.count ?? 0,
+      href: '/admin/chantiers',
+      icon: 'helmet',
+    },
+    {
+      label: 'تقارير تستنّى الاعتماد',
+      value: reports.count ?? 0,
+      href: '/admin/chantiers',
+      icon: 'check-circle',
+    },
   ]
 
   return (
-    <div className="mx-auto max-w-4xl px-4 py-8 sm:px-5 sm:py-10">
-      <h1 className="display text-lg font-semibold">لوحة القيادة</h1>
-      <p className="mt-1 text-sm text-muted">
+    <div className="mx-auto max-w-6xl px-4 py-6 sm:px-5 sm:py-8">
+      <p className="text-sm text-muted">
         مرحباً {staff.fullName} — الأعداد من المطالب الحقيقية، والتجارب مستبعدة.
       </p>
 
       {/* ── العدّادات ── */}
-      <ul className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+      <ul className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         {cards.map((c) => (
           <li key={c.label}>
-            <Link
+            <StatCard
+              label={c.label}
+              value={c.value}
+              icon={c.icon}
               href={c.href}
-              className="flex h-full flex-col rounded border border-line bg-surface p-4 transition hover:border-line-strong"
-            >
-              <span className="text-xs leading-6 text-muted">{c.label}</span>
-              <span className="num mt-1 text-3xl font-semibold">
-                {isolateNumbers(String(c.value))}
-              </span>
-              {c.note && <span className="mt-1 text-xs text-faint">{c.note}</span>}
-            </Link>
+              note={c.note}
+            />
           </li>
         ))}
       </ul>
 
-      <div className="mt-6 grid gap-4 lg:grid-cols-2">
+      <div className="mt-5 grid gap-4 lg:grid-cols-[1.35fr_1fr]">
         {/* ── آخر المطالب ── */}
-        <section className="rounded border border-line bg-surface p-4">
-          <div className="flex items-baseline justify-between gap-3">
-            <h2 className="text-sm font-semibold">آخر المطالب</h2>
-            <Link href="/admin" className="text-xs text-muted underline underline-offset-4">
-              شوفهم الكلّ
+        <Panel
+          title="آخر المطالب"
+          icon="clipboard"
+          action={
+            <Link
+              href="/admin"
+              className="shrink-0 text-xs text-muted underline underline-offset-4 hover:text-brand"
+            >
+              شوفهم الكلّ ←
             </Link>
-          </div>
-
+          }
+        >
           {(recent.data ?? []).length === 0 ? (
             <p className="mt-3 text-sm leading-7 text-muted">
               ما ثمّ مطلب حقيقي بعد. الموقع ما خرجش للناس، والتجارب ما تتعدّش.
             </p>
           ) : (
             <div className="mt-3 overflow-x-auto">
-              <table className="w-full min-w-[20rem] border-collapse text-sm">
+              <table className="w-full min-w-[24rem] border-collapse text-sm">
                 <thead>
-                  <tr>
-                    <th className="border-b border-line p-2 text-start text-xs text-faint">المشروع</th>
-                    <th className="border-b border-line p-2 text-start text-xs text-faint">المنطقة</th>
-                    <th className="border-b border-line p-2 text-start text-xs text-faint">الحالة</th>
+                  <tr className="bg-ground">
+                    <th className="rounded-s-lg p-2.5 text-start text-[11px] font-medium text-muted">
+                      المشروع
+                    </th>
+                    <th className="p-2.5 text-start text-[11px] font-medium text-muted">المنطقة</th>
+                    <th className="p-2.5 text-start text-[11px] font-medium text-muted">المرجع</th>
+                    <th className="rounded-e-lg p-2.5 text-start text-[11px] font-medium text-muted">
+                      الحالة
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
-                  {(recent.data ?? []).map((r) => (
-                    <tr key={String(r.id)}>
-                      <td className="border-b border-line p-2">
-                        <Link
-                          href={`/admin/${r.id}`}
-                          className="underline underline-offset-4"
-                        >
-                          {TYPE_AR[String(r.request_type)] ?? String(r.request_type)}
-                        </Link>
-                        <span className="num mt-0.5 block text-xs text-faint">
+                  {(recent.data ?? []).map((r) => {
+                    const state = publicStateOf(String(r.status))
+                    return (
+                      <tr key={String(r.id)} className="border-b border-line last:border-0">
+                        <td className="p-2.5">
+                          <Link
+                            href={`/admin/${r.id}`}
+                            className="flex items-center gap-2 font-medium hover:text-brand"
+                          >
+                            <span className="grid h-7 w-7 shrink-0 place-items-center rounded-lg bg-gold-soft text-gold">
+                              <Icon
+                                name={TYPE_ICON[String(r.request_type)] ?? 'folder'}
+                                className="h-4 w-4"
+                              />
+                            </span>
+                            <span className="truncate">
+                              {TYPE_AR[String(r.request_type)] ?? String(r.request_type)}
+                            </span>
+                          </Link>
+                        </td>
+                        <td className="p-2.5 text-muted">
+                          {delegName.get(String(r.delegation_id)) ?? '—'}
+                        </td>
+                        <td className="num p-2.5 text-xs text-faint">
                           {isolateNumbers(String(r.ref_code))}
-                        </span>
-                      </td>
-                      <td className="border-b border-line p-2 text-muted">
-                        {delegName.get(String(r.delegation_id)) ?? '—'}
-                      </td>
-                      <td className="border-b border-line p-2">
-                        <span className="rounded bg-surface-2 px-1.5 text-xs text-muted">
-                          {dict.suivi.states[publicStateOf(String(r.status))] ?? String(r.status)}
-                        </span>
-                      </td>
-                    </tr>
-                  ))}
+                        </td>
+                        <td className="p-2.5">
+                          <Pill tone={STATE_TONE[state] ?? 'gray'}>
+                            {dict.suivi.states[state] ?? String(r.status)}
+                          </Pill>
+                        </td>
+                      </tr>
+                    )
+                  })}
                 </tbody>
               </table>
             </div>
           )}
-        </section>
+        </Panel>
 
         {/* ── المطالب حسب النوع ── */}
-        <section className="rounded border border-line bg-surface p-4">
-          <h2 className="text-sm font-semibold">المطالب حسب النوع</h2>
-          <p className="mt-0.5 text-xs text-faint">معطيات داخلية</p>
-
+        <Panel
+          title="المطالب حسب النوع"
+          icon="chart"
+          note="معطيات داخلية — التجارب مستبعدة"
+        >
           {bars.length === 0 ? (
             <p className="mt-3 text-sm text-muted">ما ثمّ معطيات بعد.</p>
           ) : (
-            <ul className="mt-4 grid gap-2.5">
-              {bars.map(([k, v]) => (
-                <li key={k} className="flex items-center gap-2 text-sm">
-                  <span className="flex-1 truncate">{TYPE_AR[k] ?? k}</span>
-                  <span className="num text-xs text-muted">{isolateNumbers(String(v))}</span>
-                  <span className="h-2 w-28 rounded bg-surface-2">
-                    <span
-                      className="block h-2 rounded bg-gold"
-                      style={{ width: `${Math.round((v / maxBar) * 100)}%` }}
-                    />
-                  </span>
-                </li>
-              ))}
-            </ul>
+            <ColumnChart
+              data={bars.map(([k, v]) => ({ label: TYPE_AR[k] ?? k, value: v }))}
+            />
           )}
-        </section>
+        </Panel>
       </div>
     </div>
   )

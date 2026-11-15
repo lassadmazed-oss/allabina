@@ -5,7 +5,7 @@ import { logoutAction } from '@/lib/actions/auth'
 import { Suspense } from 'react'
 import SaveToast from '@/components/SaveToast'
 import NumericFocusSelect from '@/components/NumericFocusSelect'
-import BrandLogo from '@/components/BrandLogo'
+import AdminShell, { type ShellLink } from '@/components/admin/AdminShell'
 
 export const dynamic = 'force-dynamic'
 
@@ -17,84 +17,62 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   const staff = await getCurrentStaff()
   if (!staff) return <>{children}</>
 
-  const links: { href: string; label: string }[] = [
-    { href: '/admin/tableau', label: 'لوحة القيادة' },
-    { href: '/admin', label: 'المطالب' },
-    { href: '/admin/properties', label: 'العقارات' },
-    { href: '/admin/cases', label: 'الحالات المنجزة' },
-    { href: '/admin/support', label: 'المساندة' },
+  const links: ShellLink[] = [
+    { href: '/admin/tableau', label: 'لوحة القيادة', icon: 'grid' },
+    { href: '/admin', label: 'المطالب', icon: 'clipboard' },
+    { href: '/admin/properties', label: 'العقارات', icon: 'building' },
+    { href: '/admin/cases', label: 'الحالات المنجزة', icon: 'award' },
+    { href: '/admin/support', label: 'المساندة', icon: 'hands' },
   ]
   if (can(staff.role, 'requests.read')) {
-    links.push({ href: '/admin/chantiers', label: 'الورشات' })
+    links.push({ href: '/admin/chantiers', label: 'الورشات', icon: 'helmet' })
   }
   if (can(staff.role, 'docs.approve')) {
-    links.push({ href: '/admin/approbations', label: 'صندوق الموافقات' })
+    links.push({ href: '/admin/approbations', label: 'صندوق الموافقات', icon: 'check-circle' })
   }
   if (can(staff.role, 'network.read')) {
-    links.push({ href: '/admin/reseau', label: 'شبكة المتدخّلين' })
+    links.push({ href: '/admin/reseau', label: 'شبكة المتدخّلين', icon: 'users' })
   }
   if (can(staff.role, 'reference.manage')) {
-    links.push({ href: '/admin/systemes', label: 'طرق البناء' })
-    links.push({ href: '/admin/bordereau', label: 'البوردرو' })
-    links.push({ href: '/admin/produits', label: 'المنتجات' })
-    links.push({ href: '/admin/standing', label: 'مستويات التشطيب' })
-    links.push({ href: '/admin/regions', label: 'قواعد المناطق' })
-    links.push({ href: '/admin/partners', label: 'الشركاء' })
-    links.push({ href: '/admin/reference', label: 'المعطيات المرجعية' })
+    links.push({ href: '/admin/systemes', label: 'طرق البناء', icon: 'bricks' })
+    links.push({ href: '/admin/bordereau', label: 'البوردرو', icon: 'file' })
+    links.push({ href: '/admin/produits', label: 'المنتجات', icon: 'box' })
+    links.push({ href: '/admin/standing', label: 'مستويات التشطيب', icon: 'layers' })
+    links.push({ href: '/admin/regions', label: 'قواعد المناطق', icon: 'map' })
+    links.push({ href: '/admin/partners', label: 'الشركاء', icon: 'briefcase' })
+    links.push({ href: '/admin/reference', label: 'المعطيات المرجعية', icon: 'gear' })
   }
   if (can(staff.role, 'requests.export')) {
-    links.push({ href: '/admin/marche', label: 'الطلب الحقيقي' })
+    links.push({ href: '/admin/marche', label: 'الطلب الحقيقي', icon: 'chart' })
   }
-  if (can(staff.role, 'team.read')) links.push({ href: '/admin/team', label: 'الفريق' })
-  links.push({ href: '/admin/account', label: 'حسابي' })
+  if (can(staff.role, 'team.read')) links.push({ href: '/admin/team', label: 'الفريق', icon: 'users' })
+  links.push({ href: '/admin/account', label: 'حسابي', icon: 'user' })
+
+  const tools = can(staff.role, 'requests.export') ? (
+    <a
+      href="/admin/export"
+      className="hidden rounded-lg border border-line px-3 py-1.5 text-xs text-muted transition hover:border-line-strong sm:block"
+    >
+      تصدير CSV
+    </a>
+  ) : null
 
   return (
-    <>
-      <header className="border-b border-line bg-surface">
-        {/* أحد عشر رابطاً في صفّ واحد يفيضان عن شاشة تليفون بـ455 بكسل.
-            على التليفون: الشعار والهويّة في سطر، والتنقّل شريط يُسحب
-            بالإبهام في سطر تحته. من lg يعود الصفّ الواحد كما كان. */}
-        <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-x-4 gap-y-2 px-4 py-3 sm:px-5">
-          <Link href="/admin" className="order-1 flex min-h-11 items-center" aria-label="اللَّبنة">
-            <BrandLogo brand="اللَّبنة" sub="لوحة القيادة" size={36} />
-          </Link>
-
-          <nav className="order-3 -mx-4 flex w-[calc(100%+2rem)] items-center gap-1 overflow-x-auto px-4 pb-0.5 text-sm lg:order-2 lg:mx-0 lg:me-auto lg:w-auto lg:overflow-x-visible lg:px-0 lg:pb-0">
-            {links.map((l) => (
-              <Link
-                key={l.href}
-                href={l.href}
-                className="shrink-0 rounded px-2.5 py-1.5 whitespace-nowrap text-muted transition hover:bg-surface-2 hover:text-brand"
-              >
-                {l.label}
-              </Link>
-            ))}
-          </nav>
-
-          <div className="order-2 flex items-center gap-3 text-sm lg:order-3">
-            {can(staff.role, 'requests.export') && (
-              <a
-                href="/admin/export"
-                className="rounded border border-line px-3 py-1.5 text-muted transition hover:border-line-strong"
-              >
-                تصدير CSV
-              </a>
-            )}
-            <span className="flex items-center gap-2">
-              <span className="font-medium">{staff.fullName}</span>
-              <span className="rounded-full bg-brand-soft px-2.5 py-0.5 text-xs text-brand">
-                {ROLE_LABELS[staff.role]}
-              </span>
-            </span>
-            <form action={logoutAction}>
-              <button className="rounded border border-line px-3 py-1.5 text-muted transition hover:border-line-strong">
-                خروج
-              </button>
-            </form>
-          </div>
-        </div>
-      </header>
-
+    <AdminShell
+      links={links}
+      staffName={staff.fullName}
+      roleLabel={ROLE_LABELS[staff.role]}
+      tools={
+        <>
+          {tools}
+          <form action={logoutAction}>
+            <button className="rounded-lg border border-line px-3 py-1.5 text-xs text-muted transition hover:border-line-strong">
+              خروج
+            </button>
+          </form>
+        </>
+      }
+    >
       {staff.mustChangePassword && (
         <div className="border-b border-[#ecdcb8] bg-gold-soft">
           <div className="mx-auto max-w-7xl px-5 py-2.5 text-sm text-gold">
@@ -114,6 +92,6 @@ export default async function AdminLayout({ children }: { children: React.ReactN
       <Suspense fallback={null}>
         <SaveToast />
       </Suspense>
-    </>
+    </AdminShell>
   )
 }
