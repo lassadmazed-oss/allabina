@@ -760,6 +760,9 @@ const ar = {
       unitsShops: 'عدد المحلّات',
       height: 'الارتفاع (م)',
       span: 'أكبر بحر (م)',
+      finishTitle: 'الكاتالوج: اختيار التشطيبات (اختياري)',
+      finishNote: 'قلّنا شنوّة يهمّك، ونجيبولك الأسعار والخيارات في الدراسة. تنجّم تبدّل وقت تحبّ.',
+      finishCatalog: 'شوف الكاتالوج',
       scopeTitle: 'لوين تحبّنا نمشيو معاك؟',
       scopes: {
         structure: 'الهيكل',
@@ -1976,6 +1979,9 @@ const fr: Dictionary = {
       unitsShops: 'Nombre de locaux',
       height: 'Hauteur (m)',
       span: 'Portée max (m)',
+      finishTitle: 'Catalogue : choix de finitions (optionnel)',
+      finishNote: 'Dites-nous ce qui vous intéresse, nous apportons prix et options dans l’étude. Modifiable à tout moment.',
+      finishCatalog: 'Voir le catalogue',
       scopeTitle: 'Jusqu’où allons-nous avec vous ?',
       scopes: {
         structure: 'Gros œuvre',

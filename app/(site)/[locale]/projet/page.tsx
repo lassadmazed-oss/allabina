@@ -6,7 +6,7 @@ import { recordEvent } from '@/lib/analytics-server'
 import { budgetReach, configFromParams } from '@/lib/budget-server'
 import { SCOPES, neededFor, parseScope, type Coverage } from '@/lib/budget-reach'
 import { sketchOf } from '@/lib/sketch'
-import { getConstructionSystems, getDelegations } from '@/lib/supabase/server'
+import { db, getConstructionSystems, getDelegations } from '@/lib/supabase/server'
 import { getDictionary, isLocale, type Locale } from '@/lib/i18n'
 import { THIN_NBSP, formatMoney, isolateNumbers } from '@/lib/format'
 import Icon, { type IconName } from '@/components/Icon'
@@ -37,16 +37,22 @@ export async function generateMetadata({
 }
 
 
-const LOT_AR: Record<number, string> = {
-  10: 'الفرش والتغطية',
-  11: 'الألمنيوم',
-  12: 'النجارة الخشبية',
-  14: 'الدهن',
-}
 
 const TYPES = ['maison', 'immobilier', 'usine', 'commerce', 'renovation', 'autre'] as const
 
 const field = 'w-full rounded border border-line bg-surface px-3 py-2.5'
+
+/** إيكونة لكلّ لوط تشطيب — بأرقام اللوطات كما في البوردرو */
+const FINISH_ICON: Record<number, IconName> = {
+  10: 'layers',
+  11: 'ruler',
+  12: 'box',
+  13: 'wrench',
+  14: 'roller',
+  15: 'store',
+  16: 'layers',
+  17: 'sparkle',
+}
 
 /**
  * كوّن مشروعك — أربع خطوات.
@@ -95,7 +101,20 @@ export default async function ProjetPage({
    * قيمةً، والرسالة لا تُدفع إلّا عند مطلبٍ حقيقي.
    */
 
-  const [delegations, systems] = await Promise.all([getDelegations('SFX'), getConstructionSystems()])
+  const [delegations, systems, finishLots] = await Promise.all([
+    getDelegations('SFX'),
+    getConstructionSystems(),
+    // لوطات التشطيب الحقيقية (10→17) — لا قائمةٌ مكتوبة في الشفرة
+    step === 3 && scope === 'finish'
+      ? db
+          .from('lots')
+          .select('code, name_ar, name_fr')
+          .gte('code', 10)
+          .lte('code', 17)
+          .order('code')
+      : Promise.resolve({ data: [] as { code: number; name_ar: string; name_fr: string }[] }),
+  ])
+  const finishes = (sp.fin ?? '').split(',').filter(Boolean)
   const sketch = step >= 2 && drawsSketch(type) ? sketchOf(config) : null
   const answer = step >= 3 && hasBudget ? await budgetReach(config, budget, scope) : null
 
@@ -115,6 +134,7 @@ export default async function ProjetPage({
       bank: sp.bank,
       k: kind,
       sc: scope,
+      fin: sp.fin,
       u: sp.u,
       h: sp.h,
       sp: sp.sp,
@@ -435,7 +455,7 @@ export default async function ProjetPage({
           {/* صندوق الميزانية كما في الماكيتة F03: الرقم كبيرٌ لأنّه السؤال */}
           <form action={`/${locale}/projet`} className="mt-6">
             <input type="hidden" name="e" value="3" />
-            {carry(['type', 's', 'l', 'ch', 'sa', 'cu', 'sdb', 'del', 'tr', 'sys', 'k', 'u', 'h', 'sp', 'sc'])}
+            {carry(['type', 's', 'l', 'ch', 'sa', 'cu', 'sdb', 'del', 'tr', 'sys', 'k', 'u', 'h', 'sp', 'sc', 'fin'])}
             <div className="rounded-xl border-2 border-line bg-surface p-4">
               <label className="flex flex-wrap items-center gap-3">
                 <span className="flex items-center gap-2.5 text-sm font-medium">
@@ -462,6 +482,65 @@ export default async function ProjetPage({
               </button>
             </div>
           </form>
+
+          {/* ── الكاتالوج: اختيار التشطيبات (اختياري) — الماكيتة F03 ── */}
+          {(finishLots.data ?? []).length > 0 && (
+            <section className="mt-6 rounded-xl border border-line bg-surface p-4">
+              <div className="flex flex-wrap items-baseline justify-between gap-2">
+                <h2 className="flex items-center gap-1.5 text-sm font-semibold">
+                  <Icon name="layers" className="h-4 w-4 text-gold" />
+                  {t.finishTitle}
+                </h2>
+                <Link
+                  href={`/${locale}/catalogue`}
+                  className="text-xs text-muted underline underline-offset-4 hover:text-brand"
+                >
+                  {t.finishCatalog} ←
+                </Link>
+              </div>
+              <p className="mt-1 text-xs leading-6 text-faint">{t.finishNote}</p>
+
+              <ul className="mt-3 grid grid-cols-2 gap-2.5 sm:grid-cols-4">
+                {(finishLots.data ?? []).map((l) => {
+                  const code = String(l.code)
+                  const on = finishes.includes(code)
+                  const next = on ? finishes.filter((x) => x !== code) : [...finishes, code]
+                  return (
+                    <li key={code}>
+                      <Link
+                        href={href({ fin: next.join(',') || undefined, e: 3 })}
+                        aria-current={on ? 'true' : undefined}
+                        className={`relative flex h-full flex-col items-center rounded-lg border-2 p-2.5 text-center transition ${
+                          on
+                            ? 'border-brand bg-brand-soft'
+                            : 'border-line bg-surface hover:border-line-strong'
+                        }`}
+                      >
+                        {on && (
+                          <span
+                            className="absolute top-1.5 grid size-4 place-items-center rounded-full bg-brand text-white"
+                            style={{ insetInlineEnd: '0.375rem' }}
+                          >
+                            <Check className="h-2.5 w-2.5" width={4} />
+                          </span>
+                        )}
+                        <span
+                          className={`grid size-9 place-items-center rounded-lg ${
+                            on ? 'bg-brand text-white' : 'bg-gold-soft text-gold'
+                          }`}
+                        >
+                          <Icon name={FINISH_ICON[l.code] ?? 'layers'} className="h-4 w-4" />
+                        </span>
+                        <span className="mt-1.5 text-[11px] leading-4 font-medium">
+                          {locale === 'fr' ? l.name_fr || l.name_ar : l.name_ar}
+                        </span>
+                      </Link>
+                    </li>
+                  )
+                })}
+              </ul>
+            </section>
+          )}
 
           {answer && (
             <div className="mt-6">
@@ -542,27 +621,9 @@ export default async function ProjetPage({
             </div>
           )}
 
-          {/* الكاتالوج كفكرة لا كقرار: اختيار المواد يجي بعد الدراسة */}
-          <section className="mt-7 rounded border border-line bg-surface p-4">
-            <h2 className="text-sm font-semibold">{t.finishes}</h2>
-            <p className="mt-0.5 text-xs leading-6 text-faint">{t.finishesHint}</p>
-            <ul className="mt-3 flex flex-wrap gap-2">
-              {[10, 14, 11, 12].map((lot) => (
-                <li key={lot}>
-                  <Link
-                    href={`/${locale}/catalogue?lot=${lot}`}
-                    className="inline-block rounded border border-line px-3 py-1.5 text-sm text-muted transition hover:border-line-strong"
-                  >
-                    {LOT_AR[lot]}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </section>
-
           <form action={`/${locale}/projet`} className="mt-4">
             <input type="hidden" name="e" value="3" />
-            {carry(['type', 's', 'l', 'ch', 'sa', 'cu', 'sdb', 'del', 'tr', 'b', 'sys', 'k', 'u', 'h', 'sp', 'sc', 'sc'])}
+            {carry(['type', 's', 'l', 'ch', 'sa', 'cu', 'sdb', 'del', 'tr', 'b', 'sys', 'k', 'u', 'h', 'sp', 'sc', 'fin'])}
             <label className="flex items-center gap-2 text-sm">
               <input
                 type="checkbox"
@@ -725,6 +786,7 @@ export default async function ProjetPage({
                   sys: sp.sys ?? '',
                   k: kind,
                   sc: scope,
+                  fin: finishes.join(','),
                   u: sp.u ?? '',
                   h: sp.h ?? '',
                   sp: sp.sp ?? '',

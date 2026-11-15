@@ -89,6 +89,7 @@ function specsOf(f: FormData) {
     systemCode: String(f.get('sys') ?? '').trim() || null,
     kind: String(f.get('k') ?? '').trim() || null,
     scope: String(f.get('sc') ?? '').trim() || null,
+    finishes: String(f.get('fin') ?? '').split(',').filter(Boolean),
     units: Number(String(f.get('u') ?? '').replace(/[^\d]/g, '')) || null,
     heightM: Number(String(f.get('h') ?? '').replace(',', '.')) || null,
     spanM: Number(String(f.get('sp') ?? '').replace(',', '.')) || null,
@@ -325,6 +326,7 @@ async function createFromComposer(
           s.units ? `عدد الوحدات: ${s.units}` : '',
           s.heightM ? `الارتفاع: ${s.heightM} م` : '',
           s.spanM ? `أكبر بحر: ${s.spanM} م` : '',
+          s.finishes.length ? `تشطيبات تهمّه (لوطات): ${s.finishes.join(' · ')}` : '',
         ]
           .filter(Boolean)
           .join(' · ') || null,

@@ -1,5 +1,6 @@
 import Link from 'next/link'
-import Icon, { type IconName } from '@/components/Icon'
+import type { IconName } from '@/components/Icon'
+import ProjectArt from '@/components/ProjectArt'
 import { PROJECT_TYPES, type ProjectType as ProjectTypeKey } from '@/lib/project-kind'
 
 /**
@@ -61,12 +62,11 @@ export default function ProjectTypeCards({
                   <Check className="h-3 w-3" width={3.5} />
                 </span>
               )}
+              {/* رسمٌ ملوّن لا أيقونة خطّية: الخطّ الرفيع يقول «أيقونة»، والرسم يقول «هذا أنت» */}
               <span
-                className={`grid size-12 place-items-center rounded-xl ${
-                  on ? 'bg-brand text-white' : 'bg-gold-soft text-gold'
-                }`}
+                className={`grid size-14 place-items-center rounded-xl ${on ? 'bg-brand-soft' : 'bg-ground'}`}
               >
-                <Icon name={PROJECT_TYPE_ICON[k]} className="h-6 w-6" />
+                <ProjectArt name={k} className="h-9 w-9" />
               </span>
               <span className="mt-2.5 font-semibold">{names[k] ?? k}</span>
               {!compact && hints?.[k] && (
